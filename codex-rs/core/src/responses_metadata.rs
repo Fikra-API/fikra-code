@@ -1,3 +1,4 @@
+use codex_protocol::RequestCountry;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::io::ErrorKind;
@@ -237,6 +238,8 @@ pub(crate) enum TurnToolSource {
 /// truth.
 #[derive(Clone, Debug)]
 pub struct CodexResponsesMetadata {
+    /// Trusted country captured for this request.
+    pub(crate) request_country: RequestCountry,
     /// The private reviewer forwards recorded items through its parent's raw-event subscription.
     pub(crate) guardian_recorded_items: bool,
     /// Guardian parent reference; projected only onto a Guardian request.
@@ -288,6 +291,7 @@ impl CodexResponsesMetadata {
         window_id: String,
     ) -> Self {
         Self {
+            request_country: RequestCountry::default(),
             parent_response_id: None,
             parent_routing_affinity: None,
             guardian_recorded_items: false,

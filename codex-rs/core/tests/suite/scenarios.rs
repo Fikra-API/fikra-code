@@ -9,6 +9,7 @@ mod multi_environment_mcp;
 use super::image_rollout::RecordingFileAttachmentStore;
 use super::permissions_messages::PermissionPathScenario;
 use codex_attachment_store::AttachmentStoreErrorKind;
+use codex_core::RequestCountry;
 use codex_protocol_test_support::ContentItemTestExt;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -3773,6 +3774,7 @@ async fn async_compaction_image_checks_do_not_block_turn_completion() -> Result<
     let test = test_codex()
         .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
         .with_image_store(image_store.clone())
+        .with_request_country(RequestCountry::from_iso_code("DE")?)
         .with_config(move |config| {
             configure_scenario_catalog(config);
             config.model_provider.base_url = Some(base_url);
@@ -3797,8 +3799,26 @@ async fn async_compaction_image_checks_do_not_block_turn_completion() -> Result<
             },
         ]))
         .await?;
+    let turn_id = wait_for_event_match(&test.codex, |event| match event {
+        EventMsg::TurnStarted(event) => Some(event.turn_id.clone()),
+        _ => None,
+    })
+    .await;
     // Release the sampling lookup, then expire the file before its response finishes.
     barrier.wait().await;
+    streaming.wait_for_request_count(/*count*/ 1).await;
+    let (reply, outcome) = oneshot::channel();
+    test.codex
+        .submit(Op::TurnSettings {
+            turn_id,
+            update: TurnSettingsUpdate {
+                request_country: Some(RequestCountry::from_iso_code("US").unwrap()),
+                ..Default::default()
+            },
+            reply,
+        })
+        .await?;
+    assert_eq!(outcome.await?, TurnSettingsUpdateOutcome::Applied);
     image_store
         .resolve_errors
         .lock()
@@ -3814,6 +3834,12 @@ async fn async_compaction_image_checks_do_not_block_turn_completion() -> Result<
     .await;
     assert_eq!(streaming.requests().await.len(), 1);
 
+    test.codex
+        .update_thread_settings(codex_protocol::protocol::ThreadSettingsOverrides {
+            request_country: Some(RequestCountry::from_iso_code("JP").unwrap()),
+            ..Default::default()
+        })
+        .await?;
     // The turn completed without releasing the optional compaction lookup.
     barrier.wait().await;
     tokio::time::timeout(
@@ -3828,6 +3854,17 @@ async fn async_compaction_image_checks_do_not_block_turn_completion() -> Result<
         .map(|body| serde_json::from_slice::<serde_json::Value>(body))
         .collect::<serde_json::Result<Vec<_>>>()?;
     assert_eq!(requests.len(), 2);
+    // Compaction keeps the sampling step's country despite live and future settings updates.
+    assert_eq!(
+        requests
+            .iter()
+            .map(|request| request.get("request_country"))
+            .collect::<Vec<_>>(),
+        vec![
+            Some(&serde_json::json!("DE")),
+            Some(&serde_json::json!("DE"))
+        ]
+    );
     assert_eq!(
         *image_store.resolves.lock().expect("resolves lock"),
         HashMap::from([("file_expiring".to_string(), 2)])
