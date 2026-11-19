@@ -18,6 +18,8 @@ jobs:
     env:
       CARGO_INCREMENTAL: "0"
       CARGO_PROFILE_RELEASE_DEBUG: "0"
+      CARGO_PROFILE_RELEASE_LTO: "off"
+      CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1"
     steps:
       - name: Free disk space
         run: |
