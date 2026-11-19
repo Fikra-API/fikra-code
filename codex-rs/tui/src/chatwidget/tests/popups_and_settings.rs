@@ -277,7 +277,7 @@ async fn plugins_popup_truncates_long_descriptions_in_list_rows() {
         .expect("expected verbose plugin row in popup");
     insta::assert_snapshot!(
         verbose_row,
-        @"  [-] Verbose Plugin  Available · OpenAI Curated · This description k…"
+        @"  [-] Verbose Plugin  Available · Fikra Curated · This description k…"
     );
     assert!(
         !popup
@@ -778,7 +778,7 @@ async fn plugin_detail_popup_distinguishes_admin_installed_from_enabled() {
             .find(|line| line.contains("Figma ·"))
             .expect("expected plugin detail header")
             .trim(),
-        @"Figma · Enabled by Admin · ChatGPT Marketplace"
+        @"Figma · Enabled by Admin · Fikra Marketplace"
     );
 }
 
@@ -1043,7 +1043,7 @@ async fn plugin_detail_popup_shows_local_share_context_as_read_only_snapshot() {
             remote_plugin_id: "plugins~Plugin_docs".to_string(),
             remote_version: Some("7".to_string()),
             discoverability: Some(PluginShareDiscoverability::Private),
-            share_url: Some("https://chatgpt.com/codex/plugins/share/docs".to_string()),
+            share_url: Some("https://fikraapi.co.ke/codex/plugins/share/docs".to_string()),
             creator_account_user_id: None,
             creator_name: Some("Test User".to_string()),
             share_principals: None,
@@ -1113,7 +1113,7 @@ async fn plugin_detail_popup_shows_admin_disabled_status_snapshot() {
         .expect("expected admin-disabled status row");
     insta::assert_snapshot!(
         status_row,
-        @"  Admin Blocked · Disabled by admin · ChatGPT Marketplace"
+        @"  Admin Blocked · Disabled by admin · Fikra Marketplace"
     );
     assert!(
         popup.contains("This plugin is disabled by your workspace admin")
@@ -1248,7 +1248,7 @@ async fn plugins_popup_remote_section_fallback_states_when_remote_plugin_disable
         ])),
     );
     let curated_loading_popup =
-        select_tab_containing(&mut chat, "Loading OpenAI Curated plugins...");
+        select_tab_containing(&mut chat, "Loading Fikra Curated plugins...");
     let workspace_loading_popup = select_tab_containing(&mut chat, "Loading Workspace plugins.");
     let shared_loading_popup = select_tab_containing(&mut chat, "Loading Shared with me plugins.");
     let _ = select_tab_containing(&mut chat, "Loading Workspace plugins.");
@@ -1267,7 +1267,7 @@ async fn plugins_popup_remote_section_fallback_states_when_remote_plugin_disable
         vec![crate::app_event::PluginRemoteSectionError {
             section_id: "workspace".to_string(),
             label: "Workspace".to_string(),
-            message: "Sign in to ChatGPT to load workspace plugins.".to_string(),
+            message: "Sign in to Fikra to load workspace plugins.".to_string(),
         }],
     );
     let workspace_error_popup = select_tab_containing(&mut chat, "Workspace unavailable.");
@@ -1283,7 +1283,7 @@ async fn plugins_popup_remote_section_fallback_states_when_remote_plugin_disable
         ])),
     );
     let remote_curated_empty_popup =
-        select_tab_containing(&mut remote_chat, "No OpenAI Curated plugins available");
+        select_tab_containing(&mut remote_chat, "No Fikra Curated plugins available");
 
     insta::assert_snapshot!(
         [
@@ -1295,8 +1295,8 @@ async fn plugins_popup_remote_section_fallback_states_when_remote_plugin_disable
         ]
         .join("\n\n"),
         @r"
-    OpenAI Curated marketplace.
-    Loading OpenAI Curated plugins...  This updates when OpenAI Curated plugins finish loading
+    Fikra Curated marketplace.
+    Loading Fikra Curated plugins...  This updates when Fikra Curated plugins finish loading
 
     Loading Workspace plugins.
     Loading Workspace plugins...  This updates when workspace plugins finish loading
@@ -1305,10 +1305,10 @@ async fn plugins_popup_remote_section_fallback_states_when_remote_plugin_disable
     Loading Shared with me plugins...  This updates when shared plugins finish loading
 
     Workspace unavailable.
-    Workspace unavailable  Sign in to ChatGPT to load workspace plugins.
+    Workspace unavailable  Sign in to Fikra to load workspace plugins.
 
-    OpenAI Curated marketplace.
-    No OpenAI Curated plugins available  No OpenAI Curated plugins available
+    Fikra Curated marketplace.
+    No Fikra Curated plugins available  No Fikra Curated plugins available
     "
     );
 }
@@ -1998,15 +1998,15 @@ async fn plugins_popup_openai_curated_tab_omits_marketplace_in_rows() {
 
     let popup = render_bottom_popup(&chat, /*width*/ 100);
     assert!(
-        popup.contains("OpenAI Curated marketplace."),
-        "expected OpenAI Curated tab header, got:\n{popup}"
+        popup.contains("Fikra Curated marketplace."),
+        "expected Fikra Curated tab header, got:\n{popup}"
     );
     assert!(
         popup.contains("Calendar") && !popup.contains("Repo Plugin"),
-        "expected OpenAI Curated tab to show only official marketplace plugins, got:\n{popup}"
+        "expected Fikra Curated tab to show only official marketplace plugins, got:\n{popup}"
     );
     assert!(
-        !popup.contains("ChatGPT Marketplace ·"),
+        !popup.contains("Fikra Marketplace ·"),
         "expected marketplace-specific rows to omit marketplace labels, got:\n{popup}"
     );
 }
@@ -2783,7 +2783,7 @@ async fn apps_popup_keeps_existing_full_snapshot_while_partial_refresh_loads() {
                 },
                 AppInfo {
                     id: "connector_openai_hidden".to_string(),
-                    name: "Hidden OpenAI".to_string(),
+                    name: "Hidden Fikra".to_string(),
                     description: Some("Should be filtered".to_string()),
                     logo_url: None,
                     logo_url_dark: None,
@@ -2814,7 +2814,7 @@ async fn apps_popup_keeps_existing_full_snapshot_while_partial_refresh_loads() {
         "expected popup to keep the last full snapshot while partial refresh loads, got:\n{popup}"
     );
     assert!(
-        !popup.contains("Hidden OpenAI"),
+        !popup.contains("Hidden Fikra"),
         "expected popup to ignore partial refresh rows until the full list arrives, got:\n{popup}"
     );
 }
@@ -3109,7 +3109,7 @@ async fn experimental_features_popup_snapshot() {
             key: "voice_conversations".to_string(),
             writable: true,
             name: "Voice conversations".to_string(),
-            description: "Talk with Codex using /voice.".to_string(),
+            description: "Talk with Fikra Code using /voice.".to_string(),
             enabled: false,
         },
     ];
@@ -3219,7 +3219,7 @@ async fn experimental_popup_available_snapshot() {
     };
     let features = [
         ("network_proxy", "Network proxy", "Apply network proxy restrictions to sandboxed sessions that already have network access."),
-        ("prevent_idle_sleep", "Prevent sleep while running", "Keep your computer awake while Codex is running a thread."),
+        ("prevent_idle_sleep", "Prevent sleep while running", "Keep your computer awake while Fikra Code is running a thread."),
     ]
     .into_iter()
     .map(|(name, display_name, description)| codex_app_server_protocol::ExperimentalFeature {
@@ -3297,7 +3297,7 @@ async fn memories_reset_confirmation_snapshot() {
     assert_chatwidget_snapshot!("memories_reset_confirmation", popup);
 
     chat.handle_key_event(KeyEvent::from(KeyCode::Esc));
-    assert!(render_bottom_popup(&chat, /*width*/ 80).contains("Choose how Codex uses"));
+    assert!(render_bottom_popup(&chat, /*width*/ 80).contains("Choose how Fikra Code uses"));
     chat.handle_key_event(KeyEvent::from(KeyCode::Esc));
     assert!(chat.no_modal_or_popup_active());
 }

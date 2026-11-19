@@ -44,7 +44,7 @@ pub fn get_upgrade_version(config: &Config) -> Option<String> {
         tokio::spawn(async move {
             check_for_update(&version_file, action, http_client_factory)
                 .await
-                .inspect_err(|e| tracing::error!("Failed to update version: {e}"))
+                .inspect_err(|e| tracing::debug!("Failed to update version: {e}"))
         });
     }
 
@@ -59,7 +59,8 @@ pub fn get_upgrade_version(config: &Config) -> Option<String> {
 
 // We use the latest version from the cask if installation is via homebrew - homebrew does not immediately pick up the latest release and can lag behind.
 const HOMEBREW_CASK_API_URL: &str = "https://formulae.brew.sh/api/cask/codex.json";
-const LATEST_RELEASE_URL: &str = "https://api.github.com/repos/openai/codex/releases/latest";
+const LATEST_RELEASE_URL: &str =
+    "https://api.github.com/repos/Fikra-API/fikra-code/releases/latest";
 
 #[derive(Deserialize, Debug, Clone)]
 struct ReleaseInfo {

@@ -35,12 +35,12 @@ impl ChatWidget {
         header.push(*Box::new(
             crate::terminal_hyperlinks::HyperlinkText::new(if allow_unelevated {
                 vec![
-                    line!["Set up the Codex agent sandbox to protect your files and control network access. Learn more <https://developers.openai.com/codex/windows>"],
+                    line!["Set up the Fikra Code agent sandbox to protect your files and control network access. Learn more <https://developers.fikraapi.co.ke/codex/windows>"],
                 ]
             } else {
                 vec![
-                    line!["Your organization requires the default Codex agent sandbox to continue. Set it up to protect your files and control network access."],
-                    line!["Learn more <https://developers.openai.com/codex/windows>"],
+                    line!["Your organization requires the default Fikra Code agent sandbox to continue. Set it up to protect your files and control network access."],
+                    line!["Learn more <https://developers.fikraapi.co.ke/codex/windows>"],
                 ]
             }),
         ));
@@ -157,15 +157,15 @@ impl ChatWidget {
         lines.push(line![""]);
         if allow_unelevated {
             lines.push(line![
-                "You can still use Codex in a non-admin sandbox. It carries greater risk if prompt injected."
+                "You can still use Fikra Code in a non-admin sandbox. It carries greater risk if prompt injected."
             ]);
         } else {
             lines.push(line![
-                "Your organization requires the default sandbox before Codex can continue."
+                "Your organization requires the default sandbox before Fikra Code can continue."
             ]);
         }
         lines.push(line![
-            "Learn more <https://developers.openai.com/codex/windows>"
+            "Learn more <https://developers.fikraapi.co.ke/codex/windows>"
         ]);
 
         let mut header = ColumnRenderable::new();
@@ -209,7 +209,7 @@ impl ChatWidget {
         };
         if allow_unelevated {
             items.push(SelectionItem {
-                name: "Use Codex with non-admin sandbox".to_string(),
+                name: "Use Fikra Code with non-admin sandbox".to_string(),
                 description: None,
                 actions: vec![Box::new({
                     let otel = self.session_telemetry.clone();

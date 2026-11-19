@@ -1,4 +1,4 @@
-//! Codex App directives embedded in assistant markdown.
+//! Fikra Code App directives embedded in assistant markdown.
 //!
 //! Preserve whitespace on unchanged lines: Markdown hard breaks and code can depend on it.
 

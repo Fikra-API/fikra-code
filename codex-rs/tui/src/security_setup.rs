@@ -1,4 +1,4 @@
-//! Optional account-security reminders for the local, ChatGPT-authenticated CLI.
+//! Optional account-security reminders for the local, Fikra-authenticated CLI.
 //! The server owns eligibility, rollout and cutoff copy. Reads never block a turn;
 //! no reminder analytics are sent. Unknown or unavailable state produces no notice.
 
@@ -52,7 +52,7 @@ impl Notice {
             && !self.action.label.chars().any(char::is_control)
             && url::Url::parse(&self.action.url).is_ok_and(|url| {
                 url.scheme() == "https"
-                    && url.host_str() == Some("chatgpt.com")
+                    && url.host_str() == Some("fikraapi.co.ke")
                     && url.username().is_empty()
                     && url.password().is_none()
                     && url.port().is_none()

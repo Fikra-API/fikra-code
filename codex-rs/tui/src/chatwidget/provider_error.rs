@@ -21,7 +21,7 @@ impl ChatWidget {
                 let provider = provider_name(model_provider);
                 let current = provider_name(current_model_provider);
                 format!(
-                    "This chat uses {provider}, but Codex now uses {current}, so this chat is read-only."
+                    "This chat uses {provider}, but Fikra Code now uses {current}, so this chat is read-only."
                 )
             }
             ModelProviderError::ModelProviderNotConfigured { model_provider } => {

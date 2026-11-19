@@ -235,7 +235,7 @@ pub(crate) fn feedback_consent_params(
     });
 
     let disclosure = if can_save {
-        "Saving a ZIP does not submit feedback to OpenAI.\nFiles may contain prompts, commands, and tool output:"
+        "Saving a ZIP does not submit feedback to Fikra.\nFiles may contain prompts, commands, and tool output:"
     } else {
         "Files may contain prompts, commands, and tool output:"
     };

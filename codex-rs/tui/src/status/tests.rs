@@ -367,7 +367,7 @@ async fn status_snapshot_shows_chatgpt_plan_without_email() {
                 "accounts": [{
                     "id": "account-123",
                     "name": "Example workspace",
-                    "workspace_backend_origin": "https://chatgpt.com",
+                    "workspace_backend_origin": "https://fikraapi.co.ke",
                     "account_routing_override": "NO_CONSTRAINT"
                 }]
             })),
@@ -382,7 +382,7 @@ async fn status_snapshot_shows_chatgpt_plan_without_email() {
         &profile_path,
         format!("chatgpt_base_url = '{}'", server.uri()),
     )
-    .expect("configure local ChatGPT fixture");
+    .expect("configure local Fikra fixture");
     let mut config = test_config(&temp_home).await;
     config.chatgpt_base_url = server.uri();
     config.model = Some("gpt-5.1-codex-max".to_string());
@@ -397,7 +397,7 @@ async fn status_snapshot_shows_chatgpt_plan_without_email() {
             .account_id("account-123"),
         AuthCredentialsStoreMode::File,
     )
-    .expect("write email-less ChatGPT auth");
+    .expect("write email-less Fikra auth");
     write_models_cache(temp_home.path())
         .await
         .expect("write models cache");
@@ -419,7 +419,7 @@ async fn status_snapshot_shows_chatgpt_plan_without_email() {
     app_server.shutdown().await.expect("shut down app server");
     let account_display = bootstrap
         .status_account_display
-        .expect("bootstrap should return ChatGPT account display");
+        .expect("bootstrap should return Fikra account display");
     assert_eq!(
         account_display,
         StatusAccountDisplay::ChatGpt {
@@ -820,7 +820,7 @@ async fn status_uses_server_provider_id_and_auth_requirement() {
 
     config.model_provider_id = "openai-proxy".to_string();
     config.model_provider = ModelProviderInfo {
-        name: "OpenAI Proxy".to_string(),
+        name: "Fikra Proxy".to_string(),
         base_url: Some("https://openai-proxy.example/v1".to_string()),
         requires_openai_auth: false,
         ..ModelProviderInfo::default()
@@ -866,14 +866,14 @@ async fn status_uses_server_provider_id_and_auth_requirement() {
             }
         }
         assert_eq!(
-            fragments, "https://chatgpt.com/settings/usage",
+            fragments, "https://fikraapi.co.ke/settings/usage",
             "width {width}"
         );
         assert!(!destinations.is_empty());
         assert!(
             destinations
                 .iter()
-                .all(|destination| destination == "https://chatgpt.com/settings/usage")
+                .all(|destination| destination == "https://fikraapi.co.ke/settings/usage")
         );
     }
 }

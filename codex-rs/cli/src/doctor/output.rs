@@ -79,7 +79,7 @@ pub(super) fn render_human_report(report: &DoctorReport, options: HumanOutputOpt
     let _ = writeln!(
         out,
         "{} {}",
-        bold("Codex Doctor", options),
+        bold("Fikra Code Doctor", options),
         dim(&header_suffix(report), options)
     );
     out.push('\n');
@@ -635,7 +635,7 @@ fn auth_reachability_note(report: &DoctorReport) -> Option<DoctorNote> {
         return Some(DoctorNote {
             status: DisplayStatus::Warning,
             name: "auth".to_string(),
-            summary: "mixed auth signals: ChatGPT login plus API key env var; HTTP reachability uses API-key mode".to_string(),
+            summary: "mixed auth signals: Fikra login plus API key env var; HTTP reachability uses API-key mode".to_string(),
         });
     }
     None

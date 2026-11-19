@@ -3640,16 +3640,16 @@ async fn reopen_saved_side_chat(during: DuringOpen) -> Result<()> {
 
     let reply = format!(
         "<send_user_message_question_reply>{}</send_user_message_question_reply>",
-        serde_json::json!({"questionItemId": "choice", "question": "Which branch?", "answer": "Keep ## My request for Codex: literal"})
+        serde_json::json!({"questionItemId": "choice", "question": "Which branch?", "answer": "Keep ## My request for Fikra Code: literal"})
     );
     for (prompt, expected) in [
         (
-            "# Context\n## My request for Codex:\nOld context\n## My request for Codex:\nActual request",
+            "# Context\n## My request for Fikra Code:\nOld context\n## My request for Fikra Code:\nActual request",
             "Actual request",
         ),
         (
             reply.as_str(),
-            "> Which branch? Keep ## My request for Codex: literal",
+            "> Which branch? Keep ## My request for Fikra Code: literal",
         ),
     ] {
         side_chat_policy_tests::ask(&mut server, &model, sibling, prompt).await?;
@@ -6367,7 +6367,7 @@ default_permissions = "locked-down"
     );
     let op = match app_event_rx.try_recv() {
         Ok(AppEvent::CodexOp(op)) => op,
-        other => panic!("expected CodexOp event, got {other:?}"),
+        other => panic!("expected Fikra CodeOp event, got {other:?}"),
     };
     assert_eq!(
         op,
@@ -9122,7 +9122,7 @@ async fn ctrl_l_preserves_the_transcript_and_draft_after_clearing_the_screen() -
     let compact = transcript_composer::buffer_text(
         crate::custom_terminal::test_support::last_rendered_buffer(&tui.terminal),
     );
-    assert!(compact.contains("OpenAI Codex"));
+    assert!(compact.contains("Fikra Code"));
     assert!(compact.contains("New exchange"));
     assert!(!compact.contains("Earlier exchange"));
     let ctrl_t = KeyEvent::new(KeyCode::Char('t'), KeyModifiers::CONTROL);
