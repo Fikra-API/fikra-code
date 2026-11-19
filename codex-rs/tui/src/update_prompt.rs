@@ -39,7 +39,7 @@ use ratatui::widgets::Wrap;
 #[cfg(not(debug_assertions))]
 use tokio_stream::StreamExt;
 
-const RELEASE_NOTES_URL: &str = "https://github.com/openai/codex/releases/latest";
+const RELEASE_NOTES_URL: &str = "https://github.com/Fikra-API/fikra-code/releases/latest";
 
 #[cfg(not(debug_assertions))]
 pub(crate) enum UpdatePromptOutcome {
@@ -229,6 +229,15 @@ impl WidgetRef for &UpdatePromptScreen {
                 "Release notes: ".dim(),
                 RELEASE_NOTES_URL.dim().underlined(),
             ]))
+            .wrap(Wrap { trim: false })
+            .inset(Insets::vh(/*v*/ 0, /*h*/ 2)),
+        );
+        column.push(
+            /*flex*/ 1,
+            Paragraph::new(vec![
+                Line::from("Linux/macOS: curl -fsSL https://fikraapi.co.ke/code/install.sh | sh".dim()),
+                Line::from("Windows: irm https://fikraapi.co.ke/code/install.ps1 | iex".dim()),
+            ])
             .wrap(Wrap { trim: false })
             .inset(Insets::vh(/*v*/ 0, /*h*/ 2)),
         );

@@ -754,6 +754,7 @@ pub const DEFAULT_OLLAMA_PORT: u16 = 11434;
 
 pub const LMSTUDIO_OSS_PROVIDER_ID: &str = "lmstudio";
 pub const OLLAMA_OSS_PROVIDER_ID: &str = "ollama";
+pub const FIKRA_PROVIDER_ID: &str = "fikra";
 
 /// Built-in default provider list.
 pub fn built_in_model_providers(
@@ -765,10 +766,18 @@ pub fn built_in_model_providers(
     let amazon_bedrock_runtime_provider =
         P::create_amazon_bedrock_runtime_provider(/*aws*/ None);
     let gcp_provider = P::create_gcp_provider();
+    let fikra_provider = P {
+        name: "Fikra".into(),
+        base_url: Some("https://fikraapi.co.ke/v1".into()),
+        model_catalog_url: Some("https://fikraapi.co.ke/v1/codex/models".into()),
+        env_key: Some("FIKRA_API_KEY".into()),
+        ..Default::default()
+    };
 
-    // Bundle OpenAI, supported cloud-hosted OpenAI backends, and local OSS providers.
+    // Bundle OpenAI, supported cloud-hosted OpenAI backends, Fikra, and local OSS providers.
     // Other compatible providers can be added through `model_providers` in config.toml.
     [
+        (FIKRA_PROVIDER_ID, fikra_provider),
         (OPENAI_PROVIDER_ID, openai_provider),
         (AMAZON_BEDROCK_PROVIDER_ID, amazon_bedrock_provider),
         (GCP_PROVIDER_ID, gcp_provider),

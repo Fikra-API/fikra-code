@@ -38,7 +38,7 @@ use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 
 const GOV_CLOUD_GUIDANCE_URL: &str =
-    "https://learn.chatgpt.com/docs/enterprise/govcloud-configuration";
+    "https://learn.fikraapi.co.ke/docs/enterprise/govcloud-configuration";
 
 #[derive(Clone)]
 pub(super) struct BedrockState {
@@ -358,9 +358,9 @@ impl BedrockState {
         let mut footer = Vec::new();
         match &self.view {
             BedrockView::GovCloudWarning(_) => {
-                lines = vec!["Using Codex with AWS GovCloud".bold().into(), "".into()];
+                lines = vec!["Using Fikra Code with AWS GovCloud".bold().into(), "".into()];
                 lines.push(Line::from(vec![
-                    "You are using Codex with AWS GovCloud. Please ensure you or your administrator have read the ".into(),
+                    "You are using Fikra Code with AWS GovCloud. Please ensure you or your administrator have read the ".into(),
                     "application configuration and security guidance"
                         .cyan()
                         .underlined(),
@@ -454,7 +454,7 @@ impl BedrockState {
                 lines.push("".into());
                 lines.push(Line::from(vec![
                     "  Setup guide: ".into(),
-                    "https://learn.chatgpt.com/docs/amazon-bedrock"
+                    "https://learn.fikraapi.co.ke/docs/amazon-bedrock"
                         .cyan()
                         .underlined(),
                 ]));

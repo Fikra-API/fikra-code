@@ -2197,7 +2197,7 @@ async fn read_only_history_hides_the_statusline_until_interactive_resume() -> Re
     assert!(app.chat_widget.statusline_state().is_none());
     let footer = render_bottom_popup(&app.chat_widget, /*width*/ 100);
     insta::assert_snapshot!(footer, @r"
-    › Ask Codex to do anything
+    › Ask Fikra Code to do anything
 
       ? for shortcuts
     ");
@@ -4760,7 +4760,7 @@ async fn underfilled_scrollback_fetches_older_pages_without_opening_the_transcri
         overlay.set_highlight_cell(Some(0));
         let partial = render_overlay(overlay);
         assert!(partial.contains("Earlier messages available."));
-        assert!(!partial.contains("OpenAI Codex"));
+        assert!(!partial.contains("Fikra Code"));
         assert!(!partial.contains("This is a test announcement"));
         assert!(!partial.contains('%'));
 
@@ -4770,7 +4770,7 @@ async fn underfilled_scrollback_fetches_older_pages_without_opening_the_transcri
         )?;
         let loading = render_overlay(overlay);
         assert!(loading.contains("Loading earlier messages…"));
-        assert!(!loading.contains("OpenAI Codex"));
+        assert!(!loading.contains("Fikra Code"));
         assert!(!loading.contains('%'));
     } else {
         panic!("expected transcript overlay");

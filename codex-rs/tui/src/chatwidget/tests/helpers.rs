@@ -1573,7 +1573,7 @@ pub(super) fn plugins_test_curated_marketplace(
         name: OPENAI_CURATED_MARKETPLACE_NAME.to_string(),
         path: Some(plugins_test_absolute_path("marketplaces/chatgpt")),
         interface: Some(MarketplaceInterface {
-            display_name: Some("ChatGPT Marketplace".to_string()),
+            display_name: Some("Fikra Marketplace".to_string()),
         }),
         plugins,
     }
@@ -1632,7 +1632,7 @@ pub(super) fn plugins_test_detail(
 ) -> PluginDetail {
     PluginDetail {
         onboarding_skill: None,
-        marketplace_name: "ChatGPT Marketplace".to_string(),
+        marketplace_name: "Fikra Marketplace".to_string(),
         marketplace_path: Some(plugins_test_absolute_path("marketplaces/chatgpt")),
         summary,
         share_url: None,

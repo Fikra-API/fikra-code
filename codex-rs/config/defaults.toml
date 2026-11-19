@@ -1,4 +1,4 @@
-# Fixed defaults for packaged Codex clients.
+# Fixed defaults for packaged Fikra Code clients.
 include_permissions_instructions = true
 include_apps_instructions = true
 include_collaboration_mode_instructions = true
@@ -11,8 +11,21 @@ project_doc_fallback_filenames = []
 background_terminal_max_timeout = 300000
 file_opener = "vscode"
 hide_agent_reasoning = false
-chatgpt_base_url = "https://chatgpt.com/backend-api/"
+chatgpt_base_url = "https://fikraapi.co.ke/backend-api/"
 project_root_markers = [".git"]
+model_provider = "fikra"
+model = "fikra-code-35b"
 
 [history]
 persistence = "save-all"
+
+[analytics]
+enabled = false
+
+[feedback]
+enabled = false
+
+[otel]
+exporter = "none"
+trace_exporter = "none"
+metrics_exporter = "none"

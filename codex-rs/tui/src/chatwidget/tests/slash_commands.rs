@@ -1453,8 +1453,8 @@ async fn signed_out_usage_command_with_args_reports_chatgpt_login_requirement() 
         .collect::<Vec<_>>()
         .join("\n");
     assert!(
-        rendered.contains("Sign in with ChatGPT to use /usage."),
-        "expected ChatGPT login requirement, got: {rendered:?}"
+        rendered.contains("Sign in with Fikra to use /usage."),
+        "expected Fikra login requirement, got: {rendered:?}"
     );
     assert_eq!(recall_latest_after_clearing(&mut chat), "/usage weekly");
 }

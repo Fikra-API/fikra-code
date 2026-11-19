@@ -280,7 +280,7 @@ pub(super) fn sandbox_check(config: &Config, arg0_paths: &Arg0DispatchPaths) -> 
                         | SetupErrorCode::OrchestratorHelperReportReadFailed
                         | SetupErrorCode::OrchestratorHelperIncomplete
                         | SetupErrorCode::HelperReadAclHelperSpawnFailed => {
-                            "repair the installed Codex helpers or ask IT to allow their execution"
+                            "repair the installed Fikra Code helpers or ask IT to allow their execution"
                         }
                         SetupErrorCode::HelperUserProvisionFailed
                         | SetupErrorCode::HelperUsersGroupCreateFailed
@@ -296,23 +296,23 @@ pub(super) fn sandbox_check(config: &Config, arg0_paths: &Arg0DispatchPaths) -> 
                         | SetupErrorCode::HelperUsersFileWriteFailed
                         | SetupErrorCode::HelperSetupMarkerWriteFailed
                         | SetupErrorCode::HelperSandboxLockFailed => {
-                            "rerun elevated setup for the authoritative Codex home or ask IT"
+                            "rerun elevated setup for the authoritative Fikra Code home or ask IT"
                         }
                         SetupErrorCode::HelperFirewallComInitFailed
                         | SetupErrorCode::HelperFirewallPolicyAccessFailed
                         | SetupErrorCode::HelperFirewallPolicyIneffective
                         | SetupErrorCode::HelperFirewallRuleCreateOrAddFailed
                         | SetupErrorCode::HelperFirewallRuleVerifyFailed => {
-                            "ask IT to allow Codex sandbox rules in managed Windows Firewall policy"
+                            "ask IT to allow Fikra Code sandbox rules in managed Windows Firewall policy"
                         }
                         SetupErrorCode::RegisteredServiceTimedOut
                         | SetupErrorCode::RegisteredServicePipeClosed => {
-                            "check that the Codex sandbox service is running and let pending setup finish before retrying"
+                            "check that the Fikra Code sandbox service is running and let pending setup finish before retrying"
                         }
                         SetupErrorCode::OrchestratorPayloadSerializeFailed
                         | SetupErrorCode::HelperRequestArgsFailed
                         | SetupErrorCode::HelperUnknownError => {
-                            "repair or reinstall the Codex CLI from an approved distribution"
+                            "repair or reinstall the Fikra Code from an approved distribution"
                         }
                     };
                     check

@@ -57,7 +57,7 @@ pub(crate) fn server_version_notice(client: &str, server: Option<&str>) -> Optio
         ServerVersionNoticeKind::Different => "different from",
     };
     Some(format!(
-        "A background Codex service is running v{server}, {comparison} your Codex CLI v{client}."
+        "A background Fikra Code service is running v{server}, {comparison} your Fikra Code v{client}."
     ))
 }
 

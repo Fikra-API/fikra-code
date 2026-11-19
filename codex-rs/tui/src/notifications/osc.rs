@@ -74,7 +74,7 @@ impl Command for PostNotification<'_> {
         }
         let sequence = match self.protocol {
             OscProtocol::Osc9 => format!("\x1b]9;{body}\x07"),
-            OscProtocol::Osc777 => format!("\x1b]777;notify;Codex;{body}\x1b\\"),
+            OscProtocol::Osc777 => format!("\x1b]777;notify;Fikra Code;{body}\x1b\\"),
         };
         if self.dcs_passthrough {
             let escaped = sequence.replace('\x1b', "\x1b\x1b");

@@ -248,18 +248,18 @@ async fn verified_daemon_session(
     let status = codex_app_server_daemon::run(codex_app_server_daemon::LifecycleCommand::Version)
         .await
         .map_err(|_| {
-            "Codex could not verify that it manages the local background server.".to_string()
+            "Fikra Code could not verify that it manages the local background server.".to_string()
         })?;
     let Some(protected) =
         codex_app_server_client::verified_local_daemon_socket(&status.socket_path)
             .ok()
             .flatten()
     else {
-        return Err("Codex could not verify that it manages the local background server.".into());
+        return Err("Fikra Code could not verify that it manages the local background server.".into());
     };
     if status.backend.is_none() || endpoint != status.socket_path && endpoint != protected.as_path()
     {
-        return Err("Codex could not verify that it manages the local background server.".into());
+        return Err("Fikra Code could not verify that it manages the local background server.".into());
     }
     let target = crate::AppServerTarget::LocalDaemon {
         endpoint: crate::RemoteAppServerEndpoint::UnixSocket {
@@ -355,9 +355,9 @@ async fn run(mut session: AppServerSession, action: Action) -> Outcome {
 fn mutation_error(operation: &str, err: codex_app_server_client::TypedRequestError) -> String {
     if let codex_app_server_client::TypedRequestError::Server { source, .. } = err {
         match source.message.as_str() {
-            "remote control requires ChatGPT authentication"
-            | "remote control requires ChatGPT authentication; API key auth is not supported" => {
-                return "Sign in with ChatGPT to manage remote control.".into();
+            "remote control requires Fikra authentication"
+            | "remote control requires Fikra authentication; API key auth is not supported" => {
+                return "Sign in with Fikra to manage remote control.".into();
             }
             "remote control is disabled by managed requirements" => {
                 return "Remote control is disabled by managed requirements.".into();
