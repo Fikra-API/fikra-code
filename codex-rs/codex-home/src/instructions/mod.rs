@@ -14,7 +14,7 @@ const LOCAL_AGENTS_MD_FILENAME: &str = "AGENTS.override.md";
 
 /// Loads user instructions from a Fikra Code home directory.
 #[derive(Clone, Debug)]
-pub struct Fikra CodeHomeUserInstructionsProvider {
+pub struct CodexHomeUserInstructionsProvider {
     codex_home: AbsolutePathBuf,
     // Cached instructions and warning history are shared across provider clones.
     state: Arc<Mutex<InstructionsState>>,
@@ -28,7 +28,7 @@ struct InstructionsState {
     active_warnings: HashSet<String>,
 }
 
-impl Fikra CodeHomeUserInstructionsProvider {
+impl CodexHomeUserInstructionsProvider {
     /// Creates a provider rooted at the supplied absolute Fikra Code home directory.
     pub fn new(codex_home: AbsolutePathBuf) -> Self {
         Self {
@@ -84,7 +84,7 @@ impl Fikra CodeHomeUserInstructionsProvider {
     }
 }
 
-impl UserInstructionsProvider for Fikra CodeHomeUserInstructionsProvider {
+impl UserInstructionsProvider for CodexHomeUserInstructionsProvider {
     fn load_user_instructions(&self) -> LoadInstructionsFuture<'_> {
         Box::pin(async move {
             let mut loaded = self.load_from_codex_home().await;

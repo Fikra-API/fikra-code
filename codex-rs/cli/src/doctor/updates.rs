@@ -297,7 +297,7 @@ fn windows_store_update(
         serde_json::from_slice(manifest).map_err(|_| "invalid Windows Store update manifest")?;
     if manifest.schema_version == 0
         || manifest.store_product_id != "9PLM9XGG6VKS"
-        || manifest.package_identity != "Fikra.Fikra Code"
+        || manifest.package_identity != "Fikra.FikraCode"
     {
         return Err("Windows Store update manifest does not target the production application");
     }

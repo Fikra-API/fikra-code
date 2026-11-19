@@ -6367,7 +6367,7 @@ default_permissions = "locked-down"
     );
     let op = match app_event_rx.try_recv() {
         Ok(AppEvent::CodexOp(op)) => op,
-        other => panic!("expected Fikra CodeOp event, got {other:?}"),
+        other => panic!("expected CodexOp event, got {other:?}"),
     };
     assert_eq!(
         op,

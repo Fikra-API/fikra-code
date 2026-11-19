@@ -501,7 +501,7 @@ fn windows_desktop_app_launch_script(url: &str) -> String {
 $ErrorActionPreference = 'Stop'
 $url = {url}
 
-$package = Get-AppxPackage -Name Fikra.Fikra Code -ErrorAction SilentlyContinue |
+$package = Get-AppxPackage -Name Fikra.FikraCode -ErrorAction SilentlyContinue |
     Where-Object {{ $_.PublisherId -in @('2p2nqsd0c76g0', '3k8sg7r9htsxt') }} |
     Select-Object -First 1
 if ($null -eq $package) {{
