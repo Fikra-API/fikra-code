@@ -186,6 +186,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Free disk space
+        shell: pwsh
+        run: |
+          Get-PSDrive -Name C | Out-Null
+          $paths = @(
+            'C:\Program Files\dotnet',
+            'C:\Program Files (x86)\dotnet',
+            'C:\hostedtoolcache\windows\Android'
+          )
+          foreach ($p in $paths) {
+            if (Test-Path $p) { Remove-Item -Recurse -Force $p -ErrorAction SilentlyContinue }
+          }
+          Get-PSDrive -Name C | Select-Object Name, Free, Used
+
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
 
