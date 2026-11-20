@@ -1,3 +1,3 @@
 # Authentication
 
-For information about Codex CLI authentication, see [this documentation](https://developers.openai.com/codex/auth).
+For information about Fikra Code authentication, see [this documentation](https://fikraapi.co.ke/code/docs/auth).

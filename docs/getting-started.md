@@ -1,3 +1,3 @@
-# Getting started with Codex CLI
+# Getting started with Fikra Code
 
-For an overview of Codex CLI features, see [this documentation](https://developers.openai.com/codex/cli/features#running-in-interactive-mode).
+For an overview of Fikra Code features, see [this documentation](https://fikraapi.co.ke/code/docs/cli/features#running-in-interactive-mode).

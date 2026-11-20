@@ -18,7 +18,7 @@
 
 <p align="center">
   <img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue" />
-  <img alt="Linux, macOS, Windows" src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey" />
+  <img alt="Linux, Windows" src="https://img.shields.io/badge/platform-Linux%20%7C%20Windows-lightgrey" />
   <img alt="Rust" src="https://img.shields.io/badge/built%20with-Rust-orange" />
 </p>
 
@@ -28,7 +28,7 @@ Fikra Code is a small command-line coding agent. It reads a project, runs comman
 
 ## Install
 
-Linux and macOS:
+Linux:
 
 ```sh
 curl -fsSL https://fikraapi.co.ke/code/install.sh | sh

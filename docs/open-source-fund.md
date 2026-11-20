@@ -1,8 +1,5 @@
-## Codex open source fund
+## Open source
 
-We're excited to launch a **$1 million initiative** supporting open source projects that use Codex CLI and other OpenAI models.
+Fikra Code is open source under the Apache License 2.0. There is no separate fund program.
 
-- Grants are awarded up to **$25,000** API credits.
-- Applications are reviewed **on a rolling basis**.
-
-**Interested? [Apply here](https://openai.com/form/codex-open-source-fund/).**
+Contributions are welcome through the [Fikra-API/fikra-code repository](https://github.com/Fikra-API/fikra-code). See [contributing](contributing.md) for how to report bugs, request features and open pull requests.
