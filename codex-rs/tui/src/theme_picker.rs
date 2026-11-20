@@ -1,7 +1,7 @@
 //! Builds the `/theme` picker dialog for the TUI.
 //!
 //! The picker lists all bundled themes plus any custom `.tmTheme` files found
-//! under `{CODEX_HOME}/themes/`.  It provides:
+//! under `{FIKRA_HOME}/themes/`.  It provides:
 //!
 //! - **Live preview:** the `on_selection_changed` callback swaps the runtime
 //!   syntax theme as the user navigates, giving instant visual feedback in both
@@ -599,7 +599,7 @@ mod tests {
     #[test]
     fn subtitle_falls_back_for_94_column_terminal_side_by_side_layout() {
         let home = dirs::home_dir().expect("home directory should be available");
-        let codex_home = home.join(".codex");
+        let codex_home = home.join(".fikra");
 
         let subtitle = theme_picker_subtitle(Some(&codex_home), Some(94));
 
