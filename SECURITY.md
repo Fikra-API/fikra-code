@@ -1,17 +1,15 @@
 # Security Policy
 
-Thank you for helping us keep Codex secure!
+Thank you for helping keep Fikra Code secure.
 
 ## Reporting Security Issues
 
-The security is essential to OpenAI's mission. We appreciate the work of security researchers acting in good faith to identify and responsibly report potential vulnerabilities, helping us maintain strong privacy and security standards for our users and technology.
+Report vulnerabilities privately through GitHub security advisories:
 
-Our security program is managed through Bugcrowd, and we ask that any validated vulnerabilities be reported via the [Bugcrowd program](https://bugcrowd.com/engagements/openai).
+https://github.com/Fikra-API/fikra-code/security/advisories/new
 
-## Vulnerability Disclosure Program
+Do not open a public issue for a vulnerability.
 
-Our Vulnerability Program Guidelines are defined on our [Bugcrowd program page](https://bugcrowd.com/engagements/openai).
+## Safe operation
 
-## How to operate CODEX safely
-
-For details on Codex security boundaries, including sandboxing, approvals, and network controls, see [Agent approvals & security](https://developers.openai.com/codex/agent-approvals-security).
+Fikra Code runs on Linux and Windows. For sandboxing, approvals and network controls, see https://fikraapi.co.ke/code/docs
