@@ -438,7 +438,7 @@ fn should_bootstrap_chatgpt_agent_identity(
 pub(crate) fn bearer_auth_for_provider(
     provider: &ModelProviderInfo,
 ) -> codex_protocol::error::Result<Option<BearerAuthProvider>> {
-    if let Some(api_key) = provider.api_key()? {
+    if let Ok(Some(api_key)) = provider.api_key() {
         return Ok(Some(BearerAuthProvider::new(api_key)));
     }
 

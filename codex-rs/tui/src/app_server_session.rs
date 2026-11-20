@@ -4631,7 +4631,7 @@ mod tests {
     async fn config_overrides_forward_explicit_summary_verbosity_and_web_search() -> Result<()> {
         let home = tempfile::tempdir()?;
         let workspace = home.path().join("workspace");
-        std::fs::create_dir_all(workspace.join(".fikra"))?;
+        std::fs::create_dir_all(workspace.join(".codex"))?;
         std::fs::write(
             home.path().join("config.toml"),
             format!(
@@ -4673,7 +4673,7 @@ mod tests {
             ),
         ] {
             std::fs::write(
-                workspace.join(".fikra/config.toml"),
+                workspace.join(".codex/config.toml"),
                 if project {
                     "model_reasoning_summary = \"concise\"\nmodel_verbosity = \"low\"\nweb_search = \"disabled\"\n"
                 } else {

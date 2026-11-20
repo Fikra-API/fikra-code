@@ -259,9 +259,9 @@ async fn command_center_new_reads_server_defaults_for_actual_destination() -> Re
                 }
             ),
         )?;
-        std::fs::create_dir(destination.path().join(".fikra"))?;
+        std::fs::create_dir(destination.path().join(".codex"))?;
         std::fs::write(
-            destination.path().join(".fikra/config.toml"),
+            destination.path().join(".codex/config.toml"),
             "model = \"destination-model\"\nservice_tier = \"flex\"\n",
         )?;
         for home in [client_home.path(), server_home.path()] {

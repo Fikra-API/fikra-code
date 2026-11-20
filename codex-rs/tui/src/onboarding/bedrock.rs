@@ -38,7 +38,7 @@ use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 
 const GOV_CLOUD_GUIDANCE_URL: &str =
-    "https://learn.fikraapi.co.ke/docs/enterprise/govcloud-configuration";
+    "https://learn.codexapi.co.ke/docs/enterprise/govcloud-configuration";
 
 #[derive(Clone)]
 pub(super) struct BedrockState {
@@ -454,7 +454,7 @@ impl BedrockState {
                 lines.push("".into());
                 lines.push(Line::from(vec![
                     "  Setup guide: ".into(),
-                    "https://learn.fikraapi.co.ke/docs/amazon-bedrock"
+                    "https://learn.codexapi.co.ke/docs/amazon-bedrock"
                         .cyan()
                         .underlined(),
                 ]));

@@ -322,7 +322,7 @@ async fn safety_buffering_offers_one_retry_with_app_wording() {
             Err(err) => panic!("expected learn-more URL event: {err}"),
         }
     };
-    assert_eq!(opened_url, "https://help.fikraapi.co.ke/en/articles/20001326");
+    assert_eq!(opened_url, "https://help.codexapi.co.ke/en/articles/20001326");
     assert!(render_bottom_popup(&chat, /*width*/ 80).contains(SAFETY_BUFFERING_HEADER_TEXT));
 
     chat.handle_key_event(KeyEvent::new(KeyCode::Up, KeyModifiers::NONE));

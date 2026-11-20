@@ -171,7 +171,7 @@ pub struct RolloutTraceToml {
     pub max_bytes: Option<u64>,
 }
 
-/// Base config deserialized from ~/.fikra/config.toml.
+/// Base config deserialized from ~/.codex/config.toml.
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, JsonSchema)]
 #[schemars(deny_unknown_fields)]
 pub struct ConfigToml {
@@ -377,7 +377,7 @@ pub struct ConfigToml {
     #[serde(default)]
     pub profiles: HashMap<String, ConfigProfile>,
 
-    /// Settings that govern if and what will be written to `~/.fikra/history.jsonl`.
+    /// Settings that govern if and what will be written to `~/.codex/history.jsonl`.
     #[serde(default = "default_history")]
     pub history: Option<History>,
 
@@ -385,12 +385,12 @@ pub struct ConfigToml {
     pub rollout_trace: Option<RolloutTraceToml>,
 
     /// Directory where Codex stores the SQLite state DB.
-    /// Defaults to `$CODEX_SQLITE_HOME` when set. Otherwise uses `$FIKRA_HOME`.
+    /// Defaults to `$CODEX_SQLITE_HOME` when set. Otherwise uses `$CODEX_HOME`.
     pub sqlite_home: Option<AbsolutePathBuf>,
 
     /// Directory for log files. Setting this value explicitly also routes the
     /// SQLite logs database here and enables the TUI text log in this directory.
-    /// When unset, log files use `$FIKRA_HOME/log` and SQLite logs use `sqlite_home`.
+    /// When unset, log files use `$CODEX_HOME/log` and SQLite logs use `sqlite_home`.
     /// Existing SQLite logs in `sqlite_home` are not migrated automatically.
     /// A managed `sqlite_home` requirement keeps SQLite logs in that required directory.
     pub log_dir: Option<AbsolutePathBuf>,

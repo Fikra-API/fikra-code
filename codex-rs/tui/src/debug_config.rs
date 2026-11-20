@@ -823,17 +823,17 @@ interrupt_message = false
         let sqlite_home = if cfg!(windows) {
             absolute_path("C:\\Users\\alice\\.codex\\state")
         } else {
-            absolute_path("/home/alice/.fikra/state")
+            absolute_path("/home/alice/.codex/state")
         };
         let log_dir = if cfg!(windows) {
             absolute_path("C:\\Users\\alice\\.codex\\logs")
         } else {
-            absolute_path("/home/alice/.fikra/logs")
+            absolute_path("/home/alice/.codex/logs")
         };
         let model_catalog_json = if cfg!(windows) {
             absolute_path("C:\\Users\\alice\\.codex\\models.json")
         } else {
-            absolute_path("/home/alice/.fikra/models.json")
+            absolute_path("/home/alice/.codex/models.json")
         };
 
         let requirements = ConfigRequirements {
@@ -1001,7 +1001,7 @@ interrupt_message = false
         let user_file = if cfg!(windows) {
             absolute_path("C:\\users\\alice\\.codex\\config.toml")
         } else {
-            absolute_path("/home/alice/.fikra/config.toml")
+            absolute_path("/home/alice/.codex/config.toml")
         };
         let stack = ConfigLayerStack::new(
             vec![ConfigLayerEntry::new(

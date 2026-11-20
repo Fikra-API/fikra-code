@@ -37,7 +37,7 @@ use super::textarea::TextArea;
 use super::textarea::TextAreaState;
 
 const SAVE_LOCALLY: key_hint::KeyBinding = key_hint::ctrl(KeyCode::Char('s'));
-const FEEDBACK_POLICY_URL: &str = "https://help.fikraapi.co.ke/en/articles/5722486-how-your-data-is-used-to-improve-model-performance";
+const FEEDBACK_POLICY_URL: &str = "https://help.codexapi.co.ke/en/articles/5722486-how-your-data-is-used-to-improve-model-performance";
 const EMPLOYEE_FEEDBACK_FAQ_URL: &str = "https://go/codex-employee-feedback-faq";
 
 enum IntroContent {
