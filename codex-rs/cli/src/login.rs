@@ -52,26 +52,31 @@ const ACCESS_TOKEN_LOGIN_DISABLED_MESSAGE: &str =
     "Access token login is disabled. Use API key login instead.";
 const LOGIN_SUCCESS_MESSAGE: &str = "Successfully logged in";
 const API_KEY_AUTHENTICATION_NOTICE: &str = "Authentication is checked when you send a request.";
-const FIKRA_MODELS_URL: &str = "https://fikraapi.co.ke/v1/models";
+const FIKRA_KEY_PROBE_URL: &str = "https://fikraapi.co.ke/v1/chat/completions";
 
 async fn validate_fikra_api_key(api_key: &str) -> Result<(), String> {
     let factory = HttpClientFactory::new(OutboundProxyPolicy::ReqwestDefault);
     let client = factory
-        .build_client(FIKRA_MODELS_URL, ClientRouteClass::Other)
+        .build_client(FIKRA_KEY_PROBE_URL, ClientRouteClass::Other)
         .map_err(|err| format!("could not build HTTP client: {err}"))?;
+    // Send a deliberately unsupported model so a valid key is authenticated
+    // without running inference. Invalid keys are rejected with HTTP 401.
+    let body = serde_json::json!({
+        "model": "__fikra_key_probe__",
+        "messages": [{"role": "user", "content": "ping"}],
+        "max_tokens": 1
+    });
     let response = client
-        .get(FIKRA_MODELS_URL)
+        .post(FIKRA_KEY_PROBE_URL)
         .bearer_auth(api_key)
+        .json(&body)
         .send()
         .await
         .map_err(|err| format!("could not reach the Fikra API: {err}"))?;
-    if response.status().is_success() {
-        Ok(())
+    if response.status().as_u16() == 401 {
+        Err("the Fikra API rejected the key (HTTP 401)".to_string())
     } else {
-        Err(format!(
-            "the Fikra API rejected the key (HTTP {})",
-            response.status().as_u16()
-        ))
+        Ok(())
     }
 }
 const DEFAULT_LOGIN_LOG_FILTER: &str =
