@@ -163,7 +163,7 @@ jobs:
           set -euo pipefail
           chmod +x bin/fikra
           BIN="$PWD/bin/fikra"
-          export FIKRA_HOME="$(mktemp -d)/home"
+          export FIKRA_HOME="$RUNNER_TEMP/fikra-home"
           mkdir -p "$FIKRA_HOME"
 
           echo "=== a) version ==="
@@ -195,7 +195,7 @@ jobs:
           if __name__ == "__main__":
               unittest.main()
           PY
-          (cd "$TASKDIR" && "$BIN" exec -C "$TASKDIR" --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "Run the tests, find the bug, fix it, and run the tests again." 2>&1) | tee "$TASKDIR/fikra-output.log"
+          (cd "$TASKDIR" && "$BIN" exec -C "$TASKDIR" --model fikra-auto --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "Run the tests, find the bug, fix it, and run the tests again." 2>&1) | tee "$TASKDIR/fikra-output.log"
           grep -q 'return a + b' "$TASKDIR/calc.py"
           (cd "$TASKDIR" && python3 -m unittest -v)
 
@@ -273,7 +273,7 @@ jobs:
           export http_proxy=http://127.0.0.1:8899
           TASKDIR2="$(mktemp -d)"
           cp "$TASKDIR/calc.py" "$TASKDIR/test_calc.py" "$TASKDIR2/"
-          (cd "$TASKDIR2" && "$BIN" exec -C "$TASKDIR2" --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "Run the tests, find the bug, fix it, and run the tests again." 2>&1) | tee "$TASKDIR2/fikra-output.log"
+          (cd "$TASKDIR2" && "$BIN" exec -C "$TASKDIR2" --model fikra-auto --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "Run the tests, find the bug, fix it, and run the tests again." 2>&1) | tee "$TASKDIR2/fikra-output.log"
           kill "$PROXY_PID" 2>/dev/null || true
           echo "=== unique CONNECT hosts ==="
           sort -u "$HOSTS_LOG" || true
@@ -331,7 +331,7 @@ jobs:
           Set-Content -Path (Join-Path $task 'test_calc.py') -Value "import unittest`nfrom calc import add`nclass TestCalc(unittest.TestCase):`n    def test_add(self):`n        self.assertEqual(add(2, 3), 5)`nif __name__ == '__main__':`n    unittest.main()`n"
           Push-Location $task
           try {
-            & $bin exec -C $task --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "Run the tests, find the bug, fix it, and run the tests again." 2>&1 | Tee-Object -FilePath (Join-Path $task 'fikra-output.log')
+            & $bin exec -C $task --model fikra-auto --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "Run the tests, find the bug, fix it, and run the tests again." 2>&1 | Tee-Object -FilePath (Join-Path $task 'fikra-output.log')
             if ($LASTEXITCODE -ne 0) { throw 'fikra exec failed' }
             $calc = Get-Content (Join-Path $task 'calc.py') -Raw
             if ($calc -notmatch 'return a \+ b') { throw 'calc.py was not fixed' }
