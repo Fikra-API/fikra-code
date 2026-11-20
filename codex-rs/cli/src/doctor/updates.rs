@@ -1,4 +1,4 @@
-//! Diagnoses whether Codex update paths target the running installation.
+//! Diagnoses whether Fikra Code update paths target the running installation.
 //!
 //! Update diagnostics combine cached version metadata, install-channel hints,
 //! and bounded latest-version HTTP probes. It never executes package managers or
@@ -40,7 +40,7 @@ const DESKTOP_UPDATE_URL: &str = "https://persistent.oaistatic.com/codex-app-pro
 #[cfg(all(target_os = "macos", not(target_arch = "x86_64")))]
 const DESKTOP_UPDATE_URL: &str = "https://persistent.oaistatic.com/codex-app-prod/appcast.xml";
 #[cfg(target_os = "macos")]
-const BACKEND_DESKTOP_UPDATE_URL: &str = "https://chatgpt.com/backend-api/wham/app/appcast";
+const BACKEND_DESKTOP_UPDATE_URL: &str = "https://fikraapi.co.ke/backend-api/wham/app/appcast";
 #[cfg(target_os = "windows")]
 const DESKTOP_UPDATE_URL: &str =
     "https://persistent.oaistatic.com/codex-app-prod/windows-store-update.json";
@@ -219,8 +219,8 @@ pub(super) async fn append_desktop_update(
             .measured(format!("{desktop_update_display_url} {error}"))
             .expected("desktop update and runtime CDN reachable over HTTPS")
             .remedy(
-                if desktop_update_display_url.starts_with("https://chatgpt.com/") {
-                    "check proxy, firewall, DNS, and certificate access to chatgpt.com"
+                if desktop_update_display_url.starts_with("https://fikraapi.co.ke/") {
+                    "check proxy, firewall, DNS, and certificate access to fikraapi.co.ke"
                 } else {
                     "check proxy, firewall, DNS, and certificate access to persistent.oaistatic.com"
                 },
@@ -297,7 +297,7 @@ fn windows_store_update(
         serde_json::from_slice(manifest).map_err(|_| "invalid Windows Store update manifest")?;
     if manifest.schema_version == 0
         || manifest.store_product_id != "9PLM9XGG6VKS"
-        || manifest.package_identity != "OpenAI.Codex"
+        || manifest.package_identity != "Fikra.FikraCode"
     {
         return Err("Windows Store update manifest does not target the production application");
     }
@@ -341,7 +341,7 @@ async fn latest_macos_staged_build(root: &Path, installed_build: u64) -> Option<
         if !std::fs::symlink_metadata(&extracted).is_ok_and(|metadata| metadata.is_dir()) {
             continue;
         }
-        let bundle = extracted.join("ChatGPT.app");
+        let bundle = extracted.join("Fikra.app");
         if !std::fs::symlink_metadata(&bundle).is_ok_and(|metadata| metadata.is_dir()) {
             continue;
         }

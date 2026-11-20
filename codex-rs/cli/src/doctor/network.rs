@@ -76,7 +76,7 @@ pub(super) async fn checks(
 }
 
 #[cfg(any(target_os = "macos", test))]
-pub(super) const SYSTEM_PROXY_REMEDIATION: &str = "A macOS system proxy is configured but unused. If your organization requires it, ask your administrator whether to enable the experimental System proxy setting in `/experimental` or with `codex features enable respect_system_proxy`. Restart Codex after changing this setting.";
+pub(super) const SYSTEM_PROXY_REMEDIATION: &str = "A macOS system proxy is configured but unused. If your organization requires it, ask your administrator whether to enable the experimental System proxy setting in `/experimental` or with `codex features enable respect_system_proxy`. Restart Fikra Code after changing this setting.";
 
 pub(super) fn check(config: Option<&Config>) -> DoctorCheck {
     let mut details = Vec::new();
@@ -86,7 +86,7 @@ pub(super) fn check(config: Option<&Config>) -> DoctorCheck {
         let request_url = config
             .and_then(|config| config.model_provider.base_url.as_deref())
             .or_else(|| config.map(|config| config.chatgpt_base_url.as_str()))
-            .unwrap_or("https://chatgpt.com/backend-api/");
+            .unwrap_or("https://fikraapi.co.ke/backend-api/");
         let configuration = match macos_system_proxy_configuration(request_url) {
             MacosSystemProxyConfiguration::Automatic => "automatic (PAC)",
             MacosSystemProxyConfiguration::Manual => "manual",

@@ -1,4 +1,4 @@
-//! Read the existing Codex login for Git; the host retains ownership of refresh.
+//! Read the existing Fikra Code login for Git; the host retains ownership of refresh.
 
 use anyhow::Result;
 use anyhow::ensure;
@@ -69,7 +69,7 @@ pub async fn run_git_credential(args: GitCredentialArgs) -> Result<()> {
     };
     if !matches!(
         destination.host_str(),
-        Some("chatgpt.com" | "chatgpt-staging.com")
+        Some("fikraapi.co.ke" | "chatgpt-staging.com")
     ) || destination.port_or_known_default() != Some(443)
         || !destination
             .path()
@@ -108,7 +108,7 @@ async fn git_token_for_origin(
     // Git reads a file-backed user login. Other identities can require a network exchange.
     ensure!(
         matches_origin_and_store(&config) && !is_workload_identity_selected(),
-        "Codex Git authentication requires a file-backed ChatGPT login for this origin"
+        "Fikra Code Git authentication requires a file-backed Fikra login for this origin"
     );
     let manager = AuthManager::shared_from_config_with_auth_modes(
         &config,
@@ -116,7 +116,7 @@ async fn git_token_for_origin(
         vec![AuthMode::Chatgpt],
     )
     .await
-    .map_err(|_| anyhow::anyhow!("Codex authentication is unavailable"))?;
+    .map_err(|_| anyhow::anyhow!("Fikra Code authentication is unavailable"))?;
     // Git runs inside the execution sandbox, which cannot persist a rotated login.
     let Some(auth) = manager
         .auth_cached()
@@ -126,7 +126,7 @@ async fn git_token_for_origin(
     };
     let token = auth
         .get_token()
-        .map_err(|_| anyhow::anyhow!("Codex authentication is unavailable"))?;
+        .map_err(|_| anyhow::anyhow!("Fikra Code authentication is unavailable"))?;
     let expiry = parse_jwt_expiration(&token).ok().flatten();
     let unexpired = || expiry.is_some_and(|expiry| expiry > Utc::now());
     if !unexpired() || !token.bytes().all(|byte| (0x21..=0x7e).contains(&byte)) {
@@ -139,7 +139,7 @@ async fn git_token_for_origin(
             .config_server
             .as_ref()
             .is_none_or(|server| server.oauth.is_none()),
-        "Git cannot verify Codex workspace policy using a protected login"
+        "Git cannot verify Fikra Code workspace policy using a protected login"
     );
     let login_changes = manager.auth_change_receiver();
     let network = EmbeddedNetworkPolicy::load(&Default::default()).await;
@@ -161,7 +161,7 @@ async fn git_token_for_origin(
         .map_err(config_unavailable)?;
     ensure!(
         matches_origin_and_store(&effective) && effective.auth_config().allows_auth(&auth),
-        "Codex workspace policy does not permit this Git login"
+        "Fikra Code workspace policy does not permit this Git login"
     );
     // The host can sign out or rotate the saved login while Git waits for policy.
     manager
@@ -170,13 +170,13 @@ async fn git_token_for_origin(
         .map_err(config_unavailable)?;
     ensure!(
         !login_changes.has_changed()? && unexpired(),
-        "Codex login changed or expired while checking Git access"
+        "Fikra Code login changed or expired while checking Git access"
     );
     Ok(Some(token))
 }
 
 fn config_unavailable<E>(_: E) -> anyhow::Error {
-    anyhow::anyhow!("Codex authentication configuration is unavailable")
+    anyhow::anyhow!("Fikra Code authentication configuration is unavailable")
 }
 
 fn read_request() -> Result<String> {

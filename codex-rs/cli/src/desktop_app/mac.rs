@@ -7,9 +7,9 @@ use tokio::process::Command;
 
 const CODEX_BUNDLE_IDENTIFIER: &str = "com.openai.codex";
 const OPENAI_APPLE_TEAM_IDENTIFIER: &str = "2DC432GLL2";
-const CODEX_DMG_URL_ARM64: &str = "https://persistent.oaistatic.com/codex-app-prod/Codex.dmg";
+const CODEX_DMG_URL_ARM64: &str = "https://persistent.oaistatic.com/codex-app-prod/Fikra Code.dmg";
 const CODEX_DMG_URL_X64: &str =
-    "https://persistent.oaistatic.com/codex-app-prod/Codex-latest-x64.dmg";
+    "https://persistent.oaistatic.com/codex-app-prod/Fikra Code-latest-x64.dmg";
 
 pub async fn run_mac_app_open_or_install(
     workspace: PathBuf,
@@ -68,7 +68,7 @@ fn is_apple_silicon_mac() -> bool {
 fn find_existing_codex_app_path(applications_dirs: &[PathBuf]) -> Option<PathBuf> {
     applications_dirs
         .iter()
-        .flat_map(|dir| ["ChatGPT.app", "Codex.app"].map(|app_name| dir.join(app_name)))
+        .flat_map(|dir| ["Fikra.app", "Fikra Code.app"].map(|app_name| dir.join(app_name)))
         .find(|candidate| is_codex_app_bundle(candidate))
 }
 
@@ -142,7 +142,7 @@ async fn verify_codex_app_bundle(app_path: &Path) -> anyhow::Result<()> {
     }
 
     anyhow::bail!(
-        "Desktop app at {} failed OpenAI signature verification (team {OPENAI_APPLE_TEAM_IDENTIFIER}, bundle {CODEX_BUNDLE_IDENTIFIER}): {}",
+        "Desktop app at {} failed Fikra signature verification (team {OPENAI_APPLE_TEAM_IDENTIFIER}, bundle {CODEX_BUNDLE_IDENTIFIER}): {}",
         app_path.display(),
         String::from_utf8_lossy(&output.stderr).trim()
     );
@@ -164,7 +164,7 @@ async fn download_and_install_codex_to_user_applications(dmg_url: &str) -> anyho
     let tmp_root = temp_dir.path().to_path_buf();
     let _temp_dir = temp_dir;
 
-    let dmg_path = tmp_root.join("Codex.dmg");
+    let dmg_path = tmp_root.join("Fikra Code.dmg");
     download_dmg(dmg_url, &dmg_path).await?;
 
     eprintln!("Mounting Desktop app installer...");
@@ -175,7 +175,7 @@ async fn download_and_install_codex_to_user_applications(dmg_url: &str) -> anyho
     );
     let result = async {
         let app_in_volume = find_codex_app_in_mount(&mount_point)
-            .context("failed to locate Codex.app in mounted dmg")?;
+            .context("failed to locate Fikra Code.app in mounted dmg")?;
         verify_codex_app_bundle(&app_in_volume)
             .await
             .context("refusing to install an unverified Desktop app")?;
@@ -207,7 +207,7 @@ async fn install_codex_app_bundle(app_in_volume: &Path) -> anyhow::Result<PathBu
             )
         })?;
 
-        let dest_app = applications_dir.join("Codex.app");
+        let dest_app = applications_dir.join("Fikra Code.app");
         if dest_app.is_dir() {
             return Ok(dest_app);
         }
@@ -216,14 +216,14 @@ async fn install_codex_app_bundle(app_in_volume: &Path) -> anyhow::Result<PathBu
             Ok(()) => return Ok(dest_app),
             Err(err) => {
                 eprintln!(
-                    "warning: failed to install Codex.app to {applications_dir}: {err}",
+                    "warning: failed to install Fikra Code.app to {applications_dir}: {err}",
                     applications_dir = applications_dir.display()
                 );
             }
         }
     }
 
-    anyhow::bail!("failed to install Codex.app to any applications directory");
+    anyhow::bail!("failed to install Fikra Code.app to any applications directory");
 }
 
 fn candidate_applications_dirs() -> anyhow::Result<Vec<PathBuf>> {
@@ -292,7 +292,7 @@ async fn detach_dmg(mount_point: &Path) -> anyhow::Result<()> {
 }
 
 fn find_codex_app_in_mount(mount_point: &Path) -> anyhow::Result<PathBuf> {
-    let direct = mount_point.join("Codex.app");
+    let direct = mount_point.join("Fikra Code.app");
     if direct.is_dir() {
         return Ok(direct);
     }

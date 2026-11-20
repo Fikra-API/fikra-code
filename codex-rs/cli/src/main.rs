@@ -112,7 +112,7 @@ use codex_protocol::protocol::AskForApproval;
 use codex_protocol::user_input::UserInput;
 use codex_terminal_detection::TerminalName;
 
-/// Codex CLI
+/// Fikra Code CLI
 ///
 /// If no subcommand is specified, options will be forwarded to the interactive CLI.
 #[derive(Debug, Parser)]
@@ -121,11 +121,11 @@ use codex_terminal_detection::TerminalName;
     version,
     // If a sub‑command is given, ignore requirements of the default args.
     subcommand_negates_reqs = true,
-    // The executable is sometimes invoked via a platform‑specific name like
-    // `codex-x86_64-unknown-linux-musl`, but the help output should always use
-    // the generic `codex` command name that users run.
-    bin_name = "codex",
-    override_usage = "codex [OPTIONS] [PROMPT]\n       codex [OPTIONS] <COMMAND> [ARGS]"
+    // The executable is sometimes invoked via a platform‑specific name, but the
+    // help output should always use the generic `fikra` command name users run.
+    bin_name = "fikra",
+    display_name = "fikra",
+    override_usage = "fikra [OPTIONS] [PROMPT]\n       fikra [OPTIONS] <COMMAND> [ARGS]"
 )]
 struct MultitoolCli {
     #[clap(flatten)]
@@ -1078,6 +1078,7 @@ async fn dispatch_cli(
         subcommand,
     } = config_override_args::try_parse_from(std::env::args_os())
         .unwrap_or_else(|error| error.exit());
+    ensure_fikra_default_config();
     // Retain the launch target through TUI exit, even if a launcher changes selection.
     let daemon_cli_executable = arg0_paths
         .codex_self_exe
@@ -1757,6 +1758,9 @@ async fn dispatch_cli(
                     } else if login_cli.with_access_token {
                         let access_token = read_access_token_from_stdin();
                         run_login_with_access_token(login_cli.config_overrides, access_token).await;
+                    } else if !std::io::stdin().is_terminal() {
+                        let api_key = read_api_key_from_stdin();
+                        run_login_with_api_key(login_cli.config_overrides, api_key).await;
                     } else {
                         run_login_with_browser(login_cli.config_overrides).await;
                     }
@@ -2808,8 +2812,28 @@ fn merge_interactive_cli_flags(interactive: &mut TuiCli, subcommand_cli: TuiCli)
 
 fn print_completion(cmd: CompletionCommand) {
     let mut app = MultitoolCli::command();
-    let name = "codex";
+    let name = "fikra";
     generate(cmd.shell, &mut app, name, &mut std::io::stdout());
+}
+
+/// Seeds the Fikra Code config with the Fikra provider and the free DeepSeek
+/// model on first run. Users can edit this file afterwards.
+fn ensure_fikra_default_config() {
+    if let Some(path) = std::env::var_os("FIKRA_HOME") {
+        if !path.is_empty() && !std::path::Path::new(&path).exists() {
+            let _ = std::fs::create_dir_all(&path);
+        }
+    }
+    let Ok(home) = codex_core::config::find_codex_home() else {
+        return;
+    };
+    let config_path = home.as_path().join("config.toml");
+    if config_path.exists() {
+        return;
+    }
+    let _ = std::fs::create_dir_all(home.as_path());
+    let contents = "model_provider = \"fikra\"\nmodel = \"deepseek-v4-1-flash-economy-free\"\n\n[analytics]\nenabled = false\n\n[feedback]\nenabled = false\n\n[otel]\nexporter = \"none\"\ntrace_exporter = \"none\"\nmetrics_exporter = \"none\"\n";
+    let _ = std::fs::write(config_path, contents);
 }
 
 #[cfg(test)]

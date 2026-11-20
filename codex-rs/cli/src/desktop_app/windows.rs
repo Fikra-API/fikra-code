@@ -36,7 +36,7 @@ async fn codex_app_is_installed() -> anyhow::Result<bool> {
         .arg("-NoProfile")
         .arg("-Command")
         .arg(
-            "Get-StartApps | Where-Object AppID -Like 'OpenAI.Codex_*!App' | Select-Object -First 1 -ExpandProperty AppID",
+            "Get-StartApps | Where-Object AppID -Like 'Fikra.FikraCode_*!App' | Select-Object -First 1 -ExpandProperty AppID",
         )
         .output()
         .await

@@ -126,8 +126,8 @@ impl WidgetRef for &WelcomeWidget {
         lines.push(Line::from(vec![
             "  ".into(),
             "Welcome to ".into(),
-            "Codex".bold(),
-            ", OpenAI's command-line coding agent".into(),
+            "Fikra Code".bold(),
+            ", a lightweight coding agent powered by the Fikra API".into(),
         ]));
 
         Paragraph::new(lines)

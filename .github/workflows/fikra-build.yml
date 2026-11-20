@@ -1,0 +1,355 @@
+name: Fikra Code build
+
+on:
+  push:
+    branches: [fikra-build]
+  workflow_dispatch:
+
+concurrency:
+  group: fikra-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[windows]')
+    env:
+      CARGO_INCREMENTAL: "0"
+      CARGO_PROFILE_RELEASE_DEBUG: "0"
+      CARGO_PROFILE_RELEASE_LTO: "off"
+      CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+      CARGO_PROFILE_RELEASE_OPT_LEVEL: "0"
+    steps:
+      - name: Free disk space
+        run: |
+          set -e
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h
+      - uses: actions/checkout@v4
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: codex-rs
+      - name: Build CLI
+        working-directory: codex-rs
+        run: cargo build -p codex-cli --release
+      - name: Upload Linux binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: fikra-linux-x86_64
+          path: codex-rs/target/release/fikra
+          if-no-files-found: error
+
+  tests-core:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[windows]')
+    env:
+      TEST_CRATES: "codex-utils-home-dir codex-config codex-model-provider-info"
+      RUST_MIN_STACK: "8388608"
+    steps:
+      - name: Free disk space
+        run: |
+          set -e
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h
+      - uses: actions/checkout@v4
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: codex-rs
+      - name: Test core crates
+        working-directory: codex-rs
+        run: |
+          set -e
+          for crate in $TEST_CRATES; do
+            echo "=== cargo test -p $crate --lib ==="
+            cargo test -p "$crate" --lib
+          done
+
+  tests-core-crate:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[windows]')
+    env:
+      RUST_MIN_STACK: "8388608"
+    steps:
+      - name: Free disk space
+        run: |
+          set -e
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h
+      - uses: actions/checkout@v4
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: codex-rs
+      - name: Test codex-core library
+        working-directory: codex-rs
+        run: cargo test -p codex-core --lib -- --skip code_mode_host::tests --skip shell_snapshot::sandbox::tests
+
+  tests-tui:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[windows]')
+    env:
+      RUST_MIN_STACK: "33554432"
+    steps:
+      - name: Free disk space
+        run: |
+          set -e
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h
+      - uses: actions/checkout@v4
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: codex-rs
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Test TUI library
+        working-directory: codex-rs
+        run: cargo nextest run -p codex-tui --lib -E 'not test(onboarding)'
+
+  tests-cli:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[windows]')
+    env:
+      TEST_CRATES: "codex-cli codex-prompts codex-home"
+      RUST_MIN_STACK: "33554432"
+      INSTA_UPDATE: "always"
+    steps:
+      - name: Free disk space
+        run: |
+          set -e
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h
+      - uses: actions/checkout@v4
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: codex-rs
+      - name: Test CLI crates
+        working-directory: codex-rs
+        run: |
+          set -e
+          for crate in $TEST_CRATES; do
+            echo "=== cargo test -p $crate --lib ==="
+            cargo test -p "$crate" --lib
+          done
+
+  smoke:
+    needs: build
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[windows]')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download binary
+        uses: actions/download-artifact@v4
+        with:
+          name: fikra-linux-x86_64
+          path: bin
+      - name: Check installer syntax
+        run: sh -n scripts/fikra/install.sh
+      - name: Smoke tests
+        env:
+          FIKRA_API_KEY: ${{ secrets.FIKRA_API_KEY }}
+        run: |
+          set -euo pipefail
+          chmod +x bin/fikra
+          BIN="$PWD/bin/fikra"
+          export FIKRA_HOME="$RUNNER_TEMP/fikra-home"
+          mkdir -p "$FIKRA_HOME"
+
+          echo "=== a) version ==="
+          VERSION_OUT="$($BIN --version)"
+          echo "$VERSION_OUT"
+          if echo "$VERSION_OUT" | grep -Eqi 'codex|openai'; then
+            echo "FAIL: version output contains old branding"; exit 1
+          fi
+
+          echo "=== b) login / rejection / logout ==="
+          printf '%s' "$FIKRA_API_KEY" | "$BIN" login
+          if printf 'invalid-key-123' | "$BIN" login; then
+            echo "FAIL: invalid key was accepted"; exit 1
+          fi
+          "$BIN" logout
+
+          echo "=== c) bug-fix task ==="
+          TASKDIR="$(mktemp -d)"
+          cat > "$TASKDIR/calc.py" <<'PY'
+          def add(a, b):
+              return a - b
+          PY
+          cat > "$TASKDIR/test_calc.py" <<'PY'
+          import unittest
+          from calc import add
+          class TestCalc(unittest.TestCase):
+              def test_add(self):
+                  self.assertEqual(add(2, 3), 5)
+          if __name__ == "__main__":
+              unittest.main()
+          PY
+          (cd "$TASKDIR" && "$BIN" exec -C "$TASKDIR" --model fikra-auto --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "Run the tests, find the bug, fix it, and run the tests again." 2>&1) | tee "$TASKDIR/fikra-output.log"
+          grep -q 'return a + b' "$TASKDIR/calc.py"
+          (cd "$TASKDIR" && python3 -m unittest -v)
+
+          echo "=== d) network check ==="
+          cat > "$TASKDIR/proxy.py" <<'PY'
+          import socket
+          import sys
+          import threading
+
+          LOG, PORT = sys.argv[1], int(sys.argv[2])
+
+          def pump(src, dst):
+              try:
+                  while True:
+                      data = src.recv(65536)
+                      if not data:
+                          break
+                      dst.sendall(data)
+              except Exception:
+                  pass
+              try:
+                  dst.shutdown(socket.SHUT_WR)
+              except Exception:
+                  pass
+
+          def handle(conn):
+              try:
+                  buf = b""
+                  while b"\r\n\r\n" not in buf:
+                      chunk = conn.recv(4096)
+                      if not chunk:
+                          return
+                      buf += chunk
+                  head, rest = buf.split(b"\r\n\r\n", 1)
+                  parts = head.split(b"\r\n")[0].decode("latin1").split()
+                  if not parts or parts[0].upper() != "CONNECT":
+                      return
+                  hostport = parts[1]
+                  host = hostport.rsplit(":", 1)[0]
+                  with open(LOG, "a") as f:
+                      f.write(host + "\n")
+                  h, p = hostport.rsplit(":", 1)
+                  upstream = socket.create_connection((h, int(p)), timeout=30)
+                  conn.sendall(b"HTTP/1.1 200 Connection Established\r\n\r\n")
+                  if rest:
+                      upstream.sendall(rest)
+                  threading.Thread(target=pump, args=(upstream, conn), daemon=True).start()
+                  pump(conn, upstream)
+                  upstream.close()
+              except Exception:
+                  pass
+              finally:
+                  try:
+                      conn.close()
+                  except Exception:
+                      pass
+
+          server = socket.socket()
+          server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+          server.bind(("127.0.0.1", PORT))
+          server.listen(64)
+          print("proxy ready", flush=True)
+          while True:
+              conn, _ = server.accept()
+              threading.Thread(target=handle, args=(conn,), daemon=True).start()
+          PY
+          HOSTS_LOG="$TASKDIR/connect-hosts.log"
+          : > "$HOSTS_LOG"
+          python3 "$TASKDIR/proxy.py" "$HOSTS_LOG" 8899 &
+          PROXY_PID=$!
+          sleep 1
+          export HTTPS_PROXY=http://127.0.0.1:8899
+          export HTTP_PROXY=http://127.0.0.1:8899
+          export https_proxy=http://127.0.0.1:8899
+          export http_proxy=http://127.0.0.1:8899
+          TASKDIR2="$(mktemp -d)"
+          cp "$TASKDIR/calc.py" "$TASKDIR/test_calc.py" "$TASKDIR2/"
+          (cd "$TASKDIR2" && "$BIN" exec -C "$TASKDIR2" --model fikra-auto --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "Run the tests, find the bug, fix it, and run the tests again." 2>&1) | tee "$TASKDIR2/fikra-output.log"
+          kill "$PROXY_PID" 2>/dev/null || true
+          echo "=== unique CONNECT hosts ==="
+          sort -u "$HOSTS_LOG" || true
+          if grep -Eqi 'openai\.com|chatgpt\.com' "$HOSTS_LOG"; then
+            echo "FAIL: request to an OpenAI/ChatGPT host"; exit 1
+          fi
+
+  windows:
+    if: contains(github.event.head_commit.message, '[windows]') || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    steps:
+      - name: Free disk space
+        shell: pwsh
+        run: |
+          $paths = @('C:\Program Files\dotnet', 'C:\Program Files (x86)\dotnet', 'C:\hostedtoolcache\windows\Android')
+          foreach ($p in $paths) {
+            if (Test-Path $p) { Remove-Item -Recurse -Force $p -ErrorAction SilentlyContinue }
+          }
+      - uses: actions/checkout@v4
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: codex-rs
+      - name: Build CLI
+        working-directory: codex-rs
+        run: cargo build -p codex-cli --release
+      - name: Smoke tests
+        shell: pwsh
+        env:
+          FIKRA_API_KEY: ${{ secrets.FIKRA_API_KEY }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $bin = "$PWD\codex-rs\target\release\fikra.exe"
+          $env:FIKRA_HOME = Join-Path ([System.IO.Path]::GetTempPath()) ("fikra-home-" + [guid]::NewGuid())
+          New-Item -ItemType Directory -Force -Path $env:FIKRA_HOME | Out-Null
+
+          Write-Host "=== a) version ==="
+          $versionOut = & $bin --version 2>&1 | Out-String
+          Write-Host $versionOut
+          if ($versionOut -match 'codex|openai') { throw 'version output contains old branding' }
+
+          Write-Host "=== b) login / rejection / logout ==="
+          $env:FIKRA_API_KEY | & $bin login
+          $invalid = 'invalid-key-123' | & $bin login 2>&1 | Out-String
+          Write-Host $invalid
+          if ($LASTEXITCODE -eq 0) { throw 'invalid key was accepted' }
+          & $bin logout
+
+          Write-Host "=== c) bug-fix task ==="
+          $task = Join-Path ([System.IO.Path]::GetTempPath()) ("fikra-task-" + [guid]::NewGuid())
+          New-Item -ItemType Directory -Force -Path $task | Out-Null
+          Set-Content -Path (Join-Path $task 'calc.py') -Value "def add(a, b):`n    return a - b`n"
+          Set-Content -Path (Join-Path $task 'test_calc.py') -Value "import unittest`nfrom calc import add`nclass TestCalc(unittest.TestCase):`n    def test_add(self):`n        self.assertEqual(add(2, 3), 5)`nif __name__ == '__main__':`n    unittest.main()`n"
+          Push-Location $task
+          try {
+            & $bin exec -C $task --model fikra-auto --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "Run the tests, find the bug, fix it, and run the tests again." 2>&1 | Tee-Object -FilePath (Join-Path $task 'fikra-output.log')
+            if ($LASTEXITCODE -ne 0) { throw 'fikra exec failed' }
+            $calc = Get-Content (Join-Path $task 'calc.py') -Raw
+            if ($calc -notmatch 'return a \+ b') { throw 'calc.py was not fixed' }
+            python -m unittest -v
+            if ($LASTEXITCODE -ne 0) { throw 'python tests failed' }
+          } finally {
+            Pop-Location
+          }
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: fikra-windows-x86_64
+          path: codex-rs\target\release\fikra.exe
+          if-no-files-found: error
