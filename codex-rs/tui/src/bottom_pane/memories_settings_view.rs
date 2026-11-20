@@ -33,7 +33,7 @@ use super::popup_consts::MAX_POPUP_ROWS;
 use super::scroll_state::ScrollState;
 use super::selection_popup_common::GenericDisplayRow;
 
-const MEMORIES_DOC_URL: &str = "https://developers.fikraapi.co.ke/codex/memories";
+const MEMORIES_DOC_URL: &str = "https://developers.codexapi.co.ke/codex/memories";
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum MemoriesSetting {

@@ -251,7 +251,7 @@ async fn credential_masking_preserves_project_protections_in_both_loaders() {
         let tmp = tempdir().expect("tempdir");
         let codex_home = tmp.path().join("codex-home");
         let project = tmp.path().join("project");
-        let dot_codex = project.join(".fikra");
+        let dot_codex = project.join(".codex");
         std::fs::create_dir_all(&codex_home).expect("create Codex home");
         std::fs::create_dir_all(&dot_codex).expect("create project config directory");
         std::fs::write(project.join(".project-root"), "").expect("write project marker");
@@ -785,7 +785,7 @@ async fn multi_agent_warns_for_explicit_user_and_project_settings() -> std::io::
     let workspace = tempdir()?;
     let cwd = AbsolutePathBuf::try_from(workspace.path())?;
     let trust_key = TomlValue::String(project_trust_key(workspace.path()));
-    let project_config_dir = workspace.path().join(".fikra");
+    let project_config_dir = workspace.path().join(".codex");
     std::fs::create_dir(&project_config_dir)?;
     let session_flags = [(
         "features.multi_agent".to_string(),
@@ -1152,7 +1152,7 @@ async fn local_layers_keep_raw_paths_order_and_legacy_requirements() {
     let tmp = tempdir().expect("tempdir");
     let codex_home = tmp.path().join("codex-home");
     let project = tmp.path().join("project");
-    let dot_codex = project.join(".fikra");
+    let dot_codex = project.join(".codex");
     let system_dir = tmp.path().join("system");
     let managed_dir = tmp.path().join("managed");
     for dir in [&codex_home, &dot_codex, &system_dir, &managed_dir] {

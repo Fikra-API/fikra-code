@@ -218,7 +218,7 @@ impl ChatWidget {
                         if crate::daybreak::availability(&self.model_catalog.models) == Some(false)
                         {
                             self.add_info_message(
-                                "Daybreak is not available for this account. Apply at https://fikraapi.co.ke/form/enterprise-trusted-access-for-cyber/. Learn more at https://help.fikraapi.co.ke/en/articles/20001326.".into(),
+                                "Daybreak is not available for this account. Apply at https://fikraapi.co.ke/form/enterprise-trusted-access-for-cyber/. Learn more at https://help.codexapi.co.ke/en/articles/20001326.".into(),
                                 /*hint*/ None,
                             );
                         } else {

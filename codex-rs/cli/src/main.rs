@@ -497,7 +497,7 @@ type HostSandboxArgs = UnsupportedSandboxArgs;
 #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
 #[derive(Debug, Parser)]
 struct UnsupportedSandboxArgs {
-    /// Layer $FIKRA_HOME/<name>.config.toml on top of the base user config.
+    /// Layer $CODEX_HOME/<name>.config.toml on top of the base user config.
     #[arg(long = "profile", short = 'p')]
     pub config_profile: Option<ProfileV2Name>,
 
@@ -1078,6 +1078,7 @@ async fn dispatch_cli(
         subcommand,
     } = config_override_args::try_parse_from(std::env::args_os())
         .unwrap_or_else(|error| error.exit());
+    ensure_fikra_default_config();
     // Retain the launch target through TUI exit, even if a launcher changes selection.
     let daemon_cli_executable = arg0_paths
         .codex_self_exe
@@ -2813,6 +2814,26 @@ fn print_completion(cmd: CompletionCommand) {
     let mut app = MultitoolCli::command();
     let name = "fikra";
     generate(cmd.shell, &mut app, name, &mut std::io::stdout());
+}
+
+/// Seeds the Fikra Code config with the Fikra provider and the free DeepSeek
+/// model on first run. Users can edit this file afterwards.
+fn ensure_fikra_default_config() {
+    if let Some(path) = std::env::var_os("FIKRA_HOME") {
+        if !path.is_empty() && !std::path::Path::new(&path).exists() {
+            let _ = std::fs::create_dir_all(&path);
+        }
+    }
+    let Ok(home) = codex_core::config::find_codex_home() else {
+        return;
+    };
+    let config_path = home.as_path().join("config.toml");
+    if config_path.exists() {
+        return;
+    }
+    let _ = std::fs::create_dir_all(home.as_path());
+    let contents = "model_provider = \"fikra\"\nmodel = \"deepseek-v4-1-flash-economy-free\"\n";
+    let _ = std::fs::write(config_path, contents);
 }
 
 #[cfg(test)]

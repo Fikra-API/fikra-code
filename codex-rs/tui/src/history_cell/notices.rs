@@ -150,7 +150,7 @@ pub(crate) struct SafetyAccessBlockCell {
     actions: &'static [(&'static str, &'static str)],
 }
 
-const SAFETY_ACCESS_BLOCK_LEARN_MORE_URL: &str = "https://help.fikraapi.co.ke/en/articles/20001326";
+const SAFETY_ACCESS_BLOCK_LEARN_MORE_URL: &str = "https://help.codexapi.co.ke/en/articles/20001326";
 
 pub(crate) fn new_safety_access_block_event() -> SafetyAccessBlockCell {
     SafetyAccessBlockCell {
@@ -190,7 +190,7 @@ pub(crate) fn new_cyber_policy_error_event(
             "Daybreak isn’t available for Astra. Some cybersecurity requests may still be limited.",
             &[(
                 "Learn more",
-                "https://help.fikraapi.co.ke/en/articles/20001258-openai-daybreak-trusted-access-for-cyber-overview#reduced-refusals-behavior-by-model",
+                "https://help.codexapi.co.ke/en/articles/20001258-openai-daybreak-trusted-access-for-cyber-overview#reduced-refusals-behavior-by-model",
             )],
         ),
         Notice::Enabled => (

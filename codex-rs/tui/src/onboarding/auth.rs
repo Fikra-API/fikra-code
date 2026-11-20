@@ -750,7 +750,7 @@ impl AuthModeWidget {
             HyperlinkLine::new(Line::from("  Learn about permissions and approvals in the ").dim());
         docs_line.push_span(
             "Fikra Code docs".underlined(),
-            Some("https://developers.fikraapi.co.ke/codex/security"),
+            Some("https://developers.codexapi.co.ke/codex/security"),
         );
         let mut preferences_line =
             HyperlinkLine::new(Line::from("  Your plan's rate limits and ").dim());
