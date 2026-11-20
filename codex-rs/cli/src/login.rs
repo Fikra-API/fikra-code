@@ -9,6 +9,9 @@
 
 use codex_cloud_config::ConfigServerLoginMethod;
 use codex_config::types::AuthCredentialsStoreMode;
+use codex_http_client::ClientRouteClass;
+use codex_http_client::HttpClientFactory;
+use codex_http_client::OutboundProxyPolicy;
 use codex_core::config::Config;
 use codex_core::config::edit::ConfigEdit;
 use codex_core::config::edit::ConfigEditsBuilder;
@@ -42,13 +45,40 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
 const CHATGPT_LOGIN_DISABLED_MESSAGE: &str =
-    "ChatGPT login is disabled. Use API key login instead.";
+    "Fikra login is disabled. Use API key login instead.";
 const API_KEY_LOGIN_DISABLED_MESSAGE: &str =
-    "API key login is disabled. Use ChatGPT login instead.";
+    "API key login is disabled. Use Fikra login instead.";
 const ACCESS_TOKEN_LOGIN_DISABLED_MESSAGE: &str =
     "Access token login is disabled. Use API key login instead.";
 const LOGIN_SUCCESS_MESSAGE: &str = "Successfully logged in";
 const API_KEY_AUTHENTICATION_NOTICE: &str = "Authentication is checked when you send a request.";
+const FIKRA_KEY_PROBE_URL: &str = "https://fikraapi.co.ke/v1/chat/completions";
+
+async fn validate_fikra_api_key(api_key: &str) -> Result<(), String> {
+    let factory = HttpClientFactory::new(OutboundProxyPolicy::ReqwestDefault);
+    let client = factory
+        .build_client(FIKRA_KEY_PROBE_URL, ClientRouteClass::Other)
+        .map_err(|err| format!("could not build HTTP client: {err}"))?;
+    // Send a deliberately unsupported model so a valid key is authenticated
+    // without running inference. Invalid keys are rejected with HTTP 401.
+    let body = serde_json::json!({
+        "model": "__fikra_key_probe__",
+        "messages": [{"role": "user", "content": "ping"}],
+        "max_tokens": 1
+    });
+    let response = client
+        .post(FIKRA_KEY_PROBE_URL)
+        .bearer_auth(api_key)
+        .json(&body)
+        .send()
+        .await
+        .map_err(|err| format!("could not reach the Fikra API: {err}"))?;
+    if response.status().as_u16() == 401 {
+        Err("the Fikra API rejected the key (HTTP 401)".to_string())
+    } else {
+        Ok(())
+    }
+}
 const DEFAULT_LOGIN_LOG_FILTER: &str =
     "codex_cli=info,codex_core=info,codex_login=info,codex_otel::auth_storage=warn";
 
@@ -280,6 +310,11 @@ pub async fn run_login_with_api_key(
         .is_login_method_allowed(ForcedLoginMethod::Api)
     {
         eprintln!("{API_KEY_LOGIN_DISABLED_MESSAGE}");
+        std::process::exit(1);
+    }
+
+    if let Err(message) = validate_fikra_api_key(&api_key).await {
+        eprintln!("Login failed: {message}");
         std::process::exit(1);
     }
 
@@ -547,7 +582,7 @@ pub async fn run_login_status(cli_config_overrides: CliConfigOverrides) -> ! {
                 }
             },
             AuthMode::Chatgpt | AuthMode::ChatgptAuthTokens => {
-                eprintln!("Logged in using ChatGPT");
+                eprintln!("Logged in using Fikra");
                 std::process::exit(0);
             }
             AuthMode::Headers => {

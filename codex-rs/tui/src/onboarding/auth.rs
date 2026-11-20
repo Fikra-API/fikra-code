@@ -1,6 +1,6 @@
 //! Authentication step UI and state transitions used by onboarding.
 //!
-//! This module owns the auth-step state machine (ChatGPT login/device-code/API
+//! This module owns the auth-step state machine (Fikra login/device-code/API
 //! key), renders the corresponding UI, and handles auth-scoped keyboard input.
 //! It intentionally does not decide onboarding flow completion; the enclosing
 //! onboarding screen coordinates step progression.
@@ -385,7 +385,7 @@ impl AuthModeWidget {
 
     /// Returns whether printable quit shortcuts must be treated as text input.
     ///
-    /// OpenAI API-key entry keeps its existing empty-field quit behavior, while
+    /// Fikra API-key entry keeps its existing empty-field quit behavior, while
     /// Cloud setup fields accept printable input from their first character.
     pub(crate) fn should_suppress_printable_quit(&self) -> bool {
         if let Some(wizard) = &self.gateway {
@@ -418,27 +418,7 @@ impl AuthModeWidget {
     }
 
     fn displayed_sign_in_options(&self) -> Vec<SignInOption> {
-        if self.highlighted_mode.is_alternative() {
-            let mut options = vec![SignInOption::ApiKey];
-            if self.bedrock_setup_enabled {
-                options.push(SignInOption::Bedrock);
-            }
-            if self.gcp_setup_enabled {
-                options.push(SignInOption::Gcp);
-            }
-            if self.gateway_setup_enabled {
-                options.push(SignInOption::Gateway);
-            }
-            return options;
-        }
-        let mut options = vec![SignInOption::ChatGpt];
-        if self.is_chatgpt_login_allowed() {
-            options.push(SignInOption::DeviceCode);
-        }
-        if self.is_api_login_allowed() {
-            options.push(SignInOption::OtherMethods);
-        }
-        options
+        vec![SignInOption::ApiKey]
     }
 
     fn move_highlight(&mut self, delta: isize) {
@@ -549,24 +529,10 @@ impl AuthModeWidget {
     }
 
     fn render_pick_mode(&self, area: Rect, buf: &mut Buffer) {
-        let mut lines: Vec<Line> = if self.highlighted_mode.is_alternative() {
-            vec!["  Sign in another way".into(), "".into()]
-        } else if self.bedrock_setup_enabled || self.gcp_setup_enabled || self.gateway_setup_enabled
-        {
-            vec!["  Choose how you want to use Codex.".into(), "".into()]
-        } else {
-            vec![
-                Line::from(vec![
-                    "  ".into(),
-                    "Sign in with ChatGPT to use Codex as part of your paid plan".into(),
-                ]),
-                Line::from(vec![
-                    "  ".into(),
-                    "or connect an API key for usage-based billing".into(),
-                ]),
-                "".into(),
-            ]
-        };
+        let mut lines: Vec<Line> = vec![
+            "  Paste your Fikra API key (get one at https://fikraapi.co.ke/dashboard)".into(),
+            "".into(),
+        ];
 
         let options_start = lines.len();
         let mut compact_options = Vec::new();
@@ -601,7 +567,7 @@ impl AuthModeWidget {
         };
 
         let chatgpt_description = if !self.is_chatgpt_login_allowed() {
-            "ChatGPT login is disabled"
+            "Fikra login is disabled"
         } else {
             "Usage included with Plus, Pro, Business, and Enterprise plans"
         };
@@ -620,7 +586,7 @@ impl AuthModeWidget {
                         {
                             "Use an API key or another provider"
                         } else {
-                            "Use an OpenAI API key"
+                            "Use an Fikra API key"
                         },
                     ));
                 }
@@ -628,7 +594,7 @@ impl AuthModeWidget {
                     lines.extend(create_mode_item(
                         idx,
                         option,
-                        "Sign in with ChatGPT",
+                        "Sign in with Fikra",
                         chatgpt_description,
                     ));
                 }
@@ -644,8 +610,8 @@ impl AuthModeWidget {
                     lines.extend(create_mode_item(
                         idx,
                         option,
-                        "Use an OpenAI API key",
-                        "Pay for what you use",
+                        "Paste your Fikra API key (get one at https://fikraapi.co.ke/dashboard)",
+                        "Connect your Fikra account",
                     ));
                 }
                 SignInOption::Bedrock => {
@@ -679,7 +645,7 @@ impl AuthModeWidget {
         let options_end = lines.len();
         if !self.is_api_login_allowed() {
             lines.push(
-                "  API key login is disabled by this workspace. Sign in with ChatGPT to continue."
+                "  API key login is disabled by this workspace. Sign in with Fikra to continue."
                     .dim()
                     .into(),
             );
@@ -783,20 +749,20 @@ impl AuthModeWidget {
         let mut docs_line =
             HyperlinkLine::new(Line::from("  Learn about permissions and approvals in the ").dim());
         docs_line.push_span(
-            "Codex docs".underlined(),
-            Some("https://developers.openai.com/codex/security"),
+            "Fikra Code docs".underlined(),
+            Some("https://developers.codexapi.co.ke/codex/security"),
         );
         let mut preferences_line =
             HyperlinkLine::new(Line::from("  Your plan's rate limits and ").dim());
         preferences_line.push_span(
             "training data preferences".underlined(),
-            Some("https://chatgpt.com/#settings"),
+            Some("https://fikraapi.co.ke/#settings"),
         );
         preferences_line.push_span(" apply".into(), /*destination*/ None);
 
         let lines = vec![
             HyperlinkLine::new(
-                "✓ Signed in with your ChatGPT account"
+                "✓ Signed in with your Fikra account"
                     .fg(Color::Green)
                     .into(),
             ),
@@ -804,14 +770,14 @@ impl AuthModeWidget {
             "  You're in control".into(),
             docs_line,
             "".into(),
-            "  Codex can make mistakes".into(),
+            "  Fikra Code can make mistakes".into(),
             HyperlinkLine::new(
                 "  Review the code it writes and commands it runs"
                     .dim()
                     .into(),
             ),
             "".into(),
-            "  Included with your ChatGPT plan".into(),
+            "  Included with your Fikra plan".into(),
             preferences_line,
             "".into(),
             HyperlinkLine::new(Line::from(vec![
@@ -829,7 +795,7 @@ impl AuthModeWidget {
 
     fn render_chatgpt_success(&self, area: Rect, buf: &mut Buffer) {
         let lines = vec![
-            "✓ Signed in with your ChatGPT account"
+            "✓ Signed in with your Fikra account"
                 .fg(Color::Green)
                 .into(),
         ];
@@ -843,7 +809,7 @@ impl AuthModeWidget {
         let lines = vec![
             "✓ API key configured".fg(Color::Green).into(),
             "".into(),
-            "  Codex will use usage-based billing with your API key.".into(),
+            "  Fikra Code will use usage-based billing with your API key.".into(),
         ];
 
         Paragraph::new(lines)
@@ -862,14 +828,14 @@ impl AuthModeWidget {
         let mut intro_lines: Vec<Line> = vec![
             Line::from(vec![
                 "> ".into(),
-                "Use your own OpenAI API key for usage-based billing".bold(),
+                "Paste your Fikra API key".bold(),
             ]),
             "".into(),
-            "  Paste or type your API key below.".into(),
+            "  Get one at https://fikraapi.co.ke/dashboard".into(),
             "".into(),
         ];
         if state.prepopulated_from_env {
-            intro_lines.push("  Detected OPENAI_API_KEY environment variable.".into());
+            intro_lines.push("  Detected FIKRA_API_KEY environment variable.".into());
             intro_lines.push(
                 "  Paste a different key if you prefer to use another account."
                     .dim()
@@ -1095,7 +1061,7 @@ impl AuthModeWidget {
         }
     }
 
-    /// Kicks off the ChatGPT auth flow and keeps the UI state consistent with the attempt.
+    /// Kicks off the Fikra auth flow and keeps the UI state consistent with the attempt.
     pub(super) fn start_chatgpt_login(&mut self) {
         // If we're already authenticated with ChatGPT, don't start a new login –
         // just proceed to the success message flow.
