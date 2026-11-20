@@ -22,7 +22,7 @@ pub enum UpdateAction {
     BrewUpgrade,
     /// Update via the standalone Unix installer.
     StandaloneUnix,
-    /// Update via `$env:CODEX_NON_INTERACTIVE=1; irm https://fikraapi.co.ke/code/install.ps1 | iex`.
+    /// Update via `$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex`.
     StandaloneWindows,
 }
 
@@ -56,7 +56,7 @@ impl UpdateAction {
                 "sh",
                 &[
                     "-c",
-                    r#"s=$(curl -fsSL https://fikraapi.co.ke/code/install.sh) && CODEX_NON_INTERACTIVE=1 eval "$s""#,
+                    r#"s=$(curl -fsSL https://chatgpt.com/codex/install.sh) && CODEX_NON_INTERACTIVE=1 eval "$s""#,
                 ],
             ),
             UpdateAction::StandaloneWindows => (
@@ -65,7 +65,7 @@ impl UpdateAction {
                     "-ExecutionPolicy",
                     "Bypass",
                     "-c",
-                    "$env:CODEX_NON_INTERACTIVE=1; irm https://fikraapi.co.ke/code/install.ps1 | iex",
+                    "$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex",
                 ],
             ),
         }
@@ -165,7 +165,7 @@ mod tests {
                     "-ExecutionPolicy",
                     "Bypass",
                     "-c",
-                    "$env:CODEX_NON_INTERACTIVE=1; irm https://fikraapi.co.ke/code/install.ps1 | iex"
+                    "$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex"
                 ][..],
             )
         );
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn standalone_unix_update_fails_when_installer_download_fails() {
         let (command, args) = UpdateAction::StandaloneUnix.command_args();
-        let offline_command = args[1].replace("https://fikraapi.co.ke", "file:///dev/null");
+        let offline_command = args[1].replace("https://chatgpt.com", "file:///dev/null");
         assert_ne!(offline_command, args[1], "installer URL must be replaced");
         let output = std::process::Command::new(command)
             .args([args[0], &offline_command])
