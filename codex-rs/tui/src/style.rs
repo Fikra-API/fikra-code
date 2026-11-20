@@ -20,10 +20,10 @@ use ratatui::style::Style;
 
 const LIGHT_BG_ACCENT_RGB: (u8, u8, u8) = (28, 100, 200);
 
-/// Fikra Blue 100 (#A4CDFB), used for selection fills on light backgrounds.
+/// ChatGPT Blue 100 (#A4CDFB), used for selection fills on light backgrounds.
 pub(crate) const CHATGPT_BLUE_100: (u8, u8, u8) = (164, 205, 251);
 
-/// Fikra Blue 200 (#63A8F8).
+/// ChatGPT Blue 200 (#63A8F8).
 pub(crate) const CHATGPT_BLUE_200: (u8, u8, u8) = (99, 168, 248);
 
 /// Shared accent for picker selection backgrounds and transcript foreground emphasis.

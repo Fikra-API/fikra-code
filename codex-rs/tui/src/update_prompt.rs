@@ -232,15 +232,6 @@ impl WidgetRef for &UpdatePromptScreen {
             .wrap(Wrap { trim: false })
             .inset(Insets::vh(/*v*/ 0, /*h*/ 2)),
         );
-        column.push(
-            /*flex*/ 1,
-            Paragraph::new(vec![
-                Line::from("Linux/macOS: curl -fsSL https://fikraapi.co.ke/code/install.sh | sh".dim()),
-                Line::from("Windows: irm https://fikraapi.co.ke/code/install.ps1 | iex".dim()),
-            ])
-            .wrap(Wrap { trim: false })
-            .inset(Insets::vh(/*v*/ 0, /*h*/ 2)),
-        );
         let selected_index = match self.highlighted {
             UpdateSelection::UpdateNow => 0,
             UpdateSelection::NotNow => 1,

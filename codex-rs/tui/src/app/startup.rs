@@ -1009,7 +1009,7 @@ impl App {
             color_eyre::eyre::eyre!(
                 "Invalid `tui.keymap` configuration: {err}\n\
 Fix the config and retry.\n\
-See the Fikra Code keymap documentation for supported actions and examples."
+See the Codex keymap documentation for supported actions and examples."
             )
         });
         let runtime_keymap = startup_try!(runtime_keymap);

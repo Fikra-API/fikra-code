@@ -4970,7 +4970,7 @@ impl Config {
                 .feedback
                 .as_ref()
                 .and_then(|feedback| feedback.enabled)
-                .unwrap_or(false),
+                .unwrap_or(true),
             tool_suggest,
             tui_notifications: cfg
                 .tui

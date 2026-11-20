@@ -33,7 +33,7 @@ use super::popup_consts::MAX_POPUP_ROWS;
 use super::scroll_state::ScrollState;
 use super::selection_popup_common::GenericDisplayRow;
 
-const MEMORIES_DOC_URL: &str = "https://developers.codexapi.co.ke/codex/memories";
+const MEMORIES_DOC_URL: &str = "https://developers.openai.com/codex/memories";
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum MemoriesSetting {
@@ -122,7 +122,7 @@ impl MemoriesSettingsView {
         header.push(Paragraph::new(Line::from("Memories".bold())).wrap(Wrap { trim: false }));
         header.push(
             Paragraph::new(Line::from(
-                "Choose how Fikra Code uses and creates memories. Changes are saved to config.toml"
+                "Choose how Codex uses and creates memories. Changes are saved to config.toml"
                     .dim(),
             ))
             .wrap(Wrap { trim: false }),
@@ -137,7 +137,7 @@ impl MemoriesSettingsView {
         );
         header.push(
             Paragraph::new(Line::from(
-                "This clears local memory files and rollout summaries for the current Fikra Code home."
+                "This clears local memory files and rollout summaries for the current Codex home."
                     .dim(),
             ))
             .wrap(Wrap { trim: false }),

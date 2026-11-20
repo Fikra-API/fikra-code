@@ -7056,7 +7056,7 @@ async fn feedback_enabled_defaults_to_true() -> std::io::Result<()> {
     )
     .await?;
 
-    assert_eq!(config.feedback_enabled, false);
+    assert_eq!(config.feedback_enabled, true);
 
     Ok(())
 }
@@ -10680,7 +10680,7 @@ async fn metrics_exporter_defaults_to_statsig_when_missing() -> std::io::Result<
     )
     .await?;
 
-    assert_eq!(config.otel.metrics_exporter, OtelExporterKind::None);
+    assert_eq!(config.otel.metrics_exporter, OtelExporterKind::Statsig);
     assert!(config.otel.log_sse_deltas);
     assert!(!config.otel.agent_response_logging_enabled());
     assert!(!config.otel.guardian_assessment_logging_enabled());

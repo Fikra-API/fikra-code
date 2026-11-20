@@ -89,7 +89,7 @@ fn analytics_tool_names_preserve_acronyms_and_distinct_namespaces() {
             "PR Reviewer",
             "Slack CLI",
             "Squatch",
-            "Fikra Docs",
+            "OpenAI Docs",
             "User Writing: Writing Style"
         ]
         .map(str::to_owned),

@@ -76,7 +76,7 @@ pub(crate) enum StatusLineItem {
     )]
     ProjectRoot,
 
-    /// Hostname of the machine running Fikra Code.
+    /// Hostname of the machine running Codex.
     Hostname,
 
     /// Current git branch name (if in a repository).
@@ -114,7 +114,7 @@ pub(crate) enum StatusLineItem {
     /// Remaining usage on the secondary rate limit.
     WeeklyLimit,
 
-    /// Fikra Code application version.
+    /// Codex application version.
     CodexVersion,
 
     /// Total context window size in tokens.
@@ -211,7 +211,7 @@ impl StatusLineItem {
             StatusLineItem::WeeklyLimit => {
                 "Remaining usage on the secondary usage limit (omitted when unavailable)"
             }
-            StatusLineItem::CodexVersion => "Fikra Code application version",
+            StatusLineItem::CodexVersion => "Codex application version",
             StatusLineItem::ContextWindowSize => {
                 "Total context window size in tokens (omitted when unknown)"
             }

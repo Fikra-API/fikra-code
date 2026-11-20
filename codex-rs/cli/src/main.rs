@@ -2832,7 +2832,7 @@ fn ensure_fikra_default_config() {
         return;
     }
     let _ = std::fs::create_dir_all(home.as_path());
-    let contents = "model_provider = \"fikra\"\nmodel = \"deepseek-v4-1-flash-economy-free\"\n";
+    let contents = "model_provider = \"fikra\"\nmodel = \"deepseek-v4-1-flash-economy-free\"\n\n[analytics]\nenabled = false\n\n[feedback]\nenabled = false\n\n[otel]\nexporter = \"none\"\ntrace_exporter = \"none\"\nmetrics_exporter = \"none\"\n";
     let _ = std::fs::write(config_path, contents);
 }
 

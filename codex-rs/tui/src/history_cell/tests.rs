@@ -363,7 +363,7 @@ fn proposed_plan_cell_renders_markdown_table() {
         },
         || {
             let plan = new_proposed_plan(
-                "## Plan\n\n| Step | Owner |\n| --- | --- |\n| Verify | Fikra Code |\n".to_string(),
+                "## Plan\n\n| Step | Owner |\n| --- | --- |\n| Verify | Codex |\n".to_string(),
                 &test_cwd(),
             );
 
@@ -403,7 +403,7 @@ fn proposed_plan_cell_preserves_wrapped_table_web_links() {
 
 #[test]
 fn composite_cell_preserves_child_web_links() {
-    let destination = "https://fikraapi.co.ke/settings/usage";
+    let destination = "https://chatgpt.com/settings/usage";
     let cell = CompositeHistoryCell::new(vec![
         Box::new(PlainHistoryCell::new(vec![Line::from("/status")])),
         Box::new(WebHyperlinkHistoryCell::new(vec![Line::from(destination)])),
@@ -422,7 +422,7 @@ fn composite_cell_preserves_child_web_links() {
 
 #[test]
 fn empty_mcp_output_preserves_docs_hyperlink() {
-    let destination = "https://developers.codexapi.co.ke/codex/mcp";
+    let destination = "https://developers.openai.com/codex/mcp";
     let cell: Box<dyn HistoryCell> = Box::new(empty_mcp_output());
 
     insta::assert_snapshot!(render_lines(&cell.display_lines(/*width*/ 80)).join("\n"), @r"
@@ -474,7 +474,7 @@ fn empty_mcp_output_preserves_docs_hyperlink() {
 #[test]
 fn proposed_plan_cell_unwraps_markdown_fenced_table() {
     let plan = new_proposed_plan(
-        "## Plan\n\n```markdown\n| Step | Owner |\n| --- | --- |\n| Verify | Fikra Code |\n```\n"
+        "## Plan\n\n```markdown\n| Step | Owner |\n| --- | --- |\n| Verify | Codex |\n```\n"
             .to_string(),
         &test_cwd(),
     );
@@ -818,7 +818,7 @@ async fn session_info_preserves_styled_tooltip_links() {
         &session_configured_event("gpt-5"),
         /*is_first_event*/ false,
         Some(
-            "Use **/copy** or `ctrl+y`; visit the [Fikra Code community forum](https://example.com)."
+            "Use **/copy** or `ctrl+y`; visit the [Codex community forum](https://example.com)."
                 .to_string(),
         ),
         Some(PlanType::Free),
@@ -1049,7 +1049,7 @@ fn error_event_bedrock_expired_signature_snapshot() {
         user_message: Some(
             "Amazon Bedrock rejected the request because its AWS signature has expired. \
 Refresh your AWS credentials and retry. If `AWS_BEARER_TOKEN_BEDROCK` is set, update or \
-unset it, then restart Fikra Code"
+unset it, then restart Codex"
                 .to_string(),
         ),
         url: Some("https://bedrock-mantle.us-east-2.api.aws/openai/v1/responses".to_string()),

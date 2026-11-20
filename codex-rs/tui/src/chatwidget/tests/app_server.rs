@@ -159,7 +159,7 @@ async fn session_and_settings_sync_server_provider_id() {
     let displayed = status(&mut chat);
     assert!(displayed.contains("Model provider:") && displayed.contains("server-ollama"));
     assert!(!displayed.contains("local-provider.example"));
-    assert!(!displayed.contains("Fikra workspace:"));
+    assert!(!displayed.contains("ChatGPT workspace:"));
     assert_eq!(
         status_line_text(&chat).as_deref(),
         Some("provider: server-ollama")
@@ -322,7 +322,7 @@ async fn safety_buffering_offers_one_retry_with_app_wording() {
             Err(err) => panic!("expected learn-more URL event: {err}"),
         }
     };
-    assert_eq!(opened_url, "https://help.codexapi.co.ke/en/articles/20001326");
+    assert_eq!(opened_url, "https://help.openai.com/en/articles/20001326");
     assert!(render_bottom_popup(&chat, /*width*/ 80).contains(SAFETY_BUFFERING_HEADER_TEXT));
 
     chat.handle_key_event(KeyEvent::new(KeyCode::Up, KeyModifiers::NONE));
@@ -1295,7 +1295,7 @@ async fn sqlite_recovery_warning_shows_backup_and_metadata_limitations() {
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
     chat.handle_server_notification(
         ServerNotification::ConfigWarning(ConfigWarningNotification {
-            summary: "Fikra Code rebuilt its local database".into(),
+            summary: "Codex rebuilt its local database".into(),
             details: Some("Damaged local databases were rebuilt. Saved conversations remain in rollout files and can restore the thread list and history. Some database-only metadata may be unavailable. The original database files were preserved at the backup locations below.\n\nDatabase path: /codex/state_5.sqlite\nBackup folder: /codex/db-backups/recovery".into()),
             path: None,
             range: None,
@@ -1326,7 +1326,7 @@ async fn startup_config_warning_is_not_repeated_by_thread() {
                     is_managed_daemon: managed_daemon,
                 });
         }
-        let message = "Fikra Code is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.";
+        let message = "Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.";
         for notification in [
             ServerNotification::ConfigWarning(ConfigWarningNotification {
                 summary: message.to_string(),
@@ -2121,7 +2121,7 @@ async fn live_app_server_server_overloaded_error_renders_error() {
         let rendered = lines_to_single_string(&cells[0]);
         insta::allow_duplicates! {
             if message.is_empty() {
-                insta::assert_snapshot!(rendered, @"■ Fikra Code is currently experiencing high load.");
+                insta::assert_snapshot!(rendered, @"■ Codex is currently experiencing high load.");
             } else {
                 insta::assert_snapshot!(rendered, @"■ server overloaded");
             }
@@ -2239,7 +2239,7 @@ async fn live_app_server_model_verification_renders_warning() {
     assert!(rendered.contains("multiple flags for possible cybersecurity risk"));
     assert!(rendered.contains("extra safety checks are on"));
     assert!(rendered.contains("Trusted Access for Cyber"));
-    assert!(rendered.contains("https://fikraapi.co.ke/cyber"));
+    assert!(rendered.contains("https://chatgpt.com/cyber"));
 }
 
 #[tokio::test]
@@ -2434,7 +2434,7 @@ async fn sqlite_log_write_warning_is_visible_in_warnings() {
     chat.handle_server_notification(
         ServerNotification::Warning(WarningNotification {
             thread_id: None,
-            message: "Fikra Code couldn't save diagnostic logs to its local database. Use /feedback with logs included before closing Fikra Code, or run `codex doctor` for diagnostics.".to_string(),
+            message: "Codex couldn't save diagnostic logs to its local database. Use /feedback with logs included before closing Codex, or run `codex doctor` for diagnostics.".to_string(),
         }),
         /*replay_kind*/ None,
     );

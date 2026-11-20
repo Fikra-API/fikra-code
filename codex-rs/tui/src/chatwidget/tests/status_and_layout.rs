@@ -297,7 +297,7 @@ async fn daybreak_refusal_offers_enable_for_the_next_turn() {
         .iter()
         .find(|notice| notice.contains("Daybreak is on"))
         .unwrap_or_else(|| panic!("missing Daybreak-on notice: {notices:#?}"));
-    assert!(notice.contains("You can ask Fikra Code for an overview"));
+    assert!(notice.contains("You can ask Codex for an overview"));
     let picker = render_bottom_popup(&chat, /*width*/ 80);
     assert!(picker.contains("Overview"));
     assert!(!picker.contains("Enable Daybreak"));
@@ -384,7 +384,7 @@ async fn app_server_model_verification_renders_warning() {
     assert!(rendered.contains("multiple flags for possible cybersecurity risk"));
     assert!(rendered.contains("extra safety checks are on"));
     assert!(rendered.contains("Trusted Access for Cyber"));
-    assert!(rendered.contains("https://fikraapi.co.ke/cyber"));
+    assert!(rendered.contains("https://chatgpt.com/cyber"));
 }
 
 #[tokio::test]
@@ -721,14 +721,14 @@ async fn completed_plan_table_tail_skips_provisional_history_insert() {
     );
     controller.push("| Step | Owner |\n");
     controller.push("| --- | --- |\n");
-    controller.push("| Verify | Fikra Code |\n");
+    controller.push("| Verify | Codex |\n");
     assert!(
         controller.has_live_tail(),
         "expected plan table holdback to leave a live tail",
     );
     chat.plan_stream_controller = Some(controller);
     chat.transcript.plan_delta_buffer =
-        "| Step | Owner |\n| --- | --- |\n| Verify | Fikra Code |\n".to_string();
+        "| Step | Owner |\n| --- | --- |\n| Verify | Codex |\n".to_string();
 
     while rx.try_recv().is_ok() {}
 
@@ -2232,7 +2232,7 @@ async fn workspace_owner_limit_states_render_state_specific_messages() {
         (
             RateLimitReachedType::WorkspaceOwnerCreditsDepleted,
             RateLimitErrorKind::Generic,
-            "You're out of credits. Your workspace is out of credits. Add credits to continue using Fikra Code.",
+            "You're out of credits. Your workspace is out of credits. Add credits to continue using Codex.",
         ),
         (
             RateLimitReachedType::WorkspaceOwnerUsageLimitReached,
