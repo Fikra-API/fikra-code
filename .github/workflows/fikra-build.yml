@@ -110,9 +110,11 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: codex-rs
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
       - name: Test TUI library
         working-directory: codex-rs
-        run: cargo test -p codex-tui --lib -- --skip onboarding
+        run: cargo nextest run -p codex-tui --lib -E 'not test(onboarding)'
 
   tests-cli:
     runs-on: ubuntu-24.04
