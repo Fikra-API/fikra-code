@@ -96,7 +96,6 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       RUST_MIN_STACK: "33554432"
-      INSTA_UPDATE: "always"
     steps:
       - name: Free disk space
         run: |
