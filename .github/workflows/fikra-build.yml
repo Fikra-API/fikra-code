@@ -9,11 +9,8 @@ concurrency:
   group: fikra-build
   cancel-in-progress: true
 
-env:
-  TEST_CRATES: "codex-utils-home-dir codex-config codex-model-provider-info codex-core codex-tui codex-cli codex-prompts codex-home"
-
 jobs:
-  linux:
+  build:
     runs-on: ubuntu-24.04
     env:
       CARGO_INCREMENTAL: "0"
@@ -28,22 +25,42 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL
           sudo apt-get clean
           df -h
-
       - uses: actions/checkout@v4
-
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
-
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: codex-rs
-
       - name: Build CLI
         working-directory: codex-rs
         run: cargo build -p codex-cli --release
+      - name: Upload Linux binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: fikra-linux-x86_64
+          path: codex-rs/target/release/fikra
+          if-no-files-found: error
 
-      - name: Test changed crates
+  tests-core:
+    runs-on: ubuntu-24.04
+    env:
+      TEST_CRATES: "codex-utils-home-dir codex-config codex-model-provider-info codex-core"
+    steps:
+      - name: Free disk space
+        run: |
+          set -e
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h
+      - uses: actions/checkout@v4
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: codex-rs
+      - name: Test core crates
         working-directory: codex-rs
         run: |
           set -e
@@ -52,15 +69,52 @@ jobs:
             cargo test -p "$crate"
           done
 
+  tests-ui:
+    runs-on: ubuntu-24.04
+    env:
+      TEST_CRATES: "codex-tui codex-cli codex-prompts codex-home"
+    steps:
+      - name: Free disk space
+        run: |
+          set -e
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h
+      - uses: actions/checkout@v4
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: codex-rs
+      - name: Test UI crates
+        working-directory: codex-rs
+        run: |
+          set -e
+          for crate in $TEST_CRATES; do
+            echo "=== cargo test -p $crate ==="
+            cargo test -p "$crate"
+          done
+
+  smoke:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download binary
+        uses: actions/download-artifact@v4
+        with:
+          name: fikra-linux-x86_64
+          path: bin
       - name: Check installer syntax
         run: sh -n scripts/fikra/install.sh
-
       - name: Smoke tests
         env:
           FIKRA_API_KEY: ${{ secrets.FIKRA_API_KEY }}
         run: |
           set -euo pipefail
-          BIN="$PWD/codex-rs/target/release/fikra"
+          chmod +x bin/fikra
+          BIN="$PWD/bin/fikra"
           export FIKRA_HOME="$(mktemp -d)/home"
           mkdir -p "$FIKRA_HOME"
 
@@ -179,55 +233,27 @@ jobs:
             echo "FAIL: request to an OpenAI/ChatGPT host"; exit 1
           fi
 
-      - name: Upload Linux binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: fikra-linux-x86_64
-          path: codex-rs/target/release/fikra
-          if-no-files-found: error
-
   windows:
     if: contains(github.event.head_commit.message, '[windows]') || github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: Free disk space
         shell: pwsh
         run: |
-          Get-PSDrive -Name C | Out-Null
-          $paths = @(
-            'C:\Program Files\dotnet',
-            'C:\Program Files (x86)\dotnet',
-            'C:\hostedtoolcache\windows\Android'
-          )
+          $paths = @('C:\Program Files\dotnet', 'C:\Program Files (x86)\dotnet', 'C:\hostedtoolcache\windows\Android')
           foreach ($p in $paths) {
             if (Test-Path $p) { Remove-Item -Recurse -Force $p -ErrorAction SilentlyContinue }
           }
-          Get-PSDrive -Name C | Select-Object Name, Free, Used
-
+      - uses: actions/checkout@v4
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
-
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: codex-rs
-
       - name: Build CLI
         working-directory: codex-rs
         run: cargo build -p codex-cli --release
-
-      - name: Test changed crates
-        working-directory: codex-rs
-        shell: bash
-        run: |
-          set -e
-          for crate in $TEST_CRATES; do
-            echo "=== cargo test -p $crate ==="
-            cargo test -p "$crate"
-          done
-
       - name: Smoke tests
         shell: pwsh
         env:
@@ -266,7 +292,6 @@ jobs:
           } finally {
             Pop-Location
           }
-
       - name: Upload Windows binary
         uses: actions/upload-artifact@v4
         with:
