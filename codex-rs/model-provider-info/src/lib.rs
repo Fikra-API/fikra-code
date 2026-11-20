@@ -769,7 +769,6 @@ pub fn built_in_model_providers(
     let fikra_provider = P {
         name: "Fikra".into(),
         base_url: Some("https://fikraapi.co.ke/v1".into()),
-        model_catalog_url: Some("https://fikraapi.co.ke/v1/codex/models".into()),
         env_key: Some("FIKRA_API_KEY".into()),
         ..Default::default()
     };
