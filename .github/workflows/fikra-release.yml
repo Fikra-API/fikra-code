@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag, for example v0.1.0'
+        required: true
+        default: 'v0.1.0'
 
 permissions:
   contents: write
@@ -17,7 +23,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          tag="${GITHUB_REF_NAME}"
+          tag="${{ inputs.tag || github.ref_name }}"
           gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" \
               --title "Fikra Code $tag" \
@@ -147,4 +153,4 @@ jobs:
         run: |
           set -euo pipefail
           cd codex-rs/dist/${{ matrix.target }}
-          gh release upload "${GITHUB_REF_NAME}" fikra-package-* --clobber --repo "${GITHUB_REPOSITORY}"
+          gh release upload "${{ inputs.tag || github.ref_name }}" fikra-package-* --clobber --repo "${GITHUB_REPOSITORY}"
