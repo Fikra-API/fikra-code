@@ -291,6 +291,8 @@ jobs:
   windows:
     if: contains(github.event.head_commit.message, '[windows]') || github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
+    env:
+      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:
       - name: Free disk space
         shell: pwsh
@@ -300,6 +302,12 @@ jobs:
             if (Test-Path $p) { Remove-Item -Recurse -Force $p -ErrorAction SilentlyContinue }
           }
       - uses: actions/checkout@v4
+      - name: Enable git long paths
+        shell: pwsh
+        run: |
+          git config --global core.longpaths true
+          reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f | Out-Null
+          exit 0
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
       - name: Cache Rust
