@@ -1,5 +1,5 @@
 #!/bin/sh
-# Fikra Code installer for Linux and macOS.
+# Fikra Code installer for Linux.
 # Usage: curl -fsSL https://fikraapi.co.ke/code/install.sh | sh
 #
 # Asset contract (the release workflow must produce exactly this):
@@ -7,8 +7,7 @@
 #   Asset name:          fikra-package-<target>.tar.gz
 #   Archive root:        bin/fikra (entrypoint) plus helper binaries and resources,
 #                        in the same layout as upstream's codex package.
-#   <target> is one of:  x86_64-unknown-linux-musl, aarch64-unknown-linux-musl,
-#                        x86_64-apple-darwin, aarch64-apple-darwin
+#   <target> is one of:  x86_64-unknown-linux-musl, aarch64-unknown-linux-musl
 set -eu
 
 REPO="${FIKRA_REPO:-Fikra-API/fikra-code}"
@@ -42,8 +41,7 @@ case "$arch" in
 esac
 case "$os" in
   Linux) target="${arch}-unknown-linux-musl" ;;
-  Darwin) target="${arch}-apple-darwin" ;;
-  *) die "unsupported OS: $os (on Windows, use install.ps1)" ;;
+  *) die "unsupported OS: $os (Fikra Code installs on Linux and Windows)" ;;
 esac
 
 if [ "$VERSION" = "latest" ]; then
