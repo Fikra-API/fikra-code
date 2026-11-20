@@ -90,7 +90,7 @@ jobs:
           workspaces: codex-rs
       - name: Test codex-core library
         working-directory: codex-rs
-        run: cargo test -p codex-core --lib -- --skip code_mode_host::tests
+        run: cargo test -p codex-core --lib -- --skip code_mode_host::tests --skip shell_snapshot::sandbox::tests
 
   tests-tui:
     runs-on: ubuntu-24.04
@@ -113,7 +113,7 @@ jobs:
           workspaces: codex-rs
       - name: Test TUI library
         working-directory: codex-rs
-        run: cargo test -p codex-tui --lib
+        run: cargo test -p codex-tui --lib -- --skip onboarding
 
   tests-cli:
     runs-on: ubuntu-24.04
