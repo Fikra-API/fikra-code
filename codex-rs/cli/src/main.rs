@@ -124,6 +124,7 @@ use codex_terminal_detection::TerminalName;
     // The executable is sometimes invoked via a platform‑specific name, but the
     // help output should always use the generic `fikra` command name users run.
     bin_name = "fikra",
+    display_name = "fikra",
     override_usage = "fikra [OPTIONS] [PROMPT]\n       fikra [OPTIONS] <COMMAND> [ARGS]"
 )]
 struct MultitoolCli {
