@@ -4,8 +4,8 @@ use super::BackendBanner;
 use codex_app_server_protocol::AddCreditsNudgeCreditType;
 use codex_protocol::account::PlanType;
 
-const USAGE_URL: &str = "https://fikraapi.co.ke/settings/usage";
-const WORKSPACE_USAGE_URL: &str = "https://fikraapi.co.ke/admin/usage-limits/workspace";
+const USAGE_URL: &str = "https://chatgpt.com/settings/usage";
+const WORKSPACE_USAGE_URL: &str = "https://chatgpt.com/admin/usage-limits/workspace";
 
 pub(super) enum BannerAction {
     OpenUrl(String),
@@ -45,16 +45,16 @@ impl BackendBanner {
             "add_credits" | "buy_credits"
                 if self.plan_type.is_some_and(PlanType::is_workspace_account) =>
             {
-                "https://fikraapi.co.ke/admin/billing?codex_credit_action=add_credits".to_string()
+                "https://chatgpt.com/admin/billing?codex_credit_action=add_credits".to_string()
             }
             "add_credits" | "buy_credits" => format!("{USAGE_URL}?credits_modal=true"),
-            "buy_reset" => "https://fikraapi.co.ke/codex/purchase/reset".to_string(),
+            "buy_reset" => "https://chatgpt.com/codex/purchase/reset".to_string(),
             "view_usage" | "request_increase_usage_settings" => USAGE_URL.to_string(),
             "view_workspace_usage" | "increase_spend_cap" => WORKSPACE_USAGE_URL.to_string(),
-            "open_plus_pricing_web" => "https://fikraapi.co.ke/explore/plus".to_string(),
-            "open_pro_pricing_web" => "https://fikraapi.co.ke/explore/pro".to_string(),
+            "open_plus_pricing_web" => "https://chatgpt.com/explore/plus".to_string(),
+            "open_pro_pricing_web" => "https://chatgpt.com/explore/pro".to_string(),
             "open_pricing_dialog" => {
-                let mut url = url::Url::parse("https://fikraapi.co.ke/").ok()?;
+                let mut url = url::Url::parse("https://chatgpt.com/").ok()?;
                 let target = if matches!(self.plan_type, Some(PlanType::Plus | PlanType::ProLite)) {
                     "pro"
                 } else {

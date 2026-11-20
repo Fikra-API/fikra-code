@@ -1,4 +1,4 @@
-//! Built-in pet catalog ported from the Fikra Code App avatar catalog.
+//! Built-in pet catalog ported from the Codex App avatar catalog.
 
 #[cfg(test)]
 use std::fs;

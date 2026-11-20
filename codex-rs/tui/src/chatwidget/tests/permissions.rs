@@ -998,7 +998,7 @@ async fn startup_windows_sandbox_prompt_blocks_disallowed_unelevated_fallback() 
 
     let popup = render_bottom_popup(&chat, /*width*/ 120);
     assert!(
-        popup.contains("Your organization requires the default Fikra Code agent sandbox"),
+        popup.contains("Your organization requires the default Codex agent sandbox"),
         "expected required sandbox prompt copy: {popup}"
     );
     assert!(
@@ -1009,7 +1009,7 @@ async fn startup_windows_sandbox_prompt_blocks_disallowed_unelevated_fallback() 
 
 #[tokio::test]
 async fn windows_sandbox_help_links_keep_complete_wrapped_destinations() {
-    let url = "https://developers.codexapi.co.ke/codex/windows";
+    let url = "https://developers.openai.com/codex/windows";
     for fallback in [false, true] {
         let (mut chat, _rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
         let preset = builtin_approval_presets()

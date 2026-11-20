@@ -213,7 +213,7 @@ impl ChatWidget {
         self.inherited_quota_provider = None;
     }
 
-    /// Poll more often near exhaustion for every Fikra account, independently of experiments.
+    /// Poll more often near exhaustion for every ChatGPT account, independently of experiments.
     pub(crate) fn rate_limit_refresh_interval(&self) -> Option<std::time::Duration> {
         if !self.should_prefetch_rate_limits() {
             return None;

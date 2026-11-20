@@ -18,7 +18,7 @@ pub(super) fn tool_name(label: &str) -> String {
             "sdk" => "SDK",
             "ui" => "UI",
             "tui" => "TUI",
-            "openai" => "Fikra",
+            "openai" => "OpenAI",
             _ => word,
         })
         .collect::<Vec<_>>()

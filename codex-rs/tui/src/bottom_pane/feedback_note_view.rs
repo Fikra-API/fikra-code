@@ -37,7 +37,7 @@ use super::textarea::TextArea;
 use super::textarea::TextAreaState;
 
 const SAVE_LOCALLY: key_hint::KeyBinding = key_hint::ctrl(KeyCode::Char('s'));
-const FEEDBACK_POLICY_URL: &str = "https://help.codexapi.co.ke/en/articles/5722486-how-your-data-is-used-to-improve-model-performance";
+const FEEDBACK_POLICY_URL: &str = "https://help.openai.com/en/articles/5722486-how-your-data-is-used-to-improve-model-performance";
 const EMPLOYEE_FEEDBACK_FAQ_URL: &str = "https://go/codex-employee-feedback-faq";
 
 enum IntroContent {
@@ -360,7 +360,7 @@ impl Renderable for FeedbackNoteView {
                 ));
                 super::footer::footer_hint_items_line(&actions)
             };
-            let mut hints = action_line("save ZIP", "send to Fikra");
+            let mut hints = action_line("save ZIP", "send to OpenAI");
             if hints.width() > usize::from(area.width) {
                 hints = action_line("save", "send");
             }
@@ -410,27 +410,27 @@ impl FeedbackNoteView {
             None => lines.push("Feedback uploads are disabled.".dim().into()),
             Some(FeedbackAudience::OpenAiEmployee) => {
                 lines.push(
-                    "Feedback sent to Fikra may be used to improve our models and products"
+                    "Feedback sent to OpenAI may be used to improve our models and products"
                         .bold()
                         .into(),
                 );
                 lines.push(Line::from(vec![
-                    "By submitting feedback, you agree that Fikra can use your feedback for safety purposes and internal model training, as explained in more detail ".dim(),
+                    "By submitting feedback, you agree that OpenAI can use your feedback for safety purposes and internal model training, as explained in more detail ".dim(),
                     "here".fg(crate::style::accent_color()).underlined(),
                     ". Please avoid sharing tented information under NDA, or privileged, HR-related, or sensitive personal information.".dim(),
                 ]));
             }
             Some(FeedbackAudience::External) => lines.push(Line::from(vec![
-                "Feedback sent to Fikra can be used to improve Fikra. ".dim(),
+                "Feedback sent to OpenAI can be used to improve ChatGPT. ".dim(),
                 "Learn more".fg(crate::style::accent_color()).underlined(),
                 ".".dim(),
             ])),
         }
         if self.can_save {
             let disclosure = if self.upload_audience.is_some() {
-                "You can also save feedback to a ZIP file, which is not sent to Fikra."
+                "You can also save feedback to a ZIP file, which is not sent to OpenAI."
             } else {
-                "You can save feedback to a ZIP file, which is not sent to Fikra."
+                "You can save feedback to a ZIP file, which is not sent to OpenAI."
             };
             lines.push(disclosure.dim().into());
         }

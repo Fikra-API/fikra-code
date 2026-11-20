@@ -27,22 +27,22 @@ pub(crate) fn load_local_chatgpt_auth(
     .map_err(|err| format!("failed to load local auth: {err}"))?
     .ok_or_else(|| "no local auth available".to_string())?;
     if matches!(auth.auth_mode, Some(AuthMode::ApiKey)) || auth.openai_api_key.is_some() {
-        return Err("local auth is not a Fikra login".to_string());
+        return Err("local auth is not a ChatGPT login".to_string());
     }
 
     let tokens = auth
         .tokens
-        .ok_or_else(|| "local Fikra auth is missing token data".to_string())?;
+        .ok_or_else(|| "local ChatGPT auth is missing token data".to_string())?;
     let access_token = tokens.access_token;
     let chatgpt_account_id = tokens
         .account_id
         .or(tokens.id_token.chatgpt_account_id.clone())
-        .ok_or_else(|| "local Fikra auth is missing chatgpt account id".to_string())?;
+        .ok_or_else(|| "local ChatGPT auth is missing chatgpt account id".to_string())?;
     if let Some(expected_workspaces) = forced_chatgpt_workspace_id
         && !expected_workspaces.contains(&chatgpt_account_id)
     {
         return Err(format!(
-            "local Fikra auth must use one of workspace(s) {expected_workspaces:?}, but found {chatgpt_account_id:?}",
+            "local ChatGPT auth must use one of workspace(s) {expected_workspaces:?}, but found {chatgpt_account_id:?}",
         ));
     }
 

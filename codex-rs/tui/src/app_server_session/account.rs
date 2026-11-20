@@ -62,7 +62,7 @@ impl SessionAccount {
     pub(crate) fn feedback_audience(&self) -> FeedbackAudience {
         if self
             .email()
-            .is_some_and(|email| email.ends_with("@fikraapi.co.ke"))
+            .is_some_and(|email| email.ends_with("@openai.com"))
         {
             FeedbackAudience::OpenAiEmployee
         } else {

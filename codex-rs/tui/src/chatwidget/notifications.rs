@@ -45,7 +45,7 @@ impl Notification {
             }
             Notification::EditApprovalRequested { cwd, changes } => {
                 format!(
-                    "Fikra Code wants to edit {}",
+                    "Codex wants to edit {}",
                     if changes.len() == 1 {
                         #[allow(clippy::unwrap_used)]
                         display_path_for(changes.first().unwrap(), cwd)

@@ -38,7 +38,7 @@ const SIDE_SLASH_COMMAND_UNAVAILABLE_HINT: &str =
     "Press Ctrl+C to return to the main thread first.";
 const GOAL_USAGE_HINT: &str = "Example: /goal improve benchmark coverage";
 const RAW_USAGE: &str = "Usage: /raw [on|off]";
-const USAGE_CHATGPT_LOGIN_REQUIRED: &str = "Sign in with Fikra to use /usage.";
+const USAGE_CHATGPT_LOGIN_REQUIRED: &str = "Sign in with ChatGPT to use /usage.";
 
 impl ChatWidget {
     /// Dispatch a bare slash command and record its staged local-history entry.
@@ -211,14 +211,14 @@ impl ChatWidget {
                 }
                 if !self.daybreak_enabled {
                     if !self.daybreak_account_eligible() {
-                        self.add_error_message("Daybreak requires the Fikra provider with either Fikra sign-in or an API key with Daybreak support enabled.".into());
+                        self.add_error_message("Daybreak requires the OpenAI provider with either ChatGPT sign-in or an API key with Daybreak support enabled.".into());
                         return;
                     }
                     if !crate::daybreak::available(&self.model_catalog.models) {
                         if crate::daybreak::availability(&self.model_catalog.models) == Some(false)
                         {
                             self.add_info_message(
-                                "Daybreak is not available for this account. Apply at https://fikraapi.co.ke/form/enterprise-trusted-access-for-cyber/. Learn more at https://help.codexapi.co.ke/en/articles/20001326.".into(),
+                                "Daybreak is not available for this account. Apply at https://openai.com/form/enterprise-trusted-access-for-cyber/. Learn more at https://help.openai.com/en/articles/20001326.".into(),
                                 /*hint*/ None,
                             );
                         } else {
