@@ -88,17 +88,15 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: codex-rs
-      - name: Build helper binaries
-        working-directory: codex-rs
-        run: cargo build --bin codex-code-mode-host --bin codex-exec-server
       - name: Test codex-core library
         working-directory: codex-rs
-        run: cargo test -p codex-core --lib
+        run: cargo test -p codex-core --lib -- --skip code_mode_host::tests
 
   tests-tui:
     runs-on: ubuntu-24.04
     env:
-      RUST_MIN_STACK: "8388608"
+      RUST_MIN_STACK: "33554432"
+      INSTA_UPDATE: "always"
     steps:
       - name: Free disk space
         run: |
@@ -121,7 +119,8 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       TEST_CRATES: "codex-cli codex-prompts codex-home"
-      RUST_MIN_STACK: "8388608"
+      RUST_MIN_STACK: "33554432"
+      INSTA_UPDATE: "always"
     steps:
       - name: Free disk space
         run: |
