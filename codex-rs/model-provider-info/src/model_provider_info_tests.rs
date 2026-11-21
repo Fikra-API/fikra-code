@@ -469,43 +469,6 @@ fn test_amazon_bedrock_providers_add_mantle_client_agent_header() {
 }
 
 #[test]
-fn test_built_in_model_providers_include_amazon_bedrock_endpoints() {
-    let providers = built_in_model_providers(/*openai_base_url*/ None);
-
-    assert_eq!(
-        [
-            AMAZON_BEDROCK_PROVIDER_ID,
-            AMAZON_BEDROCK_RUNTIME_PROVIDER_ID
-        ]
-        .into_iter()
-        .map(|provider_id| {
-            providers
-                .get(provider_id)
-                .map(ModelProviderInfo::is_amazon_bedrock)
-        })
-        .collect::<Vec<_>>(),
-        vec![Some(true), Some(true)]
-    );
-}
-
-#[test]
-fn test_built_in_model_providers_include_amazon_bedrock_runtime() {
-    let providers = built_in_model_providers(/*openai_base_url*/ None);
-    let runtime = providers
-        .get(AMAZON_BEDROCK_RUNTIME_PROVIDER_ID)
-        .expect("Amazon Bedrock Runtime provider should be built in");
-
-    assert!(runtime.is_amazon_bedrock());
-    assert!(runtime.is_amazon_bedrock_runtime());
-    assert!(
-        !providers
-            .get(AMAZON_BEDROCK_PROVIDER_ID)
-            .expect("Amazon Bedrock provider should be built in")
-            .is_amazon_bedrock_runtime()
-    );
-}
-
-#[test]
 fn test_merge_configured_model_providers_adds_custom_provider() {
     let custom_provider = ModelProviderInfo {
         name: "Custom".to_string(),
@@ -517,195 +480,6 @@ fn test_merge_configured_model_providers_adds_custom_provider() {
 
     let mut expected = built_in_model_providers(/*openai_base_url*/ None);
     expected.insert("custom".to_string(), custom_provider);
-
-    assert_eq!(
-        merge_configured_model_providers(
-            built_in_model_providers(/*openai_base_url*/ None),
-            configured_model_providers,
-        ),
-        Ok(expected)
-    );
-}
-
-#[test]
-fn test_merge_configured_model_providers_applies_amazon_bedrock_aws_override() {
-    let credential_export = AwsCredentialExportConfig {
-        command: "aws-vault".to_string(),
-        args: vec!["export".into(), "codex-bedrock".into()],
-        timeout_ms: NonZeroU64::new(30_000).expect("timeout should be non-zero"),
-    };
-    let auth_refresh = AwsAuthRefreshConfig {
-        command: "aws".to_string(),
-        args: vec!["login".into(), "--profile".into(), "codex-bedrock".into()],
-        timeout_ms: NonZeroU64::new(10_000).expect("timeout should be non-zero"),
-    };
-    let configured_model_providers = std::collections::HashMap::from([(
-        AMAZON_BEDROCK_PROVIDER_ID.to_string(),
-        ModelProviderInfo {
-            aws: Some(ModelProviderAwsAuthInfo {
-                profile: None,
-                region: Some("us-west-2".to_string()),
-                credential_export: Some(credential_export.clone()),
-                auth_refresh: Some(auth_refresh.clone()),
-            }),
-            ..ModelProviderInfo::default()
-        },
-    )]);
-
-    let mut expected = built_in_model_providers(/*openai_base_url*/ None);
-    expected
-        .get_mut(AMAZON_BEDROCK_PROVIDER_ID)
-        .expect("Amazon Bedrock provider should be built in")
-        .aws = Some(ModelProviderAwsAuthInfo {
-        profile: None,
-        region: Some("us-west-2".to_string()),
-        credential_export: Some(credential_export),
-        auth_refresh: Some(auth_refresh),
-    });
-
-    assert_eq!(
-        merge_configured_model_providers(
-            built_in_model_providers(/*openai_base_url*/ None),
-            configured_model_providers,
-        ),
-        Ok(expected)
-    );
-}
-
-#[test]
-fn test_merge_configured_model_providers_applies_runtime_overrides_independently() {
-    let runtime_aws = ModelProviderAwsAuthInfo {
-        profile: Some("runtime-profile".to_string()),
-        region: Some("eu-west-1".to_string()),
-        credential_export: None,
-        auth_refresh: None,
-    };
-    let configured_model_providers = std::collections::HashMap::from([(
-        AMAZON_BEDROCK_RUNTIME_PROVIDER_ID.to_string(),
-        ModelProviderInfo {
-            base_url: Some("https://runtime.example.com/openai/v1".to_string()),
-            aws: Some(runtime_aws.clone()),
-            ..ModelProviderInfo::default()
-        },
-    )]);
-    let mut expected = built_in_model_providers(/*openai_base_url*/ None);
-    let expected_runtime = expected
-        .get_mut(AMAZON_BEDROCK_RUNTIME_PROVIDER_ID)
-        .expect("Amazon Bedrock Runtime provider should be built in");
-    expected_runtime.base_url = Some("https://runtime.example.com/openai/v1".to_string());
-    expected_runtime.aws = Some(runtime_aws);
-
-    assert_eq!(
-        merge_configured_model_providers(
-            built_in_model_providers(/*openai_base_url*/ None),
-            configured_model_providers,
-        ),
-        Ok(expected)
-    );
-}
-
-#[test]
-fn test_merge_configured_model_providers_applies_amazon_bedrock_transport_overrides() {
-    let auth = provider_auth_for_test();
-    let configured_model_providers = std::collections::HashMap::from([(
-        AMAZON_BEDROCK_PROVIDER_ID.to_string(),
-        ModelProviderInfo {
-            base_url: Some("https://proxy.example.com/v1".to_string()),
-            auth: Some(auth.clone()),
-            aws: Some(ModelProviderAwsAuthInfo {
-                profile: Some("codex-bedrock".to_string()),
-                region: Some("us-west-2".to_string()),
-                credential_export: None,
-                auth_refresh: None,
-            }),
-            http_headers: Some(maplit::hashmap! {
-                "x-example-header".to_string() => "value".into(),
-            }),
-            ..ModelProviderInfo::default()
-        },
-    )]);
-
-    let mut expected = built_in_model_providers(/*openai_base_url*/ None);
-    let expected_provider = expected
-        .get_mut(AMAZON_BEDROCK_PROVIDER_ID)
-        .expect("Amazon Bedrock provider should be built in");
-    expected_provider.base_url = Some("https://proxy.example.com/v1".to_string());
-    expected_provider.auth = Some(auth);
-    expected_provider.aws = Some(ModelProviderAwsAuthInfo {
-        profile: Some("codex-bedrock".to_string()),
-        region: Some("us-west-2".to_string()),
-        credential_export: None,
-        auth_refresh: None,
-    });
-    expected_provider
-        .http_headers
-        .get_or_insert_default()
-        .insert("x-example-header".to_string(), "value".into());
-
-    assert_eq!(
-        merge_configured_model_providers(
-            built_in_model_providers(/*openai_base_url*/ None),
-            configured_model_providers,
-        ),
-        Ok(expected)
-    );
-}
-
-#[test]
-fn test_merge_configured_model_providers_applies_gcp_transport_overrides() {
-    let auth = provider_auth_for_test();
-    let credential_file = std::env::current_dir().unwrap().join("adc.json");
-    let configured_model_providers = std::collections::HashMap::from([(
-        GCP_PROVIDER_ID.to_string(),
-        ModelProviderInfo {
-            base_url: Some("https://vertex.example.com/v1".to_string()),
-            project_id: Some("configured-project".to_string()),
-            location: Some("us-east4".to_string()),
-            auth: Some(auth.clone()),
-            credential_file: Some(credential_file.clone()),
-            http_headers: Some(maplit::hashmap! {
-                "x-example-header".to_string() => "value".into(),
-            }),
-            ..ModelProviderInfo::default()
-        },
-    )]);
-
-    let mut expected = built_in_model_providers(/*openai_base_url*/ None);
-    let provider = expected
-        .get_mut(GCP_PROVIDER_ID)
-        .expect("GCP provider should be built in");
-    provider.base_url = Some("https://vertex.example.com/v1".to_string());
-    provider.project_id = Some("configured-project".to_string());
-    provider.location = Some("us-east4".to_string());
-    provider.auth = Some(auth);
-    provider.credential_file = Some(credential_file);
-    provider.http_headers = Some(maplit::hashmap! {
-        "x-example-header".to_string() => "value".into(),
-    });
-
-    assert_eq!(
-        merge_configured_model_providers(
-            built_in_model_providers(/*openai_base_url*/ None),
-            configured_model_providers,
-        ),
-        Ok(expected)
-    );
-}
-
-#[test]
-fn test_merge_configured_model_providers_applies_gcp_endpoint_override() {
-    let configured_model_providers = std::collections::HashMap::from([(
-        GCP_PROVIDER_ID.to_string(),
-        ModelProviderInfo {
-            base_url: Some("https://vertex.example.com/v1".to_string()),
-            ..ModelProviderInfo::default()
-        },
-    )]);
-    let mut expected = built_in_model_providers(/*openai_base_url*/ None);
-    expected
-        .get_mut(GCP_PROVIDER_ID)
-        .expect("GCP provider should be built in")
-        .base_url = Some("https://vertex.example.com/v1".to_string());
 
     assert_eq!(
         merge_configured_model_providers(
@@ -995,94 +769,6 @@ model_catalog_url = "https://gateway.example/codex/catalog?token=catalog-secret"
 }
 
 #[test]
-fn builtin_openai_catalog_override_preserves_inference_and_identity() {
-    for inference_url in [None, Some("https://us.api.openai.com/v1")] {
-        for catalog_url in [None, Some("https://chatgpt.com/backend-api/codex/models")] {
-            let configured: ModelProviderInfo = toml::from_str(&format!(
-                "name = \"Ignored name\"\nbase_url = \"https://ignored.example/v1\"\nrequires_openai_auth = false\n{}",
-                catalog_url.map(|url| format!("model_catalog_url = {url:?}")).unwrap_or_default()
-            )).unwrap();
-            let builtins = built_in_model_providers(inference_url.map(str::to_owned));
-            let mut expected = builtins.clone();
-            expected.get_mut("openai").unwrap().model_catalog_url = catalog_url.map(Into::into);
-            assert_eq!(
-                merge_configured_model_providers(
-                    builtins,
-                    HashMap::from([("openai".to_string(), configured)]),
-                )
-                .unwrap(),
-                expected,
-            );
-        }
-    }
-}
-
-#[test]
-fn builtin_openai_catalog_rejects_untrusted_destinations() {
-    for url in [
-        "http://chatgpt.com/backend-api/codex/models",
-        "https://chatgpt.com.evil.example/models",
-        "https://evilchatgpt.com/models",
-        "https://api.openai.com/v1/models",
-        "https://example.com/models?secret=do-not-log",
-        "https://user:secret@chatgpt.com/models",
-        "/models",
-        "not a URL",
-    ] {
-        let provider = ModelProviderInfo {
-            model_catalog_url: Some(url.into()),
-            ..Default::default()
-        };
-        assert_eq!(
-            merge_configured_model_providers(
-                built_in_model_providers(/*openai_base_url*/ None),
-                HashMap::from([("openai".to_string(), provider.clone())]),
-            )
-            .unwrap_err(),
-            "model_providers.openai.model_catalog_url must use an allowed ChatGPT host. If you need to use a 3rd party host, configure a custom model_provider",
-        );
-        let mut expected = built_in_model_providers(/*openai_base_url*/ None);
-        expected.insert("custom".into(), provider.clone());
-        assert_eq!(
-            merge_configured_model_providers(
-                built_in_model_providers(/*openai_base_url*/ None),
-                HashMap::from([("custom".into(), provider)]),
-            )
-            .unwrap(),
-            expected,
-        );
-    }
-}
-
-#[test]
-fn builtin_openai_catalog_accepts_existing_chatgpt_hosts() {
-    for host in [
-        "chatgpt.com",
-        "gov.chatgpt.com",
-        "chat.openai.com",
-        "chatgpt-staging.com",
-        "api.chatgpt-staging.com",
-        "CHATGPT.COM",
-    ] {
-        let url = format!("https://{host}/backend-api/codex/models");
-        let provider = ModelProviderInfo {
-            model_catalog_url: Some(url.clone().into()),
-            ..Default::default()
-        };
-        let mut expected = built_in_model_providers(/*openai_base_url*/ None);
-        expected.get_mut("openai").unwrap().model_catalog_url = Some(url.into());
-        assert_eq!(
-            merge_configured_model_providers(
-                built_in_model_providers(/*openai_base_url*/ None),
-                HashMap::from([("openai".into(), provider)]),
-            )
-            .unwrap(),
-            expected
-        );
-    }
-}
-
-#[test]
 fn cyber_access_program_capability_uses_provider_identity_and_explicit_overrides() {
     for provider_id in [
         OPENAI_PROVIDER_ID,
@@ -1108,4 +794,16 @@ fn cyber_access_program_capability_uses_provider_identity_and_explicit_overrides
             assert_eq!(round_trip, provider);
         }
     }
+}
+
+#[test]
+fn built_in_providers_are_fikra_and_local_only() {
+    let providers = built_in_model_providers(/*openai_base_url*/ None);
+    let mut ids: Vec<&str> = providers.keys().map(String::as_str).collect();
+    ids.sort_unstable();
+    assert_eq!(ids, vec![FIKRA_PROVIDER_ID, LMSTUDIO_OSS_PROVIDER_ID, OLLAMA_OSS_PROVIDER_ID]);
+    let fikra = &providers[FIKRA_PROVIDER_ID];
+    assert_eq!(fikra.base_url.as_deref(), Some(FIKRA_BASE_URL));
+    assert_eq!(fikra.env_key.as_deref(), Some(FIKRA_API_KEY_ENV_VAR));
+    assert!(fikra.requires_openai_auth, "Fikra must use the key saved by `fikra login`");
 }

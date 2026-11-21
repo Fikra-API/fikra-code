@@ -26,6 +26,7 @@ async fn offline_model_info_without_tool_output_override() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn offline_model_info_with_tool_output_override() {
+    // Fikra catalog models truncate by bytes: 123 tokens becomes 492 bytes.
     let codex_home = TempDir::new().expect("create temp dir");
     let config = ModelsManagerConfig {
         tool_output_token_limit: Some(123),
@@ -36,10 +37,10 @@ async fn offline_model_info_with_tool_output_override() {
         TestModelsEndpoint::new(Vec::new()),
     );
 
-    let model_info = manager.get_model_info("gpt-5.5", &config).await;
+    let model_info = manager.get_model_info("deepseek-v4-1-flash-economy-free", &config).await;
 
     assert_eq!(
         model_info.truncation_policy,
-        TruncationPolicyConfig::tokens(/*limit*/ 123)
+        TruncationPolicyConfig::bytes(/*limit*/ 492)
     );
 }
