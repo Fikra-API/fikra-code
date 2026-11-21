@@ -23,12 +23,14 @@ const SYSTEM_BWRAP_PROGRAM: &str = "bwrap";
 const MISSING_BWRAP_WARNING: &str = concat!(
     "Fikra Code could not find bubblewrap on PATH. ",
     "Install bubblewrap with your OS package manager. ",
-    "See the sandbox prerequisites: ",
-    "https://developers.openai.com/codex/concepts/sandboxing#prerequisites. ",
+    "See https://fikraapi.co.ke/code/install#ubuntu. ",
     "Fikra Code will use the bundled bubblewrap in the meantime.",
 );
-const USER_NAMESPACE_WARNING: &str =
-    "Fikra Code's Linux sandbox uses bubblewrap and needs access to create user namespaces.";
+const USER_NAMESPACE_WARNING: &str = concat!(
+    "Fikra Code's sandbox cannot start: this system blocks the user namespaces it needs ",
+    "(the default on Ubuntu 24.04), so every command will ask for permission. ",
+    "Fix it once with: curl -fsSL https://fikraapi.co.ke/code/ubuntu-sandbox.sh | sudo sh",
+);
 pub(crate) const WSL1_BWRAP_WARNING: &str = concat!(
     "Fikra Code's Linux sandbox uses bubblewrap, which is not supported on WSL1 ",
     "because WSL1 cannot create the required user namespaces. ",

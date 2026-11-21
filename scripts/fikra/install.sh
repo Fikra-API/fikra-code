@@ -89,4 +89,29 @@ case ":$PATH:" in
   *) say "Add this to your shell profile, then open a new terminal:"
      say "  export PATH=\"$BIN_DIR:\$PATH\"" ;;
 esac
+# Ubuntu 23.10+/24.04 block the user namespaces Fikra Code's sandbox needs.
+# Without the one-time fix every command needs approval. Offer it, never force it.
+SANDBOX_FIX_URL="https://fikraapi.co.ke/code/ubuntu-sandbox.sh"
+if [ "$(uname -s)" = "Linux" ] \
+   && [ "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || echo 0)" = "1" ] \
+   && [ ! -f /etc/apparmor.d/fikra-bwrap ]; then
+  say ""
+  say "This system blocks the sandbox Fikra Code uses to run commands safely (Ubuntu 24.04 default)."
+  say "Without a one-time fix, Fikra Code asks permission for every command."
+  answer="n"
+  # Only ask when a terminal is attached (curl | sh reads the script from stdin).
+  if command -v sudo >/dev/null 2>&1 && (: </dev/tty) 2>/dev/null; then
+    printf 'Apply the fix now? It installs one AppArmor rule for bubblewrap. [Y/n] ' >/dev/tty 2>/dev/null || true
+    read -r answer </dev/tty 2>/dev/null || answer="n"
+    [ -n "$answer" ] || answer="y"
+  fi
+  case "$answer" in
+    [yY]*)
+      if fetch_text "$SANDBOX_FIX_URL" | sudo sh; then :; else
+        say "The fix did not apply. Run it later: curl -fsSL $SANDBOX_FIX_URL | sudo sh"
+      fi ;;
+    *) say "To fix it later: curl -fsSL $SANDBOX_FIX_URL | sudo sh" ;;
+  esac
+fi
+
 say "Next: run 'fikra' in a project. It signs you in through your browser."
