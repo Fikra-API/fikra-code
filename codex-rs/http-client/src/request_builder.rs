@@ -179,6 +179,12 @@ impl RequestBuilder {
     }
 
     pub async fn send(self) -> Result<HttpResponse, HttpError> {
+        if let Ok(request) = &self.request
+            && crate::fikra_blocklist::is_blocked_url(request.request.url())
+        {
+            tracing::debug!("blocked request to an OpenAI/ChatGPT host");
+            return Err(HttpError::Policy(crate::NetworkPolicyDenied::Destination));
+        }
         match self.backend {
             HttpClientBackend::Routed(pool) => pool.send(self.request?).await,
             HttpClientBackend::Direct(client) => {

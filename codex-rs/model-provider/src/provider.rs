@@ -96,19 +96,19 @@ pub type ProviderAccountResult = std::result::Result<ProviderAccountState, Provi
 
 /// Default model used for automatic approval review when a provider does not
 /// require a backend-specific model ID.
-pub const DEFAULT_APPROVAL_REVIEW_PREFERRED_MODEL: &str = "codex-auto-review";
+pub const DEFAULT_APPROVAL_REVIEW_PREFERRED_MODEL: &str = codex_model_provider_info::FIKRA_DEFAULT_MODEL;
 
-const API_KEY_APPROVAL_REVIEW_PREFERRED_MODEL: &str = "gpt-5.6-luna";
+const API_KEY_APPROVAL_REVIEW_PREFERRED_MODEL: &str = codex_model_provider_info::FIKRA_DEFAULT_MODEL;
 
 const FEDRAMP_API_BASE_URL: &str = "https://gov.api.openai.com/v1";
 
 /// Default model used for memory extraction when a provider does not require a
 /// backend-specific model ID.
-pub const DEFAULT_MEMORY_EXTRACTION_PREFERRED_MODEL: &str = "gpt-6-luna";
+pub const DEFAULT_MEMORY_EXTRACTION_PREFERRED_MODEL: &str = codex_model_provider_info::FIKRA_DEFAULT_MODEL;
 
 /// Default model used for memory consolidation when a provider does not require
 /// a backend-specific model ID.
-pub const DEFAULT_MEMORY_CONSOLIDATION_PREFERRED_MODEL: &str = "gpt-6.1-terra";
+pub const DEFAULT_MEMORY_CONSOLIDATION_PREFERRED_MODEL: &str = codex_model_provider_info::FIKRA_DEFAULT_MODEL;
 
 /// Runtime provider abstraction used by model execution.
 ///

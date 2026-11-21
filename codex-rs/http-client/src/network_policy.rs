@@ -279,6 +279,9 @@ impl NetworkPolicy {
 
     /// Checks a destination before proxy resolution, DNS, or transport work starts.
     pub fn acquire(&self, url: &Url) -> Result<NetworkPermit, NetworkPolicyDenied> {
+        if crate::fikra_blocklist::is_blocked_url(url) {
+            return Err(NetworkPolicyDenied::Destination);
+        }
         if self
             .endpoints
             .as_ref()

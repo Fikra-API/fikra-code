@@ -124,6 +124,7 @@ impl SignInOption {
 }
 
 const API_KEY_DISABLED_MESSAGE: &str = "API key login is disabled.";
+const FIKRA_BROWSER_LOGIN_ID: &str = "fikra-browser";
 pub(super) fn onboarding_request_id() -> codex_app_server_protocol::RequestId {
     codex_app_server_protocol::RequestId::String(Uuid::new_v4().to_string())
 }
@@ -478,22 +479,9 @@ impl AuthModeWidget {
                 self.highlighted_mode = SignInOption::ApiKey;
                 self.set_error(/*message*/ None);
             }
-            SignInOption::ChatGpt => {
-                if self.is_chatgpt_login_allowed() {
-                    self.start_chatgpt_login();
-                }
-            }
-            SignInOption::DeviceCode => {
-                if self.is_chatgpt_login_allowed() {
-                    self.start_device_code_login();
-                }
-            }
-            SignInOption::ApiKey => {
-                if self.is_api_login_allowed() {
-                    self.start_api_key_entry();
-                } else {
-                    self.disallow_api_login();
-                }
+            // Every sign-in goes through fikraapi.co.ke/code/plans.
+            SignInOption::ChatGpt | SignInOption::DeviceCode | SignInOption::ApiKey => {
+                self.start_fikra_browser_login();
             }
             SignInOption::Bedrock => {
                 if self.bedrock_setup_enabled && self.is_api_login_allowed() {
@@ -522,7 +510,7 @@ impl AuthModeWidget {
     }
 
     fn disallow_api_login(&mut self) {
-        self.highlighted_mode = SignInOption::ChatGpt;
+        self.highlighted_mode = SignInOption::ApiKey;
         self.set_error(Some(API_KEY_DISABLED_MESSAGE.to_string()));
         *self.sign_in_state.write().unwrap() = SignInState::PickMode;
         self.request_frame.schedule_frame();
@@ -530,7 +518,7 @@ impl AuthModeWidget {
 
     fn render_pick_mode(&self, area: Rect, buf: &mut Buffer) {
         let mut lines: Vec<Line> = vec![
-            "  Paste your Fikra API key (get one at https://fikraapi.co.ke/dashboard)".into(),
+            "  Sign in through your browser: pick a plan or continue free.".into(),
             "".into(),
         ];
 
@@ -610,8 +598,8 @@ impl AuthModeWidget {
                     lines.extend(create_mode_item(
                         idx,
                         option,
-                        "Paste your Fikra API key (get one at https://fikraapi.co.ke/dashboard)",
-                        "Connect your Fikra account",
+                        "Sign in to Fikra Code",
+                        "Opens fikraapi.co.ke: pick a plan or continue free",
                     ));
                 }
                 SignInOption::Bedrock => {
@@ -716,13 +704,9 @@ impl AuthModeWidget {
                 state.auth_url.as_str().cyan().underlined(),
             ]));
             lines.push("".into());
-            lines.push(Line::from(vec![
-                "  On a remote or headless machine? Press ".into(),
-                self.cancel_binding().into(),
-                " and choose ".into(),
-                "Sign in with Device Code".cyan(),
-                ".".into(),
-            ]));
+            lines.push(Line::from(
+                "  On a remote or headless machine? Open the link on any device.",
+            ));
             lines.push("".into());
             Some(state.auth_url.clone())
         } else {
@@ -972,6 +956,84 @@ impl AuthModeWidget {
         true
     }
 
+    /// Fikra Code sign-in: open fikraapi.co.ke/code/plans (buy a plan or
+    /// continue free) and save the key the site issues. Same flow as
+    /// `fikra login`.
+    pub(super) fn start_fikra_browser_login(&mut self) {
+        self.set_error(/*message*/ None);
+        *self.sign_in_state.write().unwrap() =
+            SignInState::ChatGptContinueInBrowser(ContinueInBrowserState {
+                login_id: FIKRA_BROWSER_LOGIN_ID.to_string(),
+                auth_url: String::new(),
+            });
+        let request_handle = self.app_server_request_handle.clone();
+        let sign_in_state = self.sign_in_state.clone();
+        let error = self.error.clone();
+        let request_frame = self.request_frame.clone();
+        tokio::spawn(async move {
+            let prompt_state = sign_in_state.clone();
+            let prompt_error = error.clone();
+            let prompt_frame = request_frame.clone();
+            let result = codex_login::fikra_browser_login(/*open_browser*/ true, move |prompt| {
+                let mut guard = prompt_state.write().unwrap();
+                // The user may have cancelled while the session was starting.
+                if matches!(&*guard, SignInState::ChatGptContinueInBrowser(_)) {
+                    *guard = SignInState::ChatGptContinueInBrowser(ContinueInBrowserState {
+                        login_id: FIKRA_BROWSER_LOGIN_ID.to_string(),
+                        auth_url: prompt.verification_url.clone(),
+                    });
+                    *prompt_error.write().unwrap() = Some(format!(
+                        "Check that the page shows this code: {}",
+                        prompt.user_code
+                    ));
+                }
+                prompt_frame.schedule_frame();
+            })
+            .await;
+            let still_waiting = matches!(
+                &*sign_in_state.read().unwrap(),
+                SignInState::ChatGptContinueInBrowser(_)
+            );
+            if !still_waiting {
+                return;
+            }
+            match result {
+                Ok(login) => {
+                    let saved = request_handle
+                        .request_typed::<LoginAccountResponse>(ClientRequest::LoginAccount {
+                            request_id: onboarding_request_id(),
+                            params: LoginAccountParams::ApiKey {
+                                api_key: login.api_key,
+                            },
+                        })
+                        .await;
+                    match saved {
+                        Ok(LoginAccountResponse::ApiKey {}) => {
+                            *error.write().unwrap() = None;
+                            *sign_in_state.write().unwrap() = SignInState::ApiKeyConfigured;
+                        }
+                        Ok(other) => {
+                            *error.write().unwrap() =
+                                Some(format!("Unexpected sign-in response: {other:?}"));
+                            *sign_in_state.write().unwrap() = SignInState::PickMode;
+                        }
+                        Err(err) => {
+                            *error.write().unwrap() =
+                                Some(format!("Could not save your Fikra Code key: {err}"));
+                            *sign_in_state.write().unwrap() = SignInState::PickMode;
+                        }
+                    }
+                }
+                Err(message) => {
+                    *error.write().unwrap() = Some(format!("Sign-in failed: {message}"));
+                    *sign_in_state.write().unwrap() = SignInState::PickMode;
+                }
+            }
+            request_frame.schedule_frame();
+        });
+        self.request_frame.schedule_frame();
+    }
+
     pub(super) fn start_api_key_entry(&mut self) {
         if !self.is_api_login_allowed() {
             self.disallow_api_login();
@@ -1063,6 +1125,11 @@ impl AuthModeWidget {
 
     /// Kicks off the Fikra auth flow and keeps the UI state consistent with the attempt.
     pub(super) fn start_chatgpt_login(&mut self) {
+        // Fikra Code never opens the OpenAI/ChatGPT sign-in.
+        if !cfg!(test) {
+            self.start_fikra_browser_login();
+            return;
+        }
         // If we're already authenticated with ChatGPT, don't start a new login –
         // just proceed to the success message flow.
         if self.handle_existing_chatgpt_login() {
@@ -1113,6 +1180,10 @@ impl AuthModeWidget {
     }
 
     fn start_device_code_login(&mut self) {
+        if !cfg!(test) {
+            self.start_fikra_browser_login();
+            return;
+        }
         if self.handle_existing_chatgpt_login() {
             return;
         }

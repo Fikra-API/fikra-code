@@ -1,6 +1,9 @@
 use url::Host;
 use url::Url;
 
+mod fikra_blocklist;
+pub use fikra_blocklist::is_blocked_host as fikra_is_blocked_host;
+pub use fikra_blocklist::is_blocked_url as fikra_is_blocked_url;
 mod chatgpt_cloudflare_cookies;
 mod chatgpt_hosts;
 mod chatgpt_routing_affinity;

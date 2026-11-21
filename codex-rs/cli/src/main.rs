@@ -9,13 +9,13 @@ use codex_app_server_daemon::RemoteControlMode as AppServerRemoteControlMode;
 use codex_arg0::Arg0DispatchPaths;
 use codex_arg0::arg0_dispatch_or_else;
 use codex_chatgpt::apply_command::ApplyCommand;
-use codex_chatgpt::apply_command::run_apply_command;
 use codex_cli::cloud_config;
 use codex_cli::read_access_token_from_stdin;
 use codex_cli::read_api_key_from_stdin;
 use codex_cli::run_login_status;
 use codex_cli::run_login_with_access_token;
 use codex_cli::run_login_with_api_key;
+use codex_cli::run_login_with_fikra_browser;
 use codex_cli::run_logout;
 use codex_cloud_tasks::Cli as CloudTasksCli;
 use codex_exec::Cli as ExecCli;
@@ -151,7 +151,7 @@ enum Subcommand {
     #[clap(hide = true)]
     TcpTunnel(codex_tcp_tunnel::Args),
 
-    /// Run Codex non-interactively.
+    /// Run Fikra Code non-interactively.
     #[clap(visible_alias = "e")]
     Exec(ExecCli),
 
@@ -161,39 +161,41 @@ enum Subcommand {
     /// Manage login.
     Login(LoginCommand),
 
-    /// Supply the existing Codex login to Git's credential-helper protocol.
+    /// Supply the existing Fikra Code login to Git's credential-helper protocol.
     #[clap(hide = true)]
     GitCredential(codex_cli::GitCredentialArgs),
 
     /// Remove stored authentication credentials.
     Logout(LogoutCommand),
 
-    /// Manage external MCP servers for Codex.
+    /// Manage external MCP servers for Fikra Code.
     Mcp(McpCli),
 
-    /// Manage Codex plugins.
+    /// Manage Fikra Code plugins.
     Plugin(PluginCli),
 
     /// [experimental] Run the app server or related tooling.
     AppServer(AppServerCommand),
 
     /// [experimental] Manage the app-server daemon with remote control enabled.
+    #[clap(hide = true)]
     RemoteControl(RemoteControlCommand),
 
     /// Launch the Desktop app (opens the app installer if missing).
     #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[clap(hide = true)]
     App(app_cmd::AppCommand),
 
     /// Generate shell completion scripts.
     Completion(CompletionCommand),
 
-    /// Update Codex to the latest version.
+    /// Update Fikra Code to the latest version.
     Update,
 
-    /// Diagnose local Codex installation, config, auth, and runtime health.
+    /// Diagnose local Fikra Code installation, config, auth, and runtime health.
     Doctor(DoctorCommand),
 
-    /// Run commands within a Codex-provided sandbox.
+    /// Run commands within a Fikra Code-provided sandbox.
     Sandbox(SandboxCommand),
 
     /// Debugging tools.
@@ -203,8 +205,8 @@ enum Subcommand {
     #[clap(hide = true)]
     Execpolicy(ExecpolicyCommand),
 
-    /// Apply the latest diff produced by Codex agent as a `git apply` to your local working tree.
-    #[clap(visible_alias = "a")]
+    /// Apply the latest diff produced by Fikra Code agent as a `git apply` to your local working tree.
+    #[clap(hide = true)]
     Apply(ApplyCommand),
 
     /// Resume a previous interactive session (picker by default; use --last to continue the most recent).
@@ -231,8 +233,8 @@ enum Subcommand {
     /// Fork a previous interactive session (picker by default; use --last to fork the most recent).
     Fork(ForkCommand),
 
-    /// [EXPERIMENTAL] Browse tasks from Codex Cloud and apply changes locally.
-    #[clap(name = "cloud", alias = "cloud-tasks")]
+    /// [EXPERIMENTAL] Browse tasks from the cloud and apply changes locally.
+    #[clap(name = "cloud", alias = "cloud-tasks", hide = true)]
     Cloud(CloudTasksCli),
 
     /// Internal: run the responses API proxy.
@@ -317,7 +319,7 @@ struct DebugModelsCommand {
 
 #[derive(Debug, Parser)]
 struct ReviewCommand {
-    /// Error out when config.toml contains fields that are not recognized by this version of Codex.
+    /// Error out when config.toml contains fields that are not recognized by this version of Fikra Code.
     #[arg(long = "strict-config", default_value_t = false)]
     strict_config: bool,
 
@@ -402,7 +404,7 @@ struct SessionArchiveConfigOverrides {
     #[clap(flatten)]
     shared: SharedCliOptions,
 
-    /// Error out when config.toml contains fields that are not recognized by this version of Codex.
+    /// Error out when config.toml contains fields that are not recognized by this version of Fikra Code.
     #[arg(long = "strict-config", default_value_t = false)]
     strict_config: bool,
 
@@ -527,13 +529,13 @@ struct LoginCommand {
 
     #[arg(
         long = "with-api-key",
-        help = "Read the API key from stdin (e.g. `printenv OPENAI_API_KEY | codex login --with-api-key`)"
+        help = "Read the API key from stdin instead of signing in through the browser (e.g. `printenv FIKRA_API_KEY | fikra login --with-api-key`)"
     )]
     with_api_key: bool,
 
     #[arg(
         long = "with-access-token",
-        help = "Read the access token from stdin (e.g. `printenv CODEX_ACCESS_TOKEN | codex login --with-access-token`)"
+        help = "Read the access token from stdin (e.g. `printenv FIKRA_ACCESS_TOKEN | fikra login --with-access-token`)"
     )]
     with_access_token: bool,
 
@@ -547,7 +549,8 @@ struct LoginCommand {
     )]
     api_key: Option<String>,
 
-    #[arg(long = "device-auth")]
+    /// Print the sign-in link instead of opening a browser (SSH, headless machines).
+    #[arg(long = "device-auth", alias = "no-browser")]
     use_device_code: bool,
 
     /// EXPERIMENTAL: Use custom OAuth issuer base URL (advanced)
@@ -590,7 +593,7 @@ struct AppServerCommand {
     #[command(flatten)]
     code_mode_host: codex_app_server::AppServerCodeModeHostArgs,
 
-    /// Error out when config.toml contains fields that are not recognized by this version of Codex.
+    /// Error out when config.toml contains fields that are not recognized by this version of Fikra Code.
     #[arg(long = "strict-config", default_value_t = false)]
     strict_config: bool,
 
@@ -655,7 +658,7 @@ enum AppServerSubcommand {
     /// [experimental] Generate JSON Schema for the app server protocol.
     GenerateJsonSchema(GenerateJsonSchemaCommand),
 
-    /// [internal] Generate internal JSON Schema artifacts for Codex tooling.
+    /// [internal] Generate internal JSON Schema artifacts for Fikra Code tooling.
     #[clap(hide = true)]
     GenerateInternalJsonSchema(GenerateInternalJsonSchemaCommand),
 }
@@ -814,12 +817,12 @@ fn run_update_action(
             status.success(),
             "Daemon update failed with status {status}"
         );
-        println!("Relaunch Codex to reconnect.");
+        println!("Relaunch Fikra Code to reconnect.");
         return Ok(());
     }
     println!();
     let cmd_str = action.command_str();
-    println!("Updating Codex via `{cmd_str}`...");
+    println!("Updating Fikra Code via `{cmd_str}`...");
     let status = {
         #[cfg(windows)]
         {
@@ -863,7 +866,7 @@ fn run_update_action(
     if !status.success() {
         anyhow::bail!("`{cmd_str}` failed with status {status}");
     }
-    println!("\n🎉 Update ran successfully! Please restart Codex.");
+    println!("\n🎉 Update ran successfully! Please restart Fikra Code.");
     Ok(())
 }
 
@@ -885,22 +888,26 @@ fn resolve_windows_update_command_from_path(
 }
 
 fn run_update_command() -> anyhow::Result<()> {
-    #[cfg(debug_assertions)]
-    {
+    const INSTALL_URL: &str = "https://fikraapi.co.ke/code/install.sh";
+    if cfg!(windows) {
         anyhow::bail!(
-            "`codex update` is not available in debug builds. Install a release build of Codex to use this command."
+            "Download the latest Fikra Code release from https://github.com/Fikra-API/fikra-code/releases"
         );
     }
-
-    #[cfg(not(debug_assertions))]
-    {
-        let Some(action) = codex_tui::get_update_action() else {
-            anyhow::bail!(
-                "Could not detect the Codex installation method. Please update manually: https://developers.openai.com/codex/cli/"
-            );
-        };
-        run_update_action(action, /*cli_executable*/ None)
+    let status = std::process::Command::new("sh")
+        .arg("-c")
+        .arg(format!("curl -fsSL {INSTALL_URL} | sh"))
+        .status()?;
+    if !status.success() {
+        anyhow::bail!("Fikra Code update failed ({status})");
     }
+    Ok(())
+}
+
+/// Exits for upstream commands that only work with OpenAI/ChatGPT services.
+fn fikra_unavailable(command: &str) -> ! {
+    eprintln!("`fikra {command}` is not available in Fikra Code.");
+    std::process::exit(1);
 }
 
 fn run_execpolicycheck(cmd: ExecPolicyCheckCommand) -> anyhow::Result<()> {
@@ -1568,12 +1575,8 @@ async fn dispatch_cli(
                 root_remote_auth_token_env.as_deref(),
                 subcommand_name,
             )?;
-            remote_control_cmd::run(
-                remote_control_cli,
-                arg0_paths.clone(),
-                root_config_overrides,
-            )
-            .await?;
+            let _ = (remote_control_cli, &root_config_overrides);
+            fikra_unavailable("remote-control");
         }
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         Some(Subcommand::App(app_cli)) => {
@@ -1582,7 +1585,8 @@ async fn dispatch_cli(
                 root_remote_auth_token_env.as_deref(),
                 "app",
             )?;
-            app_cmd::run_app(app_cli).await?;
+            let _ = app_cli;
+            fikra_unavailable("app");
         }
         Some(Subcommand::Resume(ResumeCommand {
             session_id,
@@ -1739,13 +1743,10 @@ async fn dispatch_cli(
                         );
                         std::process::exit(1);
                     } else if login_cli.use_device_code {
-                        eprintln!(
-                            "ChatGPT sign-in is disabled. Run `fikra login` and paste a Fikra API key."
-                        );
-                        std::process::exit(1);
+                        run_login_with_fikra_browser(login_cli.config_overrides, false).await;
                     } else if login_cli.api_key.is_some() {
                         eprintln!(
-                            "The --api-key flag is no longer supported. Pipe the key instead, e.g. `printenv OPENAI_API_KEY | codex login --with-api-key`."
+                            "The --api-key flag is no longer supported. Pipe the key instead, e.g. `printenv FIKRA_API_KEY | fikra login`."
                         );
                         std::process::exit(1);
                     } else if login_cli.with_api_key {
@@ -1758,12 +1759,7 @@ async fn dispatch_cli(
                         let api_key = read_api_key_from_stdin();
                         run_login_with_api_key(login_cli.config_overrides, api_key).await;
                     } else {
-                        let api_key = read_fikra_api_key_interactive();
-                        if api_key.is_empty() {
-                            eprintln!("No API key provided.");
-                            std::process::exit(1);
-                        }
-                        run_login_with_api_key(login_cli.config_overrides, api_key).await;
+                        run_login_with_fikra_browser(login_cli.config_overrides, true).await;
                     }
                 }
             }
@@ -1816,12 +1812,8 @@ async fn dispatch_cli(
                 root_remote_auth_token_env.as_deref(),
                 "cloud",
             )?;
-            prepend_config_flags(
-                &mut cloud_cli.config_overrides,
-                root_config_overrides.clone(),
-            );
-            codex_cloud_tasks::run_main(cloud_cli, arg0_paths.codex_linux_sandbox_exe.clone())
-                .await?;
+            let _ = &mut cloud_cli;
+            fikra_unavailable("cloud");
         }
         Some(Subcommand::Sandbox(SandboxCommand {
             host: mut sandbox_cli,
@@ -1950,11 +1942,8 @@ async fn dispatch_cli(
                 root_remote_auth_token_env.as_deref(),
                 "apply",
             )?;
-            prepend_config_flags(
-                &mut apply_cli.config_overrides,
-                root_config_overrides.clone(),
-            );
-            run_apply_command(apply_cli, /*cwd*/ None).await?;
+            let _ = &mut apply_cli;
+            fikra_unavailable("apply");
         }
         Some(Subcommand::ResponsesApiProxy(args)) => {
             reject_remote_mode_for_subcommand(
@@ -2416,7 +2405,7 @@ fn reject_root_strict_config_for_subcommand(
 /// flag should be rejected after parsing.
 ///
 /// `--strict-config` is parsed on the root interactive CLI so commands like
-/// `codex --strict-config` continue to work for the TUI and for wrappers that
+/// `fikra --strict-config` continue to work for the TUI and for wrappers that
 /// forward root options into another command shape. Clap will still accept that
 /// root flag before the dispatcher knows which subcommand the user selected, so
 /// unsupported subcommands need an explicit post-parse reject path.
@@ -2554,10 +2543,9 @@ async fn run_interactive_tui(
     remote_auth_token_env: Option<String>,
     arg0_paths: Arg0DispatchPaths,
 ) -> std::io::Result<AppExitInfo> {
-    if interactive.no_daemon && remote.is_some() {
-        return Ok(AppExitInfo::fatal(
-            "--no-daemon cannot be used with --remote.",
-        ));
+    // Fikra Code runs in-process by default; a remote server replaces that.
+    if remote.is_some() {
+        interactive.no_daemon = false;
     }
     if let Some(prompt) = interactive.prompt.take() {
         // Normalize CRLF/CR to LF so CLI-provided text can't leak `\r` into TUI state.
@@ -2573,7 +2561,7 @@ async fn run_interactive_tui(
         }
 
         eprintln!(
-            "WARNING: TERM is set to \"dumb\". Codex's interactive TUI may not work in this terminal."
+            "WARNING: TERM is set to \"dumb\". Fikra Code's interactive TUI may not work in this terminal."
         );
         if !confirm("Continue anyway? [y/N]: ")? {
             return Ok(AppExitInfo::fatal(
@@ -2589,6 +2577,9 @@ async fn run_interactive_tui(
         }
         Err(err) => return Err(err),
     };
+    if remote_endpoint.is_none() && std::io::stdin().is_terminal() {
+        codex_cli::ensure_fikra_login(interactive.config_overrides.clone()).await;
+    }
     if interactive.agents_overview && remote_endpoint.is_none() {
         if !std::io::stdin().is_terminal() {
             return Ok(AppExitInfo::fatal("stdin is not a terminal"));
@@ -2654,7 +2645,7 @@ where
             Err(backup_err) => {
                 local_state_db::print_diagnostic_guidance(startup_error);
                 return Ok(AppExitInfo::fatal(format!(
-                    "failed to move damaged Codex local database files into a backup folder automatically: {backup_err}"
+                    "failed to move damaged Fikra Code local database files into a backup folder automatically: {backup_err}"
                 )));
             }
         }
@@ -2675,7 +2666,7 @@ fn confirm(prompt: &str) -> std::io::Result<bool> {
     Ok(answer.eq_ignore_ascii_case("y") || answer.eq_ignore_ascii_case("yes"))
 }
 
-/// Build the final `TuiCli` for a `codex resume` invocation.
+/// Build the final `TuiCli` for a `fikra resume` invocation.
 fn finalize_resume_interactive(
     mut interactive: TuiCli,
     root_config_overrides: CliConfigOverrides,
@@ -2710,7 +2701,7 @@ fn finalize_resume_interactive(
     interactive
 }
 
-/// Build the final `TuiCli` for a `codex fork` invocation.
+/// Build the final `TuiCli` for a `fikra fork` invocation.
 fn finalize_fork_interactive(
     mut interactive: TuiCli,
     root_config_overrides: CliConfigOverrides,
@@ -2817,71 +2808,15 @@ fn print_completion(cmd: CompletionCommand) {
     generate(cmd.shell, &mut app, name, &mut std::io::stdout());
 }
 
-/// Seeds the Fikra Code config with the Fikra provider and the free DeepSeek
-/// model on first run. Users can edit this file afterwards.
-fn read_fikra_api_key_interactive() -> String {
-    use crossterm::event::Event;
-    use crossterm::event::KeyCode;
-    use crossterm::event::KeyEventKind;
-    use crossterm::event::KeyModifiers;
-    use crossterm::terminal::disable_raw_mode;
-    use crossterm::terminal::enable_raw_mode;
 
-    eprintln!("Paste your Fikra API key (get one at https://fikraapi.co.ke/dashboard):");
-    let raw = enable_raw_mode();
-    let mut key = String::new();
-    loop {
-        match crossterm::event::read() {
-            Ok(Event::Key(event)) => {
-                if event.kind != KeyEventKind::Press {
-                    continue;
-                }
-                match event.code {
-                    KeyCode::Enter => break,
-                    KeyCode::Esc => break,
-                    KeyCode::Char('c')
-                        if event.modifiers.contains(KeyModifiers::CONTROL) =>
-                    {
-                        if raw.is_ok() {
-                            let _ = disable_raw_mode();
-                        }
-                        eprintln!();
-                        std::process::exit(130);
-                    }
-                    KeyCode::Char(ch) => key.push(ch),
-                    KeyCode::Backspace => {
-                        key.pop();
-                    }
-                    _ => {}
-                }
-            }
-            Ok(_) => {}
-            Err(_) => break,
-        }
-    }
-    if raw.is_ok() {
-        let _ = disable_raw_mode();
-    }
-    eprintln!();
-    key.trim().to_string()
-}
-
+/// Creates `FIKRA_HOME` when it is set but missing. Provider, model and
+/// telemetry defaults are compiled in, so no config file is written.
 fn ensure_fikra_default_config() {
     if let Some(path) = std::env::var_os("FIKRA_HOME") {
         if !path.is_empty() && !std::path::Path::new(&path).exists() {
             let _ = std::fs::create_dir_all(&path);
         }
     }
-    let Ok(home) = codex_core::config::find_codex_home() else {
-        return;
-    };
-    let config_path = home.as_path().join("config.toml");
-    if config_path.exists() {
-        return;
-    }
-    let _ = std::fs::create_dir_all(home.as_path());
-    let contents = "model_provider = \"fikra\"\nmodel = \"deepseek-v4-1-flash-economy-free\"\n\n[analytics]\nenabled = false\n\n[feedback]\nenabled = false\n\n[otel]\nexporter = \"none\"\ntrace_exporter = \"none\"\nmetrics_exporter = \"none\"\n";
-    let _ = std::fs::write(config_path, contents);
 }
 
 #[cfg(test)]

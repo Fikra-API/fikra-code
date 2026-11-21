@@ -14,7 +14,7 @@ use std::path::Path;
 mod keybinding_tests;
 
 const ANNOUNCEMENT_TIP_URL: &str =
-    "https://raw.githubusercontent.com/openai/codex/main/announcement_tip.toml";
+    "https://raw.githubusercontent.com/Fikra-API/fikra-code/main/announcement_tip.toml";
 
 const IS_MACOS: bool = cfg!(target_os = "macos");
 const IS_WINDOWS: bool = cfg!(target_os = "windows");
@@ -100,6 +100,10 @@ fn linux_app_tooltip(session: LinuxDesktopSession) -> Option<&'static str> {
 }
 
 fn app_tooltip() -> Option<&'static str> {
+    // Fikra Code has no desktop app; never advertise the upstream one.
+    if !cfg!(test) {
+        return None;
+    }
     if IS_MACOS {
         Some(MACOS_APP_TOOLTIP)
     } else if IS_WINDOWS {

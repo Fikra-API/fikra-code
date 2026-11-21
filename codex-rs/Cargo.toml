@@ -1,4 +1,6 @@
 [workspace]
+# Code mode (V8) is not shipped in Fikra Code.
+exclude = ["code-mode-host", "code-mode-runtime", "v8-poc"]
 members = [
     "aws-auth",
     "analytics",
@@ -29,9 +31,7 @@ members = [
     "install-context",
     "codex-backend-openapi-models",
     "code-mode",
-    "code-mode-host",
     "code-mode-protocol",
-    "code-mode-runtime",
     "plugin-host",
     "codex-home",
     "cloud-config",
@@ -121,7 +121,6 @@ members = [
     "user-input",
     "user-verification",
     "tools",
-    "v8-poc",
     "websocket-auth",
     "websocket-client",
     "windows-sandbox-rs/tests/support",
@@ -215,7 +214,6 @@ codex-cloud-tasks-client = { path = "cloud-tasks-client" }
 codex-cloud-tasks-mock-client = { path = "cloud-tasks-mock-client" }
 codex-code-mode = { path = "code-mode" }
 codex-code-mode-protocol = { path = "code-mode-protocol" }
-codex-code-mode-runtime = { path = "code-mode-runtime" }
 codex-plugin-host = { path = "plugin-host" }
 codex-home = { path = "codex-home" }
 codex-http-client = { path = "http-client" }
@@ -570,7 +568,6 @@ unicode-width = "0.2"
 url = "2"
 urlencoding = "2.1"
 uuid = "1"
-v8 = "=152.2.0"
 vt100 = "0.16.2"
 vtparse = "0.6.2"
 walkdir = "2.5.0"
@@ -690,7 +687,6 @@ sqlx-core = { git = "https://github.com/transact-rs/sqlx", rev = "10462fa4414c6c
 sqlx-sqlite = { git = "https://github.com/transact-rs/sqlx", rev = "10462fa4414c6c7f1ed1d39bb31678e3b726878c" }
 tokio-tungstenite = { git = "https://github.com/openai-oss-forks/tokio-tungstenite", rev = "7a920470d62138955446b64220c7609e46ad770e" }
 tungstenite = { git = "https://github.com/openai-oss-forks/tungstenite-rs", rev = "e19950ef7828cb311e6d51a6bedcebf0192e055c" }
-v8 = { git = "https://github.com/openai-oss-forks/rusty_v8.git", rev = "90a65f887a0c0f048f3784afbcb320b373c8a2e0" }
 
 # Uncomment to debug local changes.
 # rmcp = { path = "../../rust-sdk/crates/rmcp" }

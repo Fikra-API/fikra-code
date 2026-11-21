@@ -25,8 +25,8 @@ pub(super) struct BuiltinPet {
 pub(super) const BUILTIN_PETS: &[BuiltinPet] = &[
     BuiltinPet {
         id: "codex",
-        display_name: "Codex",
-        description: "The original Codex companion",
+        display_name: "Fikra Code",
+        description: "The original Fikra Code companion",
         spritesheet_file: "codex-spritesheet-v4.webp",
     },
     BuiltinPet {

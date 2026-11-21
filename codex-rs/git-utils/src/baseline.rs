@@ -24,7 +24,7 @@ const BASELINE_VERSION_FILE: &str = "codex-baseline-version";
 const BASELINE_VERSION: &[u8] = b"1\n";
 
 const BASELINE_COMMIT_MESSAGE: &str =
-    "Initialize Codex git baseline\n\nCo-authored-by: Codex <noreply@openai.com>";
+    "Initialize Fikra Code git baseline\n\nCo-authored-by: Fikra Code <noreply@fikraapi.co.ke>";
 
 /// File-level change status between a git baseline and the current directory.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -256,8 +256,8 @@ pub async fn diff_since_latest_init(root: &Path) -> anyhow::Result<GitBaselineDi
 
 fn codex_signature() -> gix::actor::Signature {
     gix::actor::Signature {
-        name: "Codex".into(),
-        email: "noreply@openai.com".into(),
+        name: "Fikra Code".into(),
+        email: "noreply@fikraapi.co.ke".into(),
         time: gix::date::Time {
             seconds: chrono::Utc::now().timestamp(),
             offset: 0,

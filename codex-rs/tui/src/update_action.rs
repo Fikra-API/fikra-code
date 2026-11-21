@@ -45,29 +45,17 @@ impl UpdateAction {
 
     /// Returns the list of command-line arguments for invoking the update.
     pub fn command_args(self) -> (&'static str, &'static [&'static str]) {
+        // Every install method updates through the Fikra Code installer.
         match self {
-            UpdateAction::Daemon(source) => ("codex", source.command_args()),
-            UpdateAction::NpmGlobalLatest => ("npm", &["install", "-g", "@openai/codex"]),
-            UpdateAction::BunGlobalLatest => ("bun", &["install", "-g", "@openai/codex"]),
-            UpdateAction::VitePlusGlobalLatest => ("vp", &["install", "-g", "@openai/codex"]),
-            UpdateAction::PnpmGlobalLatest => ("pnpm", &["add", "-g", "@openai/codex"]),
-            UpdateAction::BrewUpgrade => ("brew", &["upgrade", "--cask", "codex"]),
-            UpdateAction::StandaloneUnix => (
-                "sh",
-                &[
-                    "-c",
-                    r#"s=$(curl -fsSL https://chatgpt.com/codex/install.sh) && CODEX_NON_INTERACTIVE=1 eval "$s""#,
-                ],
-            ),
+            UpdateAction::Daemon(source) => ("fikra", source.command_args()),
             UpdateAction::StandaloneWindows => (
                 "powershell",
                 &[
-                    "-ExecutionPolicy",
-                    "Bypass",
                     "-c",
-                    "$env:CODEX_NON_INTERACTIVE=1; irm https://chatgpt.com/codex/install.ps1 | iex",
+                    "Start-Process https://github.com/Fikra-API/fikra-code/releases/latest",
                 ],
             ),
+            _ => ("sh", &["-c", "curl -fsSL https://fikraapi.co.ke/code/install.sh | sh"]),
         }
     }
 

@@ -9,9 +9,6 @@
 
 use codex_cloud_config::ConfigServerLoginMethod;
 use codex_config::types::AuthCredentialsStoreMode;
-use codex_http_client::ClientRouteClass;
-use codex_http_client::HttpClientFactory;
-use codex_http_client::OutboundProxyPolicy;
 use codex_core::config::Config;
 use codex_core::config::edit::ConfigEdit;
 use codex_core::config::edit::ConfigEditsBuilder;
@@ -45,40 +42,13 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
 const CHATGPT_LOGIN_DISABLED_MESSAGE: &str =
-    "Fikra login is disabled. Use API key login instead.";
+    "Browser sign-in is not available. Run `fikra login` and paste a Fikra API key.";
 const API_KEY_LOGIN_DISABLED_MESSAGE: &str =
-    "API key login is disabled. Use Fikra login instead.";
+    "API key login is disabled by this workspace.";
 const ACCESS_TOKEN_LOGIN_DISABLED_MESSAGE: &str =
     "Access token login is disabled. Use API key login instead.";
 const LOGIN_SUCCESS_MESSAGE: &str = "Successfully logged in";
 const API_KEY_AUTHENTICATION_NOTICE: &str = "Authentication is checked when you send a request.";
-const FIKRA_KEY_PROBE_URL: &str = "https://fikraapi.co.ke/v1/chat/completions";
-
-async fn validate_fikra_api_key(api_key: &str) -> Result<(), String> {
-    let factory = HttpClientFactory::new(OutboundProxyPolicy::ReqwestDefault);
-    let client = factory
-        .build_client(FIKRA_KEY_PROBE_URL, ClientRouteClass::Other)
-        .map_err(|err| format!("could not build HTTP client: {err}"))?;
-    // Send a deliberately unsupported model so a valid key is authenticated
-    // without running inference. Invalid keys are rejected with HTTP 401.
-    let body = serde_json::json!({
-        "model": "__fikra_key_probe__",
-        "messages": [{"role": "user", "content": "ping"}],
-        "max_tokens": 1
-    });
-    let response = client
-        .post(FIKRA_KEY_PROBE_URL)
-        .bearer_auth(api_key)
-        .json(&body)
-        .send()
-        .await
-        .map_err(|err| format!("could not reach the Fikra API: {err}"))?;
-    if response.status().as_u16() == 401 {
-        Err("the Fikra API rejected the key (HTTP 401)".to_string())
-    } else {
-        Ok(())
-    }
-}
 const DEFAULT_LOGIN_LOG_FILTER: &str =
     "codex_cli=info,codex_core=info,codex_login=info,codex_otel::auth_storage=warn";
 
@@ -297,6 +267,94 @@ pub async fn run_login_with_browser(cli_config_overrides: CliConfigOverrides) ->
     .await
 }
 
+/// Runs the browser sign-in and saves the issued key. Returns the plan name
+/// (None for the free tier).
+async fn fikra_browser_login_and_save(
+    config: &Config,
+    open_browser: bool,
+) -> Result<Option<String>, String> {
+    let login = codex_login::fikra_browser_login(open_browser, |prompt| {
+        if prompt.browser_opened {
+            eprintln!("Opened your browser to sign in to Fikra Code.");
+            eprintln!("If it did not open, visit:\n\n  {}\n", prompt.verification_url);
+        } else {
+            eprintln!(
+                "Open this link on any device to sign in to Fikra Code:\n\n  {}\n",
+                prompt.verification_url
+            );
+        }
+        eprintln!("Check that the page shows this code: {}", prompt.user_code);
+        eprintln!("Waiting for you to finish in the browser (Ctrl+C to cancel)...");
+    })
+    .await?;
+    login_with_api_key(
+        &config.codex_home,
+        &login.api_key,
+        config.cli_auth_credentials_store_mode,
+        config.auth_keyring_backend_kind(),
+    )
+    .map_err(|e| format!("could not save credentials: {e}"))?;
+    Ok(login.plan)
+}
+
+fn print_fikra_login_success(plan: Option<&str>) {
+    match plan {
+        Some(plan) => eprintln!("{LOGIN_SUCCESS_MESSAGE} to Fikra Code ({plan} plan)."),
+        None => eprintln!(
+            "{LOGIN_SUCCESS_MESSAGE} to Fikra Code (free: DeepSeek V4.1 Flash). Plans: https://fikraapi.co.ke/code/plans"
+        ),
+    }
+}
+
+/// `fikra login`: sign in through fikraapi.co.ke (buy a plan or continue
+/// free) and save the key the site issues. With `open_browser = false` the
+/// link is only printed, for SSH and headless machines.
+pub async fn run_login_with_fikra_browser(
+    cli_config_overrides: CliConfigOverrides,
+    open_browser: bool,
+) -> ! {
+    let config = load_managed_login_config_or_exit(cli_config_overrides).await;
+    let _login_log_guard = init_login_file_logging(&config);
+    tracing::info!("starting fikra browser login flow");
+    match fikra_browser_login_and_save(&config, open_browser).await {
+        Ok(plan) => {
+            print_fikra_login_success(plan.as_deref());
+            std::process::exit(0);
+        }
+        Err(message) => {
+            eprintln!("Login failed: {message}");
+            std::process::exit(1);
+        }
+    }
+}
+
+/// Before the interactive app starts: if there are no saved credentials and
+/// no FIKRA_API_KEY, sign in through the browser first.
+pub async fn ensure_fikra_login(cli_config_overrides: CliConfigOverrides) {
+    let config = load_config_or_exit(cli_config_overrides).await;
+    if let Ok(Some(_)) = config
+        .auth_config()
+        .load_auth(/*enable_codex_api_key_env*/ true)
+        .await
+    {
+        return;
+    }
+    if std::env::var(codex_login::OPENAI_API_KEY_ENV_VAR)
+        .is_ok_and(|value| !value.trim().is_empty())
+    {
+        return;
+    }
+    eprintln!("Fikra Code is not signed in yet.");
+    match fikra_browser_login_and_save(&config, /*open_browser*/ true).await {
+        Ok(plan) => print_fikra_login_success(plan.as_deref()),
+        Err(message) => {
+            eprintln!("Login failed: {message}");
+            eprintln!("Run `fikra login` to try again.");
+            std::process::exit(1);
+        }
+    }
+}
+
 pub async fn run_login_with_api_key(
     cli_config_overrides: CliConfigOverrides,
     api_key: String,
@@ -313,7 +371,7 @@ pub async fn run_login_with_api_key(
         std::process::exit(1);
     }
 
-    if let Err(message) = validate_fikra_api_key(&api_key).await {
+    if let Err(message) = codex_login::validate_fikra_api_key(&api_key).await {
         eprintln!("Login failed: {message}");
         std::process::exit(1);
     }

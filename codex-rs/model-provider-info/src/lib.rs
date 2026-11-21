@@ -756,34 +756,39 @@ pub const LMSTUDIO_OSS_PROVIDER_ID: &str = "lmstudio";
 pub const OLLAMA_OSS_PROVIDER_ID: &str = "ollama";
 pub const FIKRA_PROVIDER_ID: &str = "fikra";
 
-/// Built-in default provider list.
+pub const FIKRA_PROVIDER_NAME: &str = "Fikra";
+pub const FIKRA_BASE_URL: &str = "https://fikraapi.co.ke/v1";
+pub const FIKRA_API_KEY_ENV_VAR: &str = "FIKRA_API_KEY";
+/// Model used when neither the CLI nor config.toml selects one.
+pub const FIKRA_DEFAULT_MODEL: &str = "deepseek-v4-1-flash-economy-free";
+
+impl ModelProviderInfo {
+    /// The Fikra API. Authenticates with `FIKRA_API_KEY` when set, otherwise
+    /// with the key saved by `fikra login` (`requires_openai_auth` is the
+    /// upstream flag meaning "use the stored login credentials").
+    pub fn create_fikra_provider() -> ModelProviderInfo {
+        ModelProviderInfo {
+            name: FIKRA_PROVIDER_NAME.into(),
+            base_url: Some(FIKRA_BASE_URL.into()),
+            env_key: Some(FIKRA_API_KEY_ENV_VAR.into()),
+            env_key_instructions: Some(
+                "Run `fikra login` or set FIKRA_API_KEY. Get a key at https://fikraapi.co.ke/dashboard"
+                    .into(),
+            ),
+            requires_openai_auth: true,
+            ..Default::default()
+        }
+    }
+}
+
+/// Built-in default provider list: Fikra plus local OSS servers. No OpenAI or
+/// OpenAI-hosted backends are bundled.
 pub fn built_in_model_providers(
-    openai_base_url: Option<String>,
+    _openai_base_url: Option<String>,
 ) -> HashMap<String, ModelProviderInfo> {
     use ModelProviderInfo as P;
-    let openai_provider = P::create_openai_provider(openai_base_url);
-    let amazon_bedrock_provider = P::create_amazon_bedrock_provider(/*aws*/ None);
-    let amazon_bedrock_runtime_provider =
-        P::create_amazon_bedrock_runtime_provider(/*aws*/ None);
-    let gcp_provider = P::create_gcp_provider();
-    let fikra_provider = P {
-        name: "Fikra".into(),
-        base_url: Some("https://fikraapi.co.ke/v1".into()),
-        env_key: Some("FIKRA_API_KEY".into()),
-        ..Default::default()
-    };
-
-    // Bundle OpenAI, supported cloud-hosted OpenAI backends, Fikra, and local OSS providers.
-    // Other compatible providers can be added through `model_providers` in config.toml.
     [
-        (FIKRA_PROVIDER_ID, fikra_provider),
-        (OPENAI_PROVIDER_ID, openai_provider),
-        (AMAZON_BEDROCK_PROVIDER_ID, amazon_bedrock_provider),
-        (GCP_PROVIDER_ID, gcp_provider),
-        (
-            AMAZON_BEDROCK_RUNTIME_PROVIDER_ID,
-            amazon_bedrock_runtime_provider,
-        ),
+        (FIKRA_PROVIDER_ID, P::create_fikra_provider()),
         (
             OLLAMA_OSS_PROVIDER_ID,
             create_oss_provider(DEFAULT_OLLAMA_PORT, WireApi::Responses),

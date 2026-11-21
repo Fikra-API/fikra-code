@@ -494,9 +494,11 @@ impl AccountRequestProcessor {
             .auth_manager
             .is_login_method_allowed(ForcedLoginMethod::Api)
         {
-            return Err(invalid_request(
-                "API key login is disabled. Use ChatGPT login instead.",
-            ));
+            return Err(invalid_request("API key login is disabled."));
+        }
+
+        if let Err(message) = codex_login::validate_fikra_api_key(&params.api_key).await {
+            return Err(invalid_request(format!("Login failed: {message}")));
         }
 
         // Cancel any active login attempt.

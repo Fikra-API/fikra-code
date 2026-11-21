@@ -81,7 +81,8 @@ pub struct Cli {
     pub no_alt_screen: bool,
 
     /// Run without the shared background server, even if it is already running.
-    #[arg(long)]
+    /// Fikra Code always runs in-process; the flag is kept for compatibility.
+    #[arg(long, default_value_t = true, hide = true)]
     pub no_daemon: bool,
 
     #[clap(skip)]

@@ -122,6 +122,11 @@ impl EmptyStateAnimation {
         buffer: &mut Buffer,
         presentation: Presentation,
     ) -> Option<Duration> {
+        // Fikra Code does not draw the upstream (OpenAI) logo animation.
+        if !cfg!(test) {
+            let _ = (area, buffer, presentation);
+            return None;
+        }
         let now = Instant::now();
         self.render_in_at(area, buffer, presentation, now)
     }

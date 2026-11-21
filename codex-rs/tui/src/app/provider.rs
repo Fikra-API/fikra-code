@@ -402,7 +402,7 @@ fn details(provider: &ModelProviderSummary) -> Vec<Line<'static>> {
     };
     field("Provider ID", &provider.id);
     if matches!(provider.settings, ProviderSettings::OpenAi) {
-        field("Type", "Built-in OpenAI provider");
+        field("Type", "Built-in Fikra provider");
     }
     for (kind, value) in provider_fields(provider) {
         let absent = match kind {

@@ -932,6 +932,11 @@ impl PluginsManager {
         config: &PluginsConfigInput,
         on_effective_plugins_changed: Option<EffectivePluginsChangedCallback>,
     ) {
+        // Fikra Code does not sync OpenAI's curated plugin repository.
+        if !cfg!(test) {
+            let _ = (config, on_effective_plugins_changed);
+            return;
+        }
         if config.plugins_enabled
             && !self.remote_global_catalog_active(config)
             && MarketplacePolicy::from_requirements(config.config_layer_stack.requirements())

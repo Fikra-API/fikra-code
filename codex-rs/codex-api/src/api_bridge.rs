@@ -227,6 +227,20 @@ fn map_api_error_details(err: ApiError) -> CodexErr {
                 } else if status == http::StatusCode::INTERNAL_SERVER_ERROR {
                     CodexErr::InternalServerError
                 } else if status == http::StatusCode::TOO_MANY_REQUESTS {
+                    // Fikra API quota and plan limits carry a user-facing message
+                    // (when it resets, where to buy a plan). Show it; never retry.
+                    if let Ok(body) = serde_json::from_str::<Value>(&body_text)
+                        && matches!(
+                            body.pointer("/error/code").and_then(Value::as_str),
+                            Some("free_quota_exceeded" | "plan_limit_reached")
+                        )
+                        && let Some(message) = body
+                            .pointer("/error/message")
+                            .and_then(Value::as_str)
+                            .filter(|message| !message.trim().is_empty())
+                    {
+                        return CodexErr::InvalidRequest(message.to_string());
+                    }
                     if let Ok(err) = serde_json::from_str::<UsageErrorResponse>(&body_text) {
                         if err.error.error_type.as_deref() == Some("usage_limit_reached") {
                             let limit_id = extract_header(headers.as_ref(), ACTIVE_LIMIT_HEADER);

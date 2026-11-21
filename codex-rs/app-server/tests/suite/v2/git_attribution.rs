@@ -46,12 +46,12 @@ use wiremock::matchers::path;
 const DEFAULT_READ_TIMEOUT: Duration = Duration::from_secs(60);
 #[cfg(not(any(target_os = "macos", windows)))]
 const DEFAULT_READ_TIMEOUT: Duration = Duration::from_secs(10);
-const COMMIT_ATTRIBUTION: &str = "Co-authored-by: Codex <noreply@openai.com>";
+const COMMIT_ATTRIBUTION: &str = "Co-authored-by: Fikra Code <noreply@fikraapi.co.ke>";
 const PR_ATTRIBUTION: &str = "Generated with [Codex](https://openai.com/codex/).";
 const ATTRIBUTION_DISABLED: &str = "attribution is disabled for the current workspace";
 const LEGACY_COMMIT_ATTRIBUTION_INSTRUCTIONS: &str = "\
 When you write or edit a git commit message, ensure the message ends with this trailer exactly once:
-Co-authored-by: Codex <noreply@openai.com>
+Co-authored-by: Fikra Code <noreply@fikraapi.co.ke>
 
 Rules:
 - Keep existing trailers and append this trailer at the end if missing.

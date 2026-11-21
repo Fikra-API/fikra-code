@@ -115,11 +115,6 @@ jobs:
           key="AWS_LC_SYS_NO_JITTER_ENTROPY_${{ matrix.target }}"
           echo "${key//-/_}=1" >> "$GITHUB_ENV"
 
-      - name: Configure rusty_v8 artifacts
-        uses: ./.github/actions/setup-rusty-v8
-        with:
-          target: ${{ matrix.target }}
-
       - name: Build bwrap
         if: contains(matrix.target, 'linux')
         shell: bash
@@ -141,9 +136,7 @@ jobs:
           export STABLE_GIT_COMMIT
           cargo build --target "${{ matrix.target }}" --release \
             --bin fikra \
-            --bin codex-code-mode-host \
-            --bin codex-exec-server \
-            --bin codex-responses-api-proxy
+            --bin codex-exec-server
 
       - name: Package
         shell: bash

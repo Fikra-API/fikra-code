@@ -911,7 +911,7 @@ impl ThreadManager {
             LocalThreadStoreConfig {
                 codex_home: codex_home.clone(),
                 sqlite: codex_state::SqliteConfig::new_for_testing(absolute_codex_home),
-                default_model_provider_id: OPENAI_PROVIDER_ID.to_string(),
+                default_model_provider_id: codex_model_provider_info::FIKRA_PROVIDER_ID.to_string(),
             },
             state_db.clone(),
         ));
