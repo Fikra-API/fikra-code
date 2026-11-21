@@ -10,6 +10,15 @@ on:
         description: 'Release tag, for example v0.1.0'
         required: true
         default: 'v0.1.0'
+      target:
+        description: 'Build all, linux, or windows'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - linux
+          - windows
 
 permissions:
   contents: write
@@ -31,6 +40,7 @@ jobs:
 
   build:
     needs: create-release
+    if: ${{ github.event_name == 'push' || inputs.target == 'all' || inputs.target == matrix.target }}
     strategy:
       fail-fast: false
       matrix:

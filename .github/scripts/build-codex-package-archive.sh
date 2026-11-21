@@ -198,6 +198,9 @@ python_args=(
 )
 if [[ -z "$voice_release_dir" ]]; then
   python_args+=(--archive-output "$gzip_archive_path" --archive-output "$zstd_archive_path")
+  if [[ "$target" == *windows* ]]; then
+    python_args+=(--archive-output "${archive_dir}/${archive_stem}-${target}.zip")
+  fi
 fi
 if ((${#resource_args[@]} > 0)); then
   python_args+=("${resource_args[@]}")
