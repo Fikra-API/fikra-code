@@ -60,7 +60,7 @@ pub(crate) fn configure_trusted_git_repository(
 ) -> Result<MarketplaceStagingDir, String> {
     let canonical_home = AbsolutePathBuf::from_absolute_path(codex_home)
         .and_then(|path| path.canonicalize())
-        .map_err(|err| format!("failed to resolve trusted Codex home: {err}"))?;
+        .map_err(|err| format!("failed to resolve trusted Fikra Code home: {err}"))?;
     let staging_root = canonical_home.join(".tmp");
     std::fs::create_dir_all(staging_root.as_path())
         .map_err(|err| format!("failed to create trusted Git repository root: {err}"))?;
@@ -68,7 +68,7 @@ pub(crate) fn configure_trusted_git_repository(
         .canonicalize()
         .map_err(|err| format!("failed to resolve trusted Git repository root: {err}"))?;
     if !staging_root.as_path().starts_with(canonical_home.as_path()) {
-        return Err("trusted Git repository root escapes Codex home".to_string());
+        return Err("trusted Git repository root escapes Fikra Code home".to_string());
     }
 
     // Keep the explicit GIT_DIR inside Codex home. The staging cleaner skips symlinks.

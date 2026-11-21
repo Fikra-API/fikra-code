@@ -227,7 +227,7 @@ impl CatalogRequestProcessor {
                         && current.model_provider_id != config.model_provider_id)
                 {
                     return Err(invalid_request(
-                        "Model provider settings changed. Restart Codex to apply them, then retry fetching the model list",
+                        "Model provider settings changed. Restart Fikra Code to apply them, then retry fetching the model list",
                     ));
                 }
                 return Err(invalid_request(error.to_string()));

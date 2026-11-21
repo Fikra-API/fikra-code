@@ -158,7 +158,7 @@ pub async fn read_connector_metadata(
 ) -> anyhow::Result<ConnectorMetadataReadResult> {
     anyhow::ensure!(
         auth.uses_codex_backend(),
-        "ChatGPT backend requests require Codex backend auth"
+        "ChatGPT backend requests require Fikra Code backend auth"
     );
     anyhow::ensure!(
         auth.get_account_id().is_some(),

@@ -146,7 +146,7 @@ impl TraceReducer {
 
         let Some(codex_turn_id) = codex_turn_id else {
             bail!(
-                "code cell start {} did not include a Codex turn id",
+                "code cell start {} did not include a Fikra Code turn id",
                 started.code_cell_id
             );
         };
@@ -644,11 +644,11 @@ impl TraceReducer {
             bail!("code cell start referenced unknown thread {thread_id}");
         }
         let Some(turn) = self.rollout.codex_turns.get(codex_turn_id) else {
-            bail!("code cell start referenced unknown Codex turn {codex_turn_id}");
+            bail!("code cell start referenced unknown Fikra Code turn {codex_turn_id}");
         };
         if turn.thread_id != thread_id {
             bail!(
-                "code cell start used thread {thread_id}, but Codex turn {codex_turn_id} belongs \
+                "code cell start used thread {thread_id}, but Fikra Code turn {codex_turn_id} belongs \
                  to {}",
                 turn.thread_id
             );

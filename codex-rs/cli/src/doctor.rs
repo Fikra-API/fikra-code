@@ -653,7 +653,7 @@ async fn load_config(
     .await?
     .build()
     .await
-    .context("failed to load Codex config")?;
+    .context("failed to load Fikra Code config")?;
     config.config_layer_stack.ensure_config_server_applied()?;
     Ok(config)
 }
@@ -972,7 +972,7 @@ fn installation_check(show_details: bool) -> DoctorCheck {
             status = status.max(CheckStatus::Warning);
             summary = "npm-managed launch is missing package-root provenance".to_string();
             remediation = Some(
-                "Reinstall or update Codex so the JS shim provides CODEX_MANAGED_PACKAGE_ROOT."
+                "Reinstall or update Fikra Code so the JS shim provides CODEX_MANAGED_PACKAGE_ROOT."
                     .to_string(),
             );
         }
@@ -1314,7 +1314,7 @@ fn auth_check(config: &Config) -> DoctorCheck {
             "auth.credentials",
             "auth",
             CheckStatus::Fail,
-            "no Codex credentials were found",
+            "no Fikra Code credentials were found",
         )
         .details(details)
         .remediation("Run codex login or provide an API key through a supported auth env var."),
@@ -1337,7 +1337,7 @@ fn provider_specific_auth_check(
     env_var_present: impl Fn(&str) -> bool,
 ) -> Option<DoctorCheck> {
     details.push(format!(
-        "model provider requires OpenAI auth: {requires_openai_auth}"
+        "model provider requires Fikra auth: {requires_openai_auth}"
     ));
     if requires_openai_auth {
         return None;
@@ -1377,7 +1377,7 @@ fn provider_specific_auth_check(
                 "auth.credentials",
                 "auth",
                 CheckStatus::Ok,
-                "OpenAI auth is not required for the active model provider",
+                "Fikra auth is not required for the active model provider",
             )
             .details(details),
         ),

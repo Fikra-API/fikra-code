@@ -842,7 +842,7 @@ impl McpConnectionSet {
                             .tools()
                             .to_vec(),
                         (None, None) => client_tools.to_vec(),
-                        _ => unreachable!("Codex Apps fetch ticket requires cache context"),
+                        _ => unreachable!("Fikra Code Apps fetch ticket requires cache context"),
                     };
                     (tools, list_start)
                 },

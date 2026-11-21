@@ -57,7 +57,7 @@ pub fn replay_bundle(bundle_dir: impl AsRef<Path>) -> Result<RolloutTrace> {
             .with_context(|| format!("read {}", bundle_dir.join(MANIFEST_FILE_NAME).display()))?;
     ensure!(
         manifest.schema_version == TRACE_MANIFEST_SCHEMA_VERSION,
-        "unsupported manifest schema {} (expected {TRACE_MANIFEST_SCHEMA_VERSION}). Run the exact Codex executable that recorded this bundle",
+        "unsupported manifest schema {} (expected {TRACE_MANIFEST_SCHEMA_VERSION}). Run the exact Fikra Code executable that recorded this bundle",
         manifest.schema_version
     );
     let mut reducer = TraceReducer {
@@ -111,7 +111,7 @@ pub fn replay_bundle(bundle_dir: impl AsRef<Path>) -> Result<RolloutTrace> {
             .with_context(|| format!("parse trace event line {line_number}"))?;
         ensure!(
             event.schema_version == RAW_TRACE_EVENT_SCHEMA_VERSION,
-            "unsupported trace event schema {} at line {line_number} (expected {RAW_TRACE_EVENT_SCHEMA_VERSION}). Run the exact Codex executable that recorded this bundle",
+            "unsupported trace event schema {} at line {line_number} (expected {RAW_TRACE_EVENT_SCHEMA_VERSION}). Run the exact Fikra Code executable that recorded this bundle",
             event.schema_version,
         );
         event_count += 1;

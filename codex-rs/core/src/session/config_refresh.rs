@@ -173,7 +173,7 @@ impl Session {
                     Feature::DaybreakProgramPropagation,
                     "Daybreak helper propagation",
                 ),
-                (Feature::CodexAppsMcp20260728, "Codex Apps MCP protocol"),
+                (Feature::CodexAppsMcp20260728, "Fikra Code Apps MCP protocol"),
             ] {
                 if let Err(err) = config
                     .features

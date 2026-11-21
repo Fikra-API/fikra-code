@@ -244,7 +244,7 @@ fn parse_input(value: Value) -> Result<ServerRequest, ServiceError> {
                 crate::user_verification::parse_request(request.clone())
                     .map_err(ServiceError::McpError)?;
             }
-            _ => return Err(invalid("unsupported OpenAI elicitation mode")),
+            _ => return Err(invalid("unsupported Fikra elicitation mode")),
         }
         return Ok(ServerRequest::CustomRequest(request.clone()));
     }

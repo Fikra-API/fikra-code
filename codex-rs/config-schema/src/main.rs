@@ -39,5 +39,5 @@ fn default_out_path() -> Result<PathBuf> {
         }
     }
 
-    anyhow::bail!("could not locate the Codex checkout; specify the schema output with --out")
+    anyhow::bail!("could not locate the Fikra Code checkout; specify the schema output with --out")
 }

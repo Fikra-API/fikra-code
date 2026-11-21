@@ -54,7 +54,7 @@ async fn rate_limits_check(auth_context: &ProviderAuthContext, config: &Config) 
     if !allowed {
         info!(
             min_remaining_percent,
-            "skipping memories startup because Codex rate limits are below the configured threshold"
+            "skipping memories startup because Fikra Code rate limits are below the configured threshold"
         );
     }
 

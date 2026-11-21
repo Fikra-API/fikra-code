@@ -579,7 +579,7 @@ impl FeedbackSnapshot {
         let title = custom_title.map_or_else(
             || {
                 format!(
-                    "[{}]: Codex session {}",
+                    "[{}]: Fikra Code session {}",
                     display_classification(classification),
                     self.thread_id
                 )

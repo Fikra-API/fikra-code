@@ -114,7 +114,7 @@ pub(crate) async fn chatgpt_get_request_with_timeout<T: DeserializeOwned>(
     let chatgpt_base_url = &config.chatgpt_base_url;
     anyhow::ensure!(
         auth.uses_codex_backend(),
-        "ChatGPT backend requests require Codex backend auth"
+        "ChatGPT backend requests require Fikra Code backend auth"
     );
     anyhow::ensure!(
         auth.get_account_id().is_some(),
@@ -174,7 +174,7 @@ pub(crate) async fn chatgpt_post_request_with_timeout<
 ) -> anyhow::Result<TResponse> {
     anyhow::ensure!(
         auth.uses_codex_backend(),
-        "ChatGPT backend requests require Codex backend auth"
+        "ChatGPT backend requests require Fikra Code backend auth"
     );
     anyhow::ensure!(
         auth.get_account_id().is_some(),

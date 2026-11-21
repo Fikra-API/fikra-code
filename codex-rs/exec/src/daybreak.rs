@@ -37,7 +37,7 @@ pub(crate) async fn program_for_turn(
                 read_account(client, request_ids).await?,
                 Some(Account::Chatgpt { .. } | Account::ApiKey { .. })
             ),
-            "Daybreak requires a signed-in ChatGPT account or an OpenAI API key"
+            "Daybreak requires a signed-in ChatGPT account or an Fikra API key"
         );
     }
 

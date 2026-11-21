@@ -103,7 +103,7 @@ pub fn select_runtime_provider(
 ) -> CodexResult<Arc<RuntimeAuthBinding>> {
     let unsupported = || {
         CodexErr::UnsupportedOperation(
-            "runtime auth requires the model provider's selected OpenAI credential".to_string(),
+            "runtime auth requires the model provider's selected Fikra credential".to_string(),
         )
     };
     if info.aws.is_some() {
@@ -125,7 +125,7 @@ pub fn validate_runtime_destination(destination: Option<&str>) -> CodexResult<()
     if destination.is_some_and(|url| classify_openai_api_url(url) == OpenAiDestination::Unsupported)
     {
         return Err(CodexErr::UnsupportedOperation(
-            "runtime auth does not support this OpenAI endpoint".to_string(),
+            "runtime auth does not support this Fikra endpoint".to_string(),
         ));
     }
     Ok(())

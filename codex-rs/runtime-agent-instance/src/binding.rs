@@ -381,7 +381,7 @@ pub enum RuntimeAuthError {
     #[error("runtime registration requires an actor credential")]
     Unavailable,
     #[error(
-        "this credential cannot register a runtime; sign in again with a supported OpenAI credential"
+        "this credential cannot register a runtime; sign in again with a supported Fikra credential"
     )]
     Unsupported,
     #[error("organization and project selection requires an OpenAI API key")]

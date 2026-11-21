@@ -68,7 +68,7 @@ pub(super) async fn import(
     let state_db = state_db.ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::NotConnected,
-            "memory import requires the Codex state database",
+            "memory import requires the Fikra Code state database",
         )
     })?;
     let memory_files = discover_external_memory_files(external_agent_home)?;

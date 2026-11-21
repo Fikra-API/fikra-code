@@ -3199,7 +3199,7 @@ impl PluginsManager {
                                         "failed to auto-upgrade configured marketplace"
                                     );
                                     let _ = task_warnings.send(format!(
-                                        "Codex could not update marketplace `{}`: {}",
+                                        "Fikra Code could not update marketplace `{}`: {}",
                                         error.marketplace_name, error.message
                                     ));
                                 }
@@ -3207,7 +3207,7 @@ impl PluginsManager {
                             Err(err) => {
                                 warn!("failed to auto-upgrade configured marketplaces: {err}");
                                 let _ = task_warnings
-                                    .send(format!("Codex could not update marketplaces: {err}"));
+                                    .send(format!("Fikra Code could not update marketplaces: {err}"));
                             }
                         }
 
@@ -3225,7 +3225,7 @@ impl PluginsManager {
                     state.in_flight = false;
                     warn!("failed to start configured marketplace auto-upgrade task: {err}");
                     let _ = upgrade_warnings
-                        .send(format!("Codex could not start marketplace updates: {err}"));
+                        .send(format!("Fikra Code could not start marketplace updates: {err}"));
                 }
             }
             let config_for_remote_sync = config.clone();

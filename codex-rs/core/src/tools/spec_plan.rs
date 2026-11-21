@@ -1601,7 +1601,7 @@ fn append_dynamic_tool_runtimes(dynamic_tools: &[DynamicToolSpec], registry: &mu
             DynamicToolSpec::Function(tool) => {
                 let Some(handler) = DynamicToolHandler::new(tool) else {
                     tracing::error!(
-                        "Failed to convert dynamic tool {:?} to OpenAI tool",
+                        "Failed to convert dynamic tool {:?} to Fikra tool",
                         tool.name
                     );
                     continue;
@@ -1614,7 +1614,7 @@ fn append_dynamic_tool_runtimes(dynamic_tools: &[DynamicToolSpec], registry: &mu
                     let Some(handler) = DynamicToolHandler::new_in_namespace(namespace, tool)
                     else {
                         tracing::error!(
-                            "Failed to convert dynamic tool {:?}.{:?} to OpenAI tool",
+                            "Failed to convert dynamic tool {:?}.{:?} to Fikra tool",
                             namespace.name,
                             tool.name
                         );

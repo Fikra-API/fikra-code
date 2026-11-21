@@ -306,7 +306,7 @@ impl McpResourceClient {
     ) -> Result<McpResourcePage> {
         let catalog = matches!(params.mime_type.as_str(), "mcp/plugin" | "mcp/skill");
         let params = serde_json::to_value(params)
-            .context("failed to serialize Codex Apps resource params")?;
+            .context("failed to serialize Fikra Code Apps resource params")?;
         let connections = self.runtime.latest_host_owned_codex_apps_connections()?;
         let list = async move |client: Arc<RmcpClient>, timeout| {
             client

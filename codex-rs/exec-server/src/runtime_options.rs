@@ -36,7 +36,7 @@ impl ExecServerRuntimeOptions {
         let codex_self_exe = codex_self_exe.ok_or_else(|| {
             std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
-                "Codex executable path is not configured",
+                "Fikra Code executable path is not configured",
             )
         })?;
         Self::new(codex_self_exe, codex_linux_sandbox_exe)

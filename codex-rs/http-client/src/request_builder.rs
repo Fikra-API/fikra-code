@@ -182,7 +182,7 @@ impl RequestBuilder {
         if let Ok(request) = &self.request
             && crate::fikra_blocklist::is_blocked_url(request.request.url())
         {
-            tracing::debug!("blocked request to an OpenAI/ChatGPT host");
+            tracing::debug!("blocked request to an Fikra/ChatGPT host");
             return Err(HttpError::Policy(crate::NetworkPolicyDenied::Destination));
         }
         match self.backend {

@@ -70,6 +70,6 @@ fn is_enabled_fragment(role: &str, text: &str) -> bool {
         && text.trim_start().starts_with(START_MARKER)
         && text.contains("Co-authored-by: Fikra Code <noreply@fikraapi.co.ke>")
         && (text.contains("Generated with [Codex](https://openai.com/codex/).")
-            || text.contains("Generated with Codex."))
+            || text.contains("Generated with Fikra Code."))
         && text.trim_end().ends_with(END_MARKER)
 }

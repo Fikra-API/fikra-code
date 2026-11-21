@@ -849,7 +849,7 @@ impl LocalThreadStore {
                 || current_source_metadata.modified().ok() != source_modified
             {
                 return Err(ThreadStoreError::Conflict {
-                    message: "rollout changed while migration was staging it; close older Codex processes and retry".to_string(),
+                    message: "rollout changed while migration was staging it; close older Fikra Code processes and retry".to_string(),
                 });
             }
 

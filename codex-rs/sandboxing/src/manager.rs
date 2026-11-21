@@ -681,7 +681,7 @@ pub(super) fn wrap_windows_file_system_helper(
 ) -> Result<(), SandboxTransformError> {
     let sandbox_exe = sandbox_exe.ok_or_else(|| {
         SandboxTransformError::WindowsSandboxPreparation(
-            "missing Codex executable path".to_string(),
+            "missing Fikra Code executable path".to_string(),
         )
     })?;
     // TODO(anp): Keep PathUri through the Windows sandbox wrapper boundary.

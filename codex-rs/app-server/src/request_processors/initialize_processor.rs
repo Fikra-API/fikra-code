@@ -105,7 +105,7 @@ impl InitializeRequestProcessor {
             && matches!(
                 (session.origin, name.as_str()),
                 (ConnectionOrigin::InProcess, "codex-tui")
-                    | (ConnectionOrigin::Stdio, "Codex Desktop")
+                    | (ConnectionOrigin::Stdio, "Fikra Code Desktop")
             )
             && tokio::task::spawn_blocking(self.user_verification.device_supported)
                 .await
@@ -196,7 +196,7 @@ impl InitializeRequestProcessor {
         }
 
         #[cfg(windows)]
-        if matches!(session.origin, ConnectionOrigin::Stdio) && name == "Codex Desktop" {
+        if matches!(session.origin, ConnectionOrigin::Stdio) && name == "Fikra Code Desktop" {
             // Uninstall ownership must not depend on account sign-in or sandbox setup.
             // Keep this bounded attempt ahead of the response; background registration can race uninstall.
             let home = codex_home.clone();

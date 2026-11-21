@@ -123,7 +123,7 @@ impl Auth {
     pub(crate) fn validate_federated_upstream(upstream: &str) -> Result<()> {
         if upstream != OPENAI_RESPONSES_URL {
             return Err(anyhow!(
-                "workload identity requires the default OpenAI Responses endpoint"
+                "workload identity requires the default Fikra Responses endpoint"
             ));
         }
         Ok(())
@@ -282,7 +282,7 @@ impl FederatedAuth {
                 let mut writer = std::io::Cursor::new(body.as_mut_slice());
                 serde_json::to_writer(&mut writer, &request).map_err(|_| {
                     anyhow!(
-                        "OpenAI workload identity exchange request exceeds {MAX_EXCHANGE_REQUEST_BYTES} bytes"
+                        "Fikra workload identity exchange request exceeds {MAX_EXCHANGE_REQUEST_BYTES} bytes"
                     )
                 })?;
                 writer.position() as usize
@@ -300,47 +300,47 @@ impl FederatedAuth {
                 .body(Bytes::from_owner(body))
                 .send()
                 .await
-                .map_err(|_| anyhow!("OpenAI workload identity token exchange failed"))?;
-            let exchange = read_response(response, "OpenAI workload identity").await?;
+                .map_err(|_| anyhow!("Fikra workload identity token exchange failed"))?;
+            let exchange = read_response(response, "Fikra workload identity").await?;
             Ok((started, exchange))
         })?;
         if !exchange.token_type.eq_ignore_ascii_case("bearer")
             || exchange.issued_token_type != "urn:ietf:params:oauth:token-type:access_token"
         {
             return Err(anyhow!(
-                "OpenAI returned an unsupported workload identity token type"
+                "Fikra returned an unsupported workload identity token type"
             ));
         }
         if exchange.expires_in > MAX_FEDERATED_TOKEN_LIFETIME.as_secs() {
-            return Err(anyhow!("OpenAI returned an invalid token lifetime"));
+            return Err(anyhow!("Fikra returned an invalid token lifetime"));
         }
         let header = bearer_header(exchange.access_token.as_bytes())?;
         let expires_at = UNIX_EPOCH
             .checked_add(Duration::from_secs(exchange.expires_at))
-            .ok_or_else(|| anyhow!("OpenAI returned an expired workload identity token"))?;
+            .ok_or_else(|| anyhow!("Fikra returned an expired workload identity token"))?;
         let now = SystemTime::now();
         let remaining_absolute = expires_at
             .duration_since(now)
-            .map_err(|_| anyhow!("OpenAI returned an expired workload identity token"))?;
+            .map_err(|_| anyhow!("Fikra returned an expired workload identity token"))?;
         let remaining_relative = Duration::from_secs(exchange.expires_in)
             .checked_sub(started.elapsed())
-            .ok_or_else(|| anyhow!("OpenAI returned an expired workload identity token"))?;
+            .ok_or_else(|| anyhow!("Fikra returned an expired workload identity token"))?;
         let remaining = remaining_absolute.min(remaining_relative);
         if remaining.is_zero() {
             return Err(anyhow!(
-                "OpenAI returned an expired workload identity token"
+                "Fikra returned an expired workload identity token"
             ));
         }
         // Bound the wall-clock deadline too, even when the issuer's clock is
         // ahead. Otherwise a host suspend could outlast the shorter relative TTL.
         let expires_at = now
             .checked_add(remaining)
-            .ok_or_else(|| anyhow!("OpenAI returned an invalid token lifetime"))?;
+            .ok_or_else(|| anyhow!("Fikra returned an invalid token lifetime"))?;
         // Proactive renewal without a fixed skew that rejects short-lived subject tokens.
         let skew = (remaining / 10).min(Duration::from_secs(60));
         let renew_at = Instant::now()
             .checked_add(remaining - skew)
-            .ok_or_else(|| anyhow!("OpenAI returned an invalid token lifetime"))?;
+            .ok_or_else(|| anyhow!("Fikra returned an invalid token lifetime"))?;
         Ok(CachedToken {
             header: AuthHeader {
                 value: header,

@@ -66,7 +66,7 @@ pub enum OpenAiFileError {
         source: RouteAwareRequestError,
     },
     #[error(
-        "OpenAI file blob upload to {host} failed after {elapsed_ms} ms ({error_kind}, azure_client_request_id={azure_client_request_id}): {source}"
+        "Fikra file blob upload to {host} failed after {elapsed_ms} ms ({error_kind}, azure_client_request_id={azure_client_request_id}): {source}"
     )]
     BlobUploadRequest {
         host: String,
@@ -77,7 +77,7 @@ pub enum OpenAiFileError {
         source: RouteAwareRequestError,
     },
     #[error(
-        "OpenAI file blob upload to {host} failed with status {status} (azure_client_request_id={azure_client_request_id}, azure_request_id={azure_request_id}, azure_error_code={azure_error_code})"
+        "Fikra file blob upload to {host} failed with status {status} (azure_client_request_id={azure_client_request_id}, azure_request_id={azure_request_id}, azure_error_code={azure_error_code})"
     )]
     BlobUploadStatus {
         host: String,
@@ -292,7 +292,7 @@ where
                             azure_client_request_id,
                             azure_request_id,
                             azure_error_code,
-                            "OpenAI file blob upload recovered"
+                            "Fikra file blob upload recovered"
                         );
                     }
                     break;
@@ -357,7 +357,7 @@ where
             azure_client_request_id,
             azure_request_id,
             azure_error_code,
-            "OpenAI file blob upload attempt failed"
+            "Fikra file blob upload attempt failed"
         );
         if !will_retry {
             return Err(error);

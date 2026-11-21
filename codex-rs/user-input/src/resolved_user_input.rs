@@ -91,7 +91,7 @@ impl ResolvedUserInput {
             UserInput::LocalImage { path, detail } => {
                 let bytes = read_local_image_bytes(&path).map(Arc::from).map_err(|err| {
                     format!(
-                        "Codex could not read the local image at `{}`: {err}",
+                        "Fikra Code could not read the local image at `{}`: {err}",
                         path.display()
                     )
                 });
@@ -108,16 +108,16 @@ impl ResolvedUserInput {
                 let audio_url = read_local_audio_url(&path).map(Arc::from).map_err(|err| {
                     let name = path.display();
                     if audio_mime_for_path(&path).is_none() {
-                        format!("Codex cannot attach audio at `{name}`: unsupported audio format; use wav, mp3, m4a, webm, or ogg.")
+                        format!("Fikra Code cannot attach audio at `{name}`: unsupported audio format; use wav, mp3, m4a, webm, or ogg.")
                     } else {
-                        format!("Codex could not read the local audio at `{name}`: {err}")
+                        format!("Fikra Code could not read the local audio at `{name}`: {err}")
                     }
                 });
                 Self::LocalAudio { path, audio_url }
             }
             UserInput::Skill { name, path } => Self::Skill { name, path },
             UserInput::Mention { name, path } => Self::Mention { name, path },
-            _ => Self::text("Codex cannot prepare this input type.".into()),
+            _ => Self::text("Fikra Code cannot prepare this input type.".into()),
         }
     }
 

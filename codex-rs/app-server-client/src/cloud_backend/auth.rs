@@ -23,7 +23,7 @@ pub async fn connect(config: &Config) -> Result<AppServerClient> {
     let auth = storage
         .load_auth(/*enable_codex_api_key_env*/ false)
         .await?
-        .ok_or_else(|| eyre!("Sign in with ChatGPT and reopen Codex to use Cloud."))?;
+        .ok_or_else(|| eyre!("Sign in with ChatGPT and reopen Fikra Code to use Cloud."))?;
     if !auth.is_chatgpt_auth() || auth.is_fedramp_account() {
         bail!("This account is not supported by the cloud conversation preview.");
     }
@@ -34,7 +34,7 @@ pub async fn connect(config: &Config) -> Result<AppServerClient> {
     if let Ok(Some(expires)) = parse_jwt_expiration(&token)
         && std::time::SystemTime::from(expires) <= std::time::SystemTime::now()
     {
-        bail!("Your ChatGPT credential expired. Reopen Codex to reconnect.");
+        bail!("Your ChatGPT credential expired. Reopen Fikra Code to reconnect.");
     }
     let origin = ORIGIN.parse()?;
     let permit = factory.network_policy().acquire(&origin)?;

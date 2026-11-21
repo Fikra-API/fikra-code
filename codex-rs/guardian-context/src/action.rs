@@ -126,7 +126,7 @@ impl PlannedAction {
         };
         if presentation == ActionPresentation::Async {
             return vec![
-                "The Codex agent has requested the following action:\n"
+                "The Fikra Code agent has requested the following action:\n"
                     .to_owned()
                     .into(),
                 APPROVAL_REQUEST_START.to_owned().into(),
@@ -166,10 +166,10 @@ impl PlannedAction {
                 items.push(protected_text(
                     match presentation {
                         ActionPresentation::SyncDelta => {
-                            "The Codex agent has requested the following next action:\n"
+                            "The Fikra Code agent has requested the following next action:\n"
                         }
                         ActionPresentation::SyncFull | ActionPresentation::Async => {
-                            "The Codex agent has requested the following action:\n"
+                            "The Fikra Code agent has requested the following action:\n"
                         }
                     }
                     .to_string(),

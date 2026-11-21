@@ -67,7 +67,7 @@ pub(crate) fn exec_bwrap(
         BubblewrapLauncher::Unavailable => {
             panic!(
                 "bubblewrap is unavailable: no system bwrap was found on PATH and no bundled \
-                 codex-resources/bwrap binary was found next to the Codex executable"
+                 codex-resources/bwrap binary was found next to the Fikra Code executable"
             )
         }
     }

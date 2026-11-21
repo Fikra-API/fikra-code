@@ -964,7 +964,7 @@ async fn run_exec_session(args: ExecRunArgs) -> anyhow::Result<()> {
                 &command,
                 Some(ExecCommand::Resume(_) | ExecCommand::Fork(_))
             ),
-            "Daybreak requires the OpenAI model provider"
+            "Daybreak requires the Fikra model provider"
         );
     }
 
@@ -1315,7 +1315,7 @@ async fn run_exec_session(args: ExecRunArgs) -> anyhow::Result<()> {
         event_processor.process_warning(message);
     }
 
-    info!("Codex initialized with event: {session_configured:?}");
+    info!("Fikra Code initialized with event: {session_configured:?}");
 
     let (interrupt_tx, interrupt_rx) = mpsc::unbounded_channel::<()>();
     tokio::spawn(async move {

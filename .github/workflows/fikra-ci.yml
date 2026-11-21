@@ -52,6 +52,9 @@ jobs:
           cargo test -p codex-model-provider-info --lib
           cargo test -p codex-models-manager --lib
 
+      - name: Install screen checker
+        run: pip install --quiet pyte
+
       - name: Smoke test
         env:
           FIKRA_API_KEY: ${{ secrets.FIKRA_API_KEY }}

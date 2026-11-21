@@ -21,7 +21,7 @@ impl SandboxBackend for Mxc<'_> {
         policy_cwd: &AbsolutePathBuf,
     ) -> Result<(), SandboxTransformError> {
         let exe = self.sandbox_exe.ok_or_else(|| {
-            SandboxTransformError::WindowsMxcPreparation("missing Codex executable path".into())
+            SandboxTransformError::WindowsMxcPreparation("missing Fikra Code executable path".into())
         })?;
         let args =
             codex_mxc_sandbox::create_command_args(codex_mxc_sandbox::CreateMxcCommandArgsParams {

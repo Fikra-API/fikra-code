@@ -69,6 +69,11 @@ unset HTTPS_PROXY HTTP_PROXY https_proxy http_proxy
 grep -q 'return a + b' "$TASK/calc.py" || fail "calc.py was not fixed"
 (cd "$TASK" && python3 -m unittest -q) || fail "tests still fail"
 
+if grep -Eq '\b(Codex|OpenAI)\b' "$WORK/exec.log"; then
+  grep -En '\b(Codex|OpenAI)\b' "$WORK/exec.log" | head -5
+  fail "exec output mentions Codex/OpenAI"
+fi
+
 echo "=== hosts contacted ==="
 sort -u "$HOSTS"
 if grep -Eqi '(^|\.)(openai\.com|chatgpt\.com|oaistatic\.com|oaiusercontent\.com)$' "$HOSTS"; then
@@ -77,5 +82,20 @@ fi
 grep -q 'fikraapi.co.ke' "$HOSTS" || fail "never reached fikraapi.co.ke (proxy not used?)"
 OTHER="$(sort -u "$HOSTS" | grep -vx 'fikraapi.co.ke' || true)"
 [[ -z "$OTHER" ]] || fail "contacted hosts other than fikraapi.co.ke: $OTHER"
+
+echo "=== e) interactive app screen ==="
+if python3 -c "import pyte" 2>/dev/null; then
+  TUI="$WORK/tui"; mkdir -p "$TUI" && (cd "$TUI" && git init -q .)
+  # A stale OpenAI model in config must be replaced by the Fikra default.
+  printf 'model = "gpt-5.6-terra"\n' >> "$FIKRA_HOME/config.toml"
+  SCREEN="$(cd "$TUI" && python3 "$HERE/tui_snap.py" 24 '1\r' "$BIN" 2>&1 || true)"
+  echo "$SCREEN" | tail -15
+  echo "$SCREEN" | grep -Eq '\b(Codex|OpenAI)\b' && fail "interactive app mentions Codex/OpenAI"
+  echo "$SCREEN" | grep -qP '[\x{2800}-\x{28FF}]' && fail "interactive app draws the upstream logo"
+  echo "$SCREEN" | grep -q 'gpt-' && fail "interactive app shows a GPT model"
+  echo "$SCREEN" | grep -q 'deepseek-v4-1-flash-economy-free' || fail "interactive app is not on the Fikra default model"
+else
+  echo "pyte not installed; skipping the interactive screen check"
+fi
 
 echo "ALL SMOKE CHECKS PASSED"

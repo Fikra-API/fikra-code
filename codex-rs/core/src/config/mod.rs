@@ -199,6 +199,19 @@ pub(crate) use guardian_policy::resolve_guardian_policy_text;
 pub(crate) use guardian_policy::resolve_guardian_reviewer;
 mod runtime_refresh;
 pub(crate) use runtime_refresh::RuntimeConfigRefresh;
+
+/// Whether `slug` is a model in the bundled Fikra catalog.
+fn fikra_catalog_has_model(slug: &str) -> bool {
+    static SLUGS: std::sync::OnceLock<std::collections::HashSet<String>> = std::sync::OnceLock::new();
+    SLUGS
+        .get_or_init(|| {
+            codex_models_manager::bundled_models_response()
+                .map(|response| response.models.into_iter().map(|m| m.slug).collect())
+                .unwrap_or_default()
+        })
+        .contains(slug)
+}
+
 #[cfg(test)]
 mod schema;
 mod token_budget_startup;
@@ -4378,6 +4391,20 @@ impl Config {
         let model = model.or(cfg.model).or_else(|| {
             (model_provider_id == FIKRA_PROVIDER_ID).then(|| FIKRA_DEFAULT_MODEL.to_string())
         });
+        // On the Fikra provider only Fikra catalog models exist. Upstream code
+        // paths can still request OpenAI model names (gpt-5.6-terra, ...);
+        // replace anything outside the catalog with the Fikra default.
+        let model = match model {
+            Some(requested) if model_provider_id == FIKRA_PROVIDER_ID
+                && !fikra_catalog_has_model(&requested) =>
+            {
+                tracing::warn!(
+                    "model `{requested}` is not in the Fikra catalog; using {FIKRA_DEFAULT_MODEL}"
+                );
+                Some(FIKRA_DEFAULT_MODEL.to_string())
+            }
+            other => other,
+        };
         let notices = cfg.notice.unwrap_or_default();
         let service_tier = match service_tier_override {
             Some(Some(service_tier)) => Some(service_tier),
@@ -4597,7 +4624,7 @@ impl Config {
         {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
-                "`approval_policy = \"never\"` cannot be used because requirements do not allow `sandbox_mode = \"danger-full-access\"`; Codex would fall back to read-only permissions with approvals disabled. Choose an `approval_policy` based on what you need, such as `on-request`, or choose an allowed sandbox mode.",
+                "`approval_policy = \"never\"` cannot be used because requirements do not allow `sandbox_mode = \"danger-full-access\"`; Fikra Code would fall back to read-only permissions with approvals disabled. Choose an `approval_policy` based on what you need, such as `on-request`, or choose an allowed sandbox mode.",
             ));
         }
         if permission_profile_was_constrained {
