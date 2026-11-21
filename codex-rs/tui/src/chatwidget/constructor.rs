@@ -38,6 +38,16 @@ impl ChatWidget {
         // Keep asynchronous widget callbacks scoped separately from the app and other widgets.
         let app_event_tx = AppEventSender::new(app_event_tx.app_event_tx);
         let model = model.filter(|m| !m.trim().is_empty());
+        // Never show a model the catalog does not have (upstream defaults such
+        // as gpt-5.6-terra can surface before the server settles the thread).
+        let model = match (model, model_catalog.try_list_models()) {
+            (Some(m), Ok(presets)) if !presets.is_empty() && !presets.iter().any(|p| p.model == m) => presets
+                .iter()
+                .find(|p| p.is_default)
+                .or_else(|| presets.first())
+                .map(|p| p.model.clone()),
+            (model, _) => model,
+        };
         let mut config = config;
         config.model = model.clone();
         let prevent_idle_sleep = config.features.enabled(Feature::PreventIdleSleep);

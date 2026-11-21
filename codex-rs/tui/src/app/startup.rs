@@ -532,6 +532,12 @@ impl App {
         if let Some(updated_model) = config.model.clone() {
             model = updated_model;
         }
+        // Fikra Code: only start on a model from the catalog the server returned.
+        if !available_models.is_empty() && !available_models.iter().any(|p| p.model == model) {
+            if let Some(preset) = available_models.iter().find(|p| p.is_default).or_else(|| available_models.first()) {
+                model = preset.model.clone();
+            }
+        }
         let mut source_overrides = harness_overrides.clone();
         source_overrides.cwd = None;
         app_server.worktree_source_config_builder = Some(Box::new(
