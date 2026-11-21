@@ -41,6 +41,7 @@ jobs:
             runner: windows-latest
     runs-on: ${{ matrix.runner }}
     env:
+      CODEX_REPO_ROOT: ${{ github.workspace }}
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
       CARGO_PROFILE_RELEASE_LTO: "off"
       CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
