@@ -38,17 +38,29 @@ jobs:
               --title "Fikra Code $tag" \
               --notes "Fikra Code $tag"
 
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - id: set
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="${{ inputs.target || 'all' }}"
+          if [[ "$target" == "linux" ]]; then
+            echo 'matrix={"include":[{"target":"x86_64-unknown-linux-musl","runner":"ubuntu-24.04"}]}' >> "$GITHUB_OUTPUT"
+          elif [[ "$target" == "windows" ]]; then
+            echo 'matrix={"include":[{"target":"x86_64-pc-windows-msvc","runner":"windows-latest"}]}' >> "$GITHUB_OUTPUT"
+          else
+            echo 'matrix={"include":[{"target":"x86_64-unknown-linux-musl","runner":"ubuntu-24.04"},{"target":"x86_64-pc-windows-msvc","runner":"windows-latest"}]}' >> "$GITHUB_OUTPUT"
+          fi
+
   build:
-    needs: create-release
-    if: ${{ github.event_name == 'push' || inputs.target == 'all' || inputs.target == matrix.target }}
+    needs: [create-release, prepare]
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-unknown-linux-musl
-            runner: ubuntu-24.04
-          - target: x86_64-pc-windows-msvc
-            runner: windows-latest
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     runs-on: ${{ matrix.runner }}
     env:
       CODEX_REPO_ROOT: ${{ github.workspace }}
