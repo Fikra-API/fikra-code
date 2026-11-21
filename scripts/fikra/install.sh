@@ -89,4 +89,4 @@ case ":$PATH:" in
   *) say "Add this to your shell profile, then open a new terminal:"
      say "  export PATH=\"$BIN_DIR:\$PATH\"" ;;
 esac
-say "Next: run 'fikra login' and paste your API key from https://fikraapi.co.ke/dashboard"
+say "Next: run 'fikra' in a project. It signs you in through your browser."
