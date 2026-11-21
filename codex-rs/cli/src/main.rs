@@ -1741,12 +1741,10 @@ async fn dispatch_cli(
                         );
                         std::process::exit(1);
                     } else if login_cli.use_device_code {
-                        run_login_with_device_code(
-                            login_cli.config_overrides,
-                            login_cli.issuer_base_url,
-                            login_cli.client_id,
-                        )
-                        .await;
+                        eprintln!(
+                            "ChatGPT sign-in is disabled. Run `fikra login` and paste a Fikra API key."
+                        );
+                        std::process::exit(1);
                     } else if login_cli.api_key.is_some() {
                         eprintln!(
                             "The --api-key flag is no longer supported. Pipe the key instead, e.g. `printenv OPENAI_API_KEY | codex login --with-api-key`."
@@ -1762,7 +1760,12 @@ async fn dispatch_cli(
                         let api_key = read_api_key_from_stdin();
                         run_login_with_api_key(login_cli.config_overrides, api_key).await;
                     } else {
-                        run_login_with_browser(login_cli.config_overrides).await;
+                        let api_key = read_fikra_api_key_interactive();
+                        if api_key.is_empty() {
+                            eprintln!("No API key provided.");
+                            std::process::exit(1);
+                        }
+                        run_login_with_api_key(login_cli.config_overrides, api_key).await;
                     }
                 }
             }
@@ -2818,6 +2821,53 @@ fn print_completion(cmd: CompletionCommand) {
 
 /// Seeds the Fikra Code config with the Fikra provider and the free DeepSeek
 /// model on first run. Users can edit this file afterwards.
+fn read_fikra_api_key_interactive() -> String {
+    use crossterm::event::Event;
+    use crossterm::event::KeyCode;
+    use crossterm::event::KeyEventKind;
+    use crossterm::event::KeyModifiers;
+    use crossterm::terminal::disable_raw_mode;
+    use crossterm::terminal::enable_raw_mode;
+
+    eprintln!("Paste your Fikra API key (get one at https://fikraapi.co.ke/dashboard):");
+    let raw = enable_raw_mode();
+    let mut key = String::new();
+    loop {
+        match crossterm::event::read() {
+            Ok(Event::Key(event)) => {
+                if event.kind != KeyEventKind::Press {
+                    continue;
+                }
+                match event.code {
+                    KeyCode::Enter => break,
+                    KeyCode::Esc => break,
+                    KeyCode::Char('c')
+                        if event.modifiers.contains(KeyModifiers::CONTROL) =>
+                    {
+                        if raw.is_ok() {
+                            let _ = disable_raw_mode();
+                        }
+                        eprintln!();
+                        std::process::exit(130);
+                    }
+                    KeyCode::Char(ch) => key.push(ch),
+                    KeyCode::Backspace => {
+                        key.pop();
+                    }
+                    _ => {}
+                }
+            }
+            Ok(_) => {}
+            Err(_) => break,
+        }
+    }
+    if raw.is_ok() {
+        let _ = disable_raw_mode();
+    }
+    eprintln!();
+    key.trim().to_string()
+}
+
 fn ensure_fikra_default_config() {
     if let Some(path) = std::env::var_os("FIKRA_HOME") {
         if !path.is_empty() && !std::path::Path::new(&path).exists() {
