@@ -44,7 +44,8 @@ class PackageVariant:
 @dataclass(frozen=True)
 class PackageInputs:
     entrypoint_bin: Path
-    code_mode_host_bin: Path
+    # Fikra Code does not ship code mode (V8); the host is optional.
+    code_mode_host_bin: Path | None
     exec_server_bin: Path
     rg_bin: Path
     bwrap_bin: Path | None

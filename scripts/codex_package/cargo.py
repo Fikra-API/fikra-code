@@ -17,7 +17,7 @@ CODEX_RS_ROOT = REPO_ROOT / "codex-rs"
 @dataclass(frozen=True)
 class SourceBuildOutputs:
     entrypoint_bin: Path
-    code_mode_host_bin: Path
+    code_mode_host_bin: Path | None
     exec_server_bin: Path
     bwrap_bin: Path | None
     codex_command_runner_bin: Path | None
@@ -47,7 +47,8 @@ def build_source_binaries(
         spec,
         variant,
         build_entrypoint=entrypoint_bin is None,
-        build_code_mode_host=code_mode_host_bin is None,
+        # Code mode is not part of Fikra Code; never build its host.
+        build_code_mode_host=False,
         build_exec_server=exec_server_bin is None,
         build_bwrap=spec.is_linux and bwrap_bin is None,
         build_codex_command_runner=spec.is_windows and codex_command_runner_bin is None,
@@ -67,11 +68,7 @@ def build_source_binaries(
             cmd.extend(["--bin", binary])
 
         cargo_env = None
-        if (
-            entrypoint_bin is None
-            or code_mode_host_bin is None
-            or exec_server_bin is None
-        ):
+        if entrypoint_bin is None or exec_server_bin is None:
             codex_v8_env = resolve_codex_v8_cargo_env(spec)
             if codex_v8_env:
                 cargo_env = {**os.environ, **codex_v8_env}
@@ -91,9 +88,7 @@ def build_source_binaries(
             output_dir / variant.entrypoint_name(spec),
         ),
         code_mode_host_bin=(
-            code_mode_host_bin.resolve()
-            if code_mode_host_bin is not None
-            else output_dir / f"codex-code-mode-host{spec.exe_suffix}"
+            code_mode_host_bin.resolve() if code_mode_host_bin is not None else None
         ),
         exec_server_bin=(
             exec_server_bin.resolve()

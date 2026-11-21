@@ -256,6 +256,7 @@ def assemble_package(args: argparse.Namespace) -> Path:
             args.strip == "auto"
             and args.cargo_profile == "release"
             and prebuilt is None
+            and (package_dir / "bin" / filename).is_file()
         ):
             strip_binary(package_dir / "bin" / filename, spec, tool=args.strip_tool)
     validate_package_dir(package_dir, variant, spec)

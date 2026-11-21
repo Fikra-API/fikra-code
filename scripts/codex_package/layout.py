@@ -50,11 +50,12 @@ def build_package_dir(
         bin_dir / entrypoint_name,
         is_windows=spec.is_windows,
     )
-    copy_executable(
-        inputs.code_mode_host_bin,
-        bin_dir / f"codex-code-mode-host{spec.exe_suffix}",
-        is_windows=spec.is_windows,
-    )
+    if inputs.code_mode_host_bin is not None:
+        copy_executable(
+            inputs.code_mode_host_bin,
+            bin_dir / f"codex-code-mode-host{spec.exe_suffix}",
+            is_windows=spec.is_windows,
+        )
     copy_executable(
         inputs.exec_server_bin,
         bin_dir / f"codex-exec-server{spec.exe_suffix}",
@@ -132,7 +133,6 @@ def validate_package_dir(
 
     required_files = [
         Path("bin") / variant.entrypoint_name(spec),
-        Path("bin") / f"codex-code-mode-host{spec.exe_suffix}",
         Path("bin") / f"codex-exec-server{spec.exe_suffix}",
         Path("codex-path") / spec.rg_name,
     ]
