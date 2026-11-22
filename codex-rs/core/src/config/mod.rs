@@ -826,7 +826,7 @@ pub struct Config {
     /// appends one extra argument containing a JSON payload describing the
     /// event.
     ///
-    /// Example `~/.codex/config.toml` snippet:
+    /// Example `~/.fikra/config.toml` snippet:
     ///
     /// ```toml
     /// notify = ["notify-send", "Codex"]
@@ -1044,7 +1044,7 @@ pub struct Config {
     /// Memories subsystem settings.
     pub memories: MemoriesConfig,
 
-    /// Directory containing all Codex state (defaults to `~/.codex` but can be
+    /// Directory containing all Codex state (defaults to `~/.fikra` but can be
     /// overridden by the `CODEX_HOME` environment variable).
     pub codex_home: AbsolutePathBuf,
 
@@ -1056,7 +1056,7 @@ pub struct Config {
     /// and no managed `sqlite_home` requirement applies.
     pub log_dir: PathBuf,
 
-    /// Settings that govern if and what will be written to `~/.codex/history.jsonl`.
+    /// Settings that govern if and what will be written to `~/.fikra/history.jsonl`.
     pub history: History,
 
     /// Limits shared by all threads recording into one native rollout trace.
@@ -3507,6 +3507,17 @@ impl Config {
 
         validate_model_providers(&cfg.model_providers)
             .map_err(|message| std::io::Error::new(std::io::ErrorKind::InvalidInput, message))?;
+        // Fikra Code: commands in the workspace sandbox may use the network by
+        // default (installs, git fetch, curl). Without this every networked
+        // command needed a permission prompt. `[sandbox_workspace_write]
+        // network_access = false` in config.toml turns it back off.
+        #[cfg(not(test))]
+        if cfg.sandbox_workspace_write.is_none() {
+            cfg.sandbox_workspace_write = Some(codex_config::types::SandboxWorkspaceWrite {
+                network_access: true,
+                ..Default::default()
+            });
+        }
         for (slot, dial) in cfg.tui.iter().flat_map(|tui| &tui.quick_dials) {
             if !matches!(slot.as_bytes(), [b'0'..=b'9']) {
                 return Err(std::io::Error::new(
@@ -5494,7 +5505,7 @@ fn normalize_guardian_policy_config(value: Option<&str>) -> Option<String> {
 
 /// Returns the path to the Codex configuration directory, which can be
 /// specified by the `CODEX_HOME` environment variable. If not set, defaults to
-/// `~/.codex`.
+/// `~/.fikra`.
 ///
 /// - If `CODEX_HOME` is set, the value must exist and be a directory. The
 ///   value will be canonicalized and this function will Err otherwise.

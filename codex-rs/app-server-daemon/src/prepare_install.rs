@@ -96,7 +96,7 @@ async fn prepare_from_package(
         .settings_file
         .parent()
         .and_then(Path::parent)
-        .context("daemon settings path has no Codex home")?;
+        .context("daemon settings path has no Fikra Code home")?;
     let previous_root = managed_install::package_root(home);
     let root = home.join("packages/app-server-daemon");
     anyhow::ensure!(
@@ -146,7 +146,7 @@ async fn prepare_from_package(
         );
     }
     let source = source.context(
-        "this CLI has no complete local package; install a packaged Codex CLI or use the standalone installer",
+        "this CLI has no complete local package; install a packaged Fikra Code CLI or use the standalone installer",
     )?;
     anyhow::ensure!(
         !root.canonicalize()?.starts_with(source.canonicalize()?),
@@ -158,6 +158,11 @@ async fn prepare_from_package(
     let target = platform_target()?;
     let mut metadata: serde_json::Value = serde_json::from_slice(&manifest_bytes)?;
     let entrypoint = if cfg!(windows) {
+        "bin/fikra.exe"
+    } else {
+        "bin/fikra"
+    };
+    let legacy_entrypoint = if cfg!(windows) {
         "bin/codex.exe"
     } else {
         "bin/codex"
@@ -167,7 +172,10 @@ async fn prepare_from_package(
         && metadata["layoutVersion"] == 1
         && source_entrypoint == format!("codex-{target}.exe");
     anyhow::ensure!(
-        metadata["target"] == target && (source_entrypoint == entrypoint || winget),
+        metadata["target"] == target
+            && (source_entrypoint == entrypoint
+                || source_entrypoint == legacy_entrypoint
+                || winget),
         "the CLI package does not match this platform or executable"
     );
     validate_package(source, source_entrypoint)?;
@@ -532,7 +540,7 @@ fn validate_package(root: &Path, entrypoint: &str) -> Result<()> {
     for name in names {
         if !root.join(name).is_file() {
             return Err(anyhow!(
-                "local Codex package is missing {name}; reinstall the CLI or use the standalone installer"
+                "local Fikra Code package is missing {name}; reinstall the CLI or use the standalone installer"
             ));
         }
         #[cfg(unix)]
@@ -540,7 +548,7 @@ fn validate_package(root: &Path, entrypoint: &str) -> Result<()> {
             use std::os::unix::fs::PermissionsExt;
             if std::fs::metadata(root.join(name))?.permissions().mode() & 0o111 == 0 {
                 return Err(anyhow!(
-                    "local Codex package file {name} is not executable; reinstall the CLI or use the standalone installer"
+                    "local Fikra Code package file {name} is not executable; reinstall the CLI or use the standalone installer"
                 ));
             }
         }

@@ -1,6 +1,6 @@
 //! Persistence layer for the global, append-only *message history* file.
 //!
-//! The history is stored at `~/.codex/history.jsonl` with **one JSON object per
+//! The history is stored at `~/.fikra/history.jsonl` with **one JSON object per
 //! line** so that it can be efficiently appended to and parsed with standard
 //! JSON-Lines tooling. Each record has the following schema:
 //!
@@ -48,7 +48,7 @@ use std::os::unix::fs::OpenOptionsExt;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
-/// Filename that stores the message history inside `~/.codex`.
+/// Filename that stores the message history inside `~/.fikra`.
 const HISTORY_FILENAME: &str = "history.jsonl";
 const HISTORY_READ_BUFFER_SIZE: usize = 8192;
 

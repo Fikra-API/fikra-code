@@ -226,6 +226,23 @@ fn map_api_error_details(err: ApiError) -> CodexErr {
                     }
                 } else if status == http::StatusCode::INTERNAL_SERVER_ERROR {
                     CodexErr::InternalServerError
+                } else if status == http::StatusCode::PAYMENT_REQUIRED
+                    || status == http::StatusCode::UNAUTHORIZED
+                    || status == http::StatusCode::FORBIDDEN
+                {
+                    // Fikra API: balance used up, bad key or inactive plan.
+                    // Retrying cannot help, so show the server's message now.
+                    let message = serde_json::from_str::<Value>(&body_text)
+                        .ok()
+                        .and_then(|body| {
+                            body.pointer("/error/message")
+                                .or_else(|| body.pointer("/detail"))
+                                .and_then(Value::as_str)
+                                .map(str::to_string)
+                        })
+                        .filter(|message| !message.trim().is_empty())
+                        .unwrap_or(body_text);
+                    CodexErr::InvalidRequest(message)
                 } else if status == http::StatusCode::TOO_MANY_REQUESTS {
                     // Fikra API quota and plan limits carry a user-facing message
                     // (when it resets, where to buy a plan). Show it; never retry.
