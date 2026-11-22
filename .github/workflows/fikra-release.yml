@@ -134,6 +134,9 @@ jobs:
           cd codex-rs
           STABLE_GIT_COMMIT="$(git rev-parse HEAD)"
           export STABLE_GIT_COMMIT
+          # Ship small binaries: no debug info, symbols stripped (was ~800 MB).
+          export CARGO_PROFILE_RELEASE_DEBUG=0
+          export CARGO_PROFILE_RELEASE_STRIP=symbols
           cargo build --target "${{ matrix.target }}" --release \
             --bin fikra \
             --bin codex-exec-server
