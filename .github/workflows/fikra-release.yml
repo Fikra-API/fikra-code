@@ -73,7 +73,6 @@ jobs:
       CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1"
       CARGO_PROFILE_RELEASE_DEBUG: "0"
       CARGO_PROFILE_RELEASE_STRIP: "symbols"
-      CARGO_PROFILE_RELEASE_PANIC: "abort"
     steps:
       - uses: actions/checkout@v4
 
