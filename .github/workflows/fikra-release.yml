@@ -11,13 +11,14 @@ on:
         required: true
         default: 'v0.1.0'
       target:
-        description: 'Build all, linux, or windows'
+        description: 'Build all, linux, macos, or windows'
         required: true
         default: 'all'
         type: choice
         options:
           - all
           - linux
+          - macos
           - windows
 
 permissions:
@@ -49,11 +50,13 @@ jobs:
           set -euo pipefail
           target="${{ inputs.target || 'all' }}"
           if [[ "$target" == "linux" ]]; then
-            echo 'matrix={"include":[{"target":"x86_64-unknown-linux-musl","runner":"ubuntu-24.04"}]}' >> "$GITHUB_OUTPUT"
+            echo 'matrix={"include":[{"target":"x86_64-unknown-linux-musl","runner":"ubuntu-24.04"},{"target":"aarch64-unknown-linux-musl","runner":"ubuntu-24.04-arm"}]}' >> "$GITHUB_OUTPUT"
+          elif [[ "$target" == "macos" ]]; then
+            echo 'matrix={"include":[{"target":"aarch64-apple-darwin","runner":"macos-14"},{"target":"x86_64-apple-darwin","runner":"macos-13"}]}' >> "$GITHUB_OUTPUT"
           elif [[ "$target" == "windows" ]]; then
             echo 'matrix={"include":[{"target":"x86_64-pc-windows-msvc","runner":"windows-latest"}]}' >> "$GITHUB_OUTPUT"
           else
-            echo 'matrix={"include":[{"target":"x86_64-unknown-linux-musl","runner":"ubuntu-24.04"},{"target":"x86_64-pc-windows-msvc","runner":"windows-latest"}]}' >> "$GITHUB_OUTPUT"
+            echo 'matrix={"include":[{"target":"x86_64-unknown-linux-musl","runner":"ubuntu-24.04"},{"target":"aarch64-unknown-linux-musl","runner":"ubuntu-24.04-arm"},{"target":"aarch64-apple-darwin","runner":"macos-14"},{"target":"x86_64-apple-darwin","runner":"macos-13"},{"target":"x86_64-pc-windows-msvc","runner":"windows-latest"}]}' >> "$GITHUB_OUTPUT"
           fi
 
   build:
@@ -65,10 +68,12 @@ jobs:
     env:
       CODEX_REPO_ROOT: ${{ github.workspace }}
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
-      CARGO_PROFILE_RELEASE_LTO: "off"
-      CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+      CARGO_PROFILE_RELEASE_OPT_LEVEL: "z"
+      CARGO_PROFILE_RELEASE_LTO: "thin"
+      CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1"
       CARGO_PROFILE_RELEASE_DEBUG: "0"
-      CARGO_PROFILE_RELEASE_OPT_LEVEL: "0"
+      CARGO_PROFILE_RELEASE_STRIP: "symbols"
+      CARGO_PROFILE_RELEASE_PANIC: "abort"
     steps:
       - uses: actions/checkout@v4
 
@@ -90,7 +95,7 @@ jobs:
         with:
           workspaces: codex-rs
           cache-on-failure: true
-          shared-key: release-${{ matrix.target }}
+          shared-key: release-optz-${{ matrix.target }}
 
       - name: Install Zig
         if: contains(matrix.target, 'linux')
@@ -134,9 +139,6 @@ jobs:
           cd codex-rs
           STABLE_GIT_COMMIT="$(git rev-parse HEAD)"
           export STABLE_GIT_COMMIT
-          # Ship small binaries: no debug info, symbols stripped (was ~800 MB).
-          export CARGO_PROFILE_RELEASE_DEBUG=0
-          export CARGO_PROFILE_RELEASE_STRIP=symbols
           cargo build --target "${{ matrix.target }}" --release \
             --bin fikra \
             --bin codex-exec-server
