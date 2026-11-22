@@ -41,6 +41,21 @@ Windows PowerShell:
 irm https://fikraapi.co.ke/code/install.ps1 | iex
 ```
 
+
+## How light is it?
+
+![Peak RAM, CPU, startup and prompt time for Fikra Code, Claude Code and OpenCode](docs/agent-bench-2026-11-22.png)
+
+Measured on a 4-thread Intel Core i5-4210M laptop with 7.6 GB RAM (22 Nov 2026), one agent at a time, one short prompt:
+
+| | Peak RAM | Peak CPU (one core) | Startup | One prompt |
+|---|---|---|---|---|
+| **Fikra Code 0.1.6** | **206 MB** | **120%** | 25 ms | 14.2 s |
+| Claude Code 2.1 | 255 MB | 174% | 14 ms | 9.6 s |
+| OpenCode 1.19 | 574 MB | 288% | 1,104 ms | 21.4 s |
+
+Fikra Code uses the least memory and CPU of the three, which is what matters on older laptops. Prompt time depends on the model and network as much as the agent. Method and raw data: one sequential pass on a shared machine, process-tree sampling every 50 ms.
+
 ## Sign in
 
 ```sh
