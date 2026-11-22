@@ -71,7 +71,15 @@ Get-ChildItem (Join-Path $FikraHome 'packages') -Directory -Filter 'v*' |
 $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 if (-not ($userPath -split ';' | Where-Object { $_ -eq $BinDir })) {
   [Environment]::SetEnvironmentVariable('Path', "$BinDir;$userPath", 'User')
-  Write-Host "Added $BinDir to your PATH. Open a new terminal to use it."
+}
+if (-not ($env:Path -split ';' | Where-Object { $_ -eq $BinDir })) {
+  $env:Path = "$BinDir;$env:Path"
 }
 Write-Host "Installed: $launcher"
-Write-Host "Next: run 'fikra login' and paste your API key from https://fikraapi.co.ke/dashboard"
+
+if ($env:FIKRA_NO_LAUNCH -ne '1') {
+  Write-Host "Launching Fikra Code..."
+  & "$dest\bin\fikra.exe"
+} else {
+  Write-Host "Next: run 'fikra' in a project. It signs you in through your browser."
+}
