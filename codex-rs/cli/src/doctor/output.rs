@@ -464,7 +464,7 @@ fn write_footer(out: &mut String, options: HumanOutputOptions) {
             out,
             "{}",
             dim(
-                "Run codex doctor without --summary for detailed diagnostics.",
+                "Run fikra doctor without --summary for detailed diagnostics.",
                 options
             )
         );

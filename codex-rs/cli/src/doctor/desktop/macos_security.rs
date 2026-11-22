@@ -18,7 +18,7 @@ const SECURITY_LOG_PREDICATE: &str = concat!(
     "OR process BEGINSWITH 'XProtect' OR subsystem BEGINSWITH 'com.apple.syspolicy' ",
     "OR subsystem CONTAINS[c] 'XProtect' ",
     "OR subsystem == 'com.apple.security.assessment') AND ",
-    "(eventMessage CONTAINS[c] 'codex' OR eventMessage CONTAINS[c] 'chatgpt' ",
+    "(eventMessage CONTAINS[c] 'Fikra Code' OR eventMessage CONTAINS[c] 'chatgpt' ",
     "OR eventMessage CONTAINS[c] '.plugin-appserver' ",
     "OR eventMessage CONTAINS[c] '100024' OR eventMessage CONTAINS[c] 'EMFILE' ",
     "OR eventMessage CONTAINS[c] 'ENFILE' ",
@@ -180,7 +180,7 @@ fn enforcement_check(gatekeeper: Evidence, events: Evidence) -> DoctorCheck {
         (
             CheckStatus::Warning,
             "recent macos security enforcement history was unavailable",
-            "check access to macos unified security logs and rerun codex doctor",
+            "check access to macos unified security logs and rerun fikra doctor",
         )
     } else {
         return desktop_check(

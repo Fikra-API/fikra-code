@@ -99,7 +99,7 @@ pub struct GetArgs {
 }
 
 #[derive(Debug, clap::Parser)]
-#[command(override_usage = "codex mcp add [OPTIONS] <NAME> (--url <URL> | -- <COMMAND>...)")]
+#[command(override_usage = "fikra mcp add [OPTIONS] <NAME> (--url <URL> | -- <COMMAND>...)")]
 pub struct AddArgs {
     /// Name for the MCP server configuration.
     pub name: String,
@@ -1147,7 +1147,7 @@ async fn run_get(config: &Config, get_args: GetArgs) -> Result<()> {
         println!("  profile settings: {}", file.as_path().display());
         println!("  removal scope: `codex mcp remove` only edits the global config.");
     } else {
-        println!("  remove: codex mcp remove {}", get_args.name);
+        println!("  remove: fikra mcp remove {}", get_args.name);
     }
 
     Ok(())

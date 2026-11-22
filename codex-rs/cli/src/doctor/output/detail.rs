@@ -231,7 +231,7 @@ fn install_details(parsed: &[ParsedDetail], options: HumanOutputOptions) -> Vec<
         expected: None,
     });
 
-    let path_entries = numbered_values(parsed, "PATH codex #");
+    let path_entries = numbered_values(parsed, "PATH Fikra Code #");
     if !path_entries.is_empty() {
         let total = path_entries.len();
         let shown = if options.show_all {
@@ -270,9 +270,9 @@ fn install_details(parsed: &[ParsedDetail], options: HumanOutputOptions) -> Vec<
             "managed by pnpm",
             "managed by Vite+",
             "managed package root",
-            "PATH codex entries",
+            "PATH Fikra Code entries",
         ],
-        &["PATH codex #"],
+        &["PATH Fikra Code #"],
     );
     out
 }

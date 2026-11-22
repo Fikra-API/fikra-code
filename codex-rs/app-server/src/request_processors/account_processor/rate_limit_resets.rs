@@ -102,7 +102,7 @@ impl AccountRequestProcessor {
             self.auth_manager.auth_with_http_client_factory().await
         else {
             return Err(invalid_request(
-                "codex account authentication required for rate limit reset credits",
+                "Fikra Code account authentication required for rate limit reset credits",
             ));
         };
         if !auth.uses_codex_backend() {

@@ -1212,7 +1212,7 @@ impl AccountRequestProcessor {
             self.auth_manager.auth_with_http_client_factory().await
         else {
             return Err(invalid_request(
-                "codex account authentication required to read rate limits",
+                "Fikra Code account authentication required to read rate limits",
             ));
         };
 
@@ -1242,10 +1242,10 @@ impl AccountRequestProcessor {
             }
         },);
         let response = response
-            .map_err(|err| internal_error(format!("failed to fetch codex rate limits: {err}")))?;
+            .map_err(|err| internal_error(format!("failed to fetch Fikra Code rate limits: {err}")))?;
         if response.rate_limits.is_empty() {
             return Err(internal_error(
-                "failed to fetch codex rate limits: no snapshots returned",
+                "failed to fetch Fikra Code rate limits: no snapshots returned",
             ));
         }
 
@@ -1325,7 +1325,7 @@ impl AccountRequestProcessor {
             self.auth_manager.auth_with_http_client_factory().await
         else {
             return Err(invalid_request(
-                "codex account authentication required to read token usage",
+                "Fikra Code account authentication required to read token usage",
             ));
         };
 
@@ -1409,7 +1409,7 @@ impl AccountRequestProcessor {
             self.auth_manager.auth_with_http_client_factory().await
         else {
             return Err(invalid_request(
-                "codex account authentication required to read workspace messages",
+                "Fikra Code account authentication required to read workspace messages",
             ));
         };
 
@@ -1499,7 +1499,7 @@ impl AccountRequestProcessor {
             self.auth_manager.auth_with_http_client_factory().await
         else {
             return Err(invalid_request(
-                "codex account authentication required to notify workspace owner",
+                "Fikra Code account authentication required to notify workspace owner",
             ));
         };
 

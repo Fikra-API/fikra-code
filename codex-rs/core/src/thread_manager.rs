@@ -847,7 +847,7 @@ impl ThreadManager {
             uuid::Uuid::new_v4()
         ));
         std::fs::create_dir_all(&codex_home)
-            .unwrap_or_else(|err| panic!("temp codex home dir create failed: {err}"));
+            .unwrap_or_else(|err| panic!("temp Fikra Code home dir create failed: {err}"));
         let mut manager = Self::with_models_provider_and_home_for_tests(
             auth,
             provider,

@@ -92,7 +92,7 @@ pub(crate) async fn run(
             continue;
         }
         let outcome = migration.migrate(&database.path, &command.staging_dir).await.with_context(|| format!(
-            "migration failed for {}. Keep all Fikra Code instances stopped. Correct the error and rerun codex migrate-nfs-db",
+            "migration failed for {}. Keep all Fikra Code instances stopped. Correct the error and rerun Fikra Code migrate-nfs-db",
             database.path.display()
         ))?;
         match outcome {
