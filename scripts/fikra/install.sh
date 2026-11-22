@@ -1,5 +1,5 @@
 #!/bin/sh
-# Fikra Code installer for Linux.
+# Fikra Code installer for Linux and macOS.
 # Usage: curl -fsSL https://fikraapi.co.ke/code/install.sh | sh
 #
 # Asset contract (the release workflow must produce exactly this):
@@ -7,13 +7,15 @@
 #   Asset name:          fikra-package-<target>.tar.gz
 #   Archive root:        bin/fikra (entrypoint) plus helper binaries and resources,
 #                        in the same layout as upstream's codex package.
-#   <target> is one of:  x86_64-unknown-linux-musl, aarch64-unknown-linux-musl
+#   <target> is one of:  x86_64-unknown-linux-musl, aarch64-unknown-linux-musl,
+#                        aarch64-apple-darwin, x86_64-apple-darwin
 set -eu
 
 REPO="${FIKRA_REPO:-Fikra-API/fikra-code}"
 VERSION="${FIKRA_VERSION:-latest}"
 FIKRA_HOME="${FIKRA_HOME:-$HOME/.fikra}"
 BIN_DIR="${FIKRA_INSTALL_DIR:-$HOME/.local/bin}"
+AUTO_LAUNCH="${FIKRA_NO_LAUNCH:-0}"
 
 say() { printf '%s\n' "$*"; }
 die() { printf 'fikra install: %s\n' "$*" >&2; exit 1; }
@@ -41,7 +43,8 @@ case "$arch" in
 esac
 case "$os" in
   Linux) target="${arch}-unknown-linux-musl" ;;
-  *) die "unsupported OS: $os (Fikra Code installs on Linux and Windows)" ;;
+  Darwin) target="${arch}-apple-darwin" ;;
+  *) die "unsupported OS: $os (Fikra Code installs on Linux, macOS, and Windows)" ;;
 esac
 
 if [ "$VERSION" = "latest" ]; then
@@ -83,16 +86,29 @@ rm -f "$tmp/$asset" "$tmp/$asset.sha256"
 # Keep only the two newest versions, to save disk space on small machines.
 ls -1dt "$FIKRA_HOME"/packages/v* 2>/dev/null | tail -n +3 | while read -r old; do rm -rf "$old"; done
 
-say "Installed: $BIN_DIR/fikra"
+# Ensure BIN_DIR is persisted on PATH for future shells without manual user steps.
+path_line="export PATH=\"$BIN_DIR:\$PATH\""
 case ":$PATH:" in
   *":$BIN_DIR:"*) ;;
-  *) say "Add this to your shell profile, then open a new terminal:"
-     say "  export PATH=\"$BIN_DIR:\$PATH\"" ;;
+  *)
+    export PATH="$BIN_DIR:$PATH"
+    for rc in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
+      if [ -f "$rc" ]; then
+        grep -F "$BIN_DIR" "$rc" >/dev/null 2>&1 || printf '\n%s\n' "$path_line" >> "$rc"
+      fi
+    done
+    if [ ! -f "$HOME/.bashrc" ] && [ ! -f "$HOME/.zshrc" ] && [ ! -f "$HOME/.profile" ]; then
+      printf '%s\n' "$path_line" >> "$HOME/.profile"
+    fi
+    ;;
 esac
+
+say "Installed: $BIN_DIR/fikra"
+
 # Ubuntu 23.10+/24.04 block the user namespaces Fikra Code's sandbox needs.
 # Without the one-time fix every command needs approval. Offer it, never force it.
 SANDBOX_FIX_URL="https://fikraapi.co.ke/code/ubuntu-sandbox.sh"
-if [ "$(uname -s)" = "Linux" ] \
+if [ "$os" = "Linux" ] \
    && [ "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || echo 0)" = "1" ] \
    && [ ! -f /etc/apparmor.d/fikra-bwrap ]; then
   say ""
@@ -114,4 +130,10 @@ if [ "$(uname -s)" = "Linux" ] \
   esac
 fi
 
-say "Next: run 'fikra' in a project. It signs you in through your browser."
+# Launch fikra immediately with zero additional user steps when an interactive TTY is available.
+if [ "$AUTO_LAUNCH" != "1" ] && (: </dev/tty) 2>/dev/null; then
+  say "Launching Fikra Code..."
+  exec "$BIN_DIR/fikra" </dev/tty >/dev/tty 2>&1
+else
+  say "Next: run 'fikra' in a project. It signs you in through your browser."
+fi
