@@ -1894,6 +1894,12 @@ impl PluginsManager {
         let Some(auth) = auth else {
             return;
         };
+        // The remote plugin catalog needs ChatGPT sign-in. Fikra Code signs in
+        // with a Fikra API key, so the sync could only fail (a wasted request and
+        // a warning on every start).
+        if !auth.is_chatgpt_auth() {
+            return;
+        }
         let Ok(permit) =
             Arc::clone(&self.remote_installed_plugin_bundle_sync_gate).try_acquire_owned()
         else {

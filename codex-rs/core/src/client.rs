@@ -2077,7 +2077,16 @@ impl ResponsesHttpExecutor<'_> {
         // Fikra API: always compress. Render's edge WAF blocks plain JSON bodies
         // containing common tool output (`../../`, `curl ... | sh`); compressed
         // bodies are opaque to it and the Fikra API decodes zstd.
-        if self.client.state.provider.info().name == codex_model_provider_info::FIKRA_PROVIDER_NAME {
+        // Match on the endpoint, not the provider name, so custom provider
+        // entries pointed at the Fikra API (e.g. a ZDR provider with extra
+        // headers) are compressed too.
+        let info = self.client.state.provider.info();
+        let targets_fikra = info.name == codex_model_provider_info::FIKRA_PROVIDER_NAME
+            || info
+                .base_url
+                .as_deref()
+                .is_some_and(|url| url.to_ascii_lowercase().contains("fikraapi.co.ke"));
+        if targets_fikra {
             return Compression::Zstd;
         }
         if self.client.state.enable_request_compression

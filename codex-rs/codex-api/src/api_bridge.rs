@@ -241,7 +241,21 @@ fn map_api_error_details(err: ApiError) -> CodexErr {
                                 .map(str::to_string)
                         })
                         .filter(|message| !message.trim().is_empty())
-                        .unwrap_or(body_text);
+                        .unwrap_or_else(|| {
+                            // An HTML body is an edge/firewall page, not the API.
+                            // Never dump tens of KB of markup into the terminal.
+                            let head = body_text.trim_start().get(..64).unwrap_or("").to_ascii_lowercase();
+                            if head.starts_with("<!doctype") || head.starts_with("<html") {
+                                format!(
+                                    "The request was blocked before reaching the Fikra API (HTTP {}). \
+                                     Try again; if it keeps happening, update Fikra Code and email \
+                                     support@fikraapi.co.ke.",
+                                    status.as_u16()
+                                )
+                            } else {
+                                body_text
+                            }
+                        });
                     CodexErr::InvalidRequest(message)
                 } else if status == http::StatusCode::TOO_MANY_REQUESTS {
                     // Fikra API quota and plan limits carry a user-facing message
