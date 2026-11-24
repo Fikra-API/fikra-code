@@ -104,6 +104,7 @@ use codex_protocol::error::CodexErrorDetails;
 use codex_protocol::error::Result as CodexResult;
 use codex_protocol::items::PlanItem;
 use codex_protocol::items::TurnItem;
+use codex_protocol::items::HookPromptFragment;
 use codex_protocol::items::build_hook_prompt_message;
 use codex_protocol::models::BaseInstructions;
 use codex_protocol::models::ContentItem;
@@ -533,6 +534,7 @@ pub(crate) async fn run_turn(
     );
     let mut completion_hooks = TurnCompletionHooks::default();
     let mut stop_hook_active = false;
+    let mut auto_continues: u8 = 0;
     // A steer can reopen sampling within the same turn. Keep its aggregate until the turn ends.
     let turn_diff_tracker = turn_context
         .extension_data
@@ -851,6 +853,31 @@ pub(crate) async fn run_turn(
 
                 if !needs_follow_up {
                     last_agent_message.clone_from(&completion_hooks.last_assistant_message);
+                    // Fikra: a reply that only announces the next step ends the turn
+                    // without a summary. Continue it (bounded) instead.
+                    if auto_continues < super::unfinished_reply::MAX_AUTO_CONTINUES
+                        && !cancellation_token.is_cancelled()
+                        && super::unfinished_reply::looks_unfinished(
+                            completion_hooks.last_assistant_message.as_deref(),
+                        )
+                        && let Some(nudge) = build_hook_prompt_message(
+                            &[HookPromptFragment::from_single_hook(
+                                super::unfinished_reply::CONTINUE_PROMPT,
+                                super::unfinished_reply::HOOK_RUN_ID,
+                            )],
+                            &sess.item_id_generator,
+                        )
+                    {
+                        auto_continues += 1;
+                        warn!(auto_continues, "final reply looked unfinished; continuing the turn");
+                        sess.record_response_item_and_emit_turn_item(
+                            &turn_context,
+                            &step_context.settings.model_info,
+                            nudge,
+                        )
+                        .await;
+                        continue;
+                    }
                     let stop_outcome = completion_hooks
                         .run_stop(&sess, &step_context, stop_hook_active)
                         .await;

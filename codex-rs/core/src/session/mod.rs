@@ -295,6 +295,7 @@ mod step_activation;
 pub(crate) mod step_context;
 pub(crate) mod step_settings;
 mod thread_settings;
+mod unfinished_reply;
 pub(crate) mod time_reminder;
 mod token_budget;
 pub(crate) mod turn;
