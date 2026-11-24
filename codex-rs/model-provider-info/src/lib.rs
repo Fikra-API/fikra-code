@@ -776,6 +776,16 @@ impl ModelProviderInfo {
                     .into(),
             ),
             requires_openai_auth: true,
+            // Ride out a server restart or upstream rate-limit spell
+            // (~100 s with the 15 s backoff cap) instead of giving up after ~6 s.
+            request_max_retries: Some(10),
+            stream_max_retries: Some(12),
+            // Zero data retention for every request: export FIKRA_ZDR=true.
+            env_http_headers: Some(
+                [("X-Fikra-ZDR".to_string(), "FIKRA_ZDR".to_string())]
+                    .into_iter()
+                    .collect(),
+            ),
             ..Default::default()
         }
     }

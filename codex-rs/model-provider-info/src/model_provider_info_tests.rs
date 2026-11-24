@@ -807,3 +807,13 @@ fn built_in_providers_are_fikra_and_local_only() {
     assert_eq!(fikra.env_key.as_deref(), Some(FIKRA_API_KEY_ENV_VAR));
     assert!(fikra.requires_openai_auth, "Fikra must use the key saved by `fikra login`");
 }
+
+#[test]
+fn fikra_provider_retries_longer_and_maps_zdr_env() {
+    let providers = built_in_model_providers(/*openai_base_url*/ None);
+    let fikra = &providers[FIKRA_PROVIDER_ID];
+    assert_eq!(fikra.stream_max_retries, Some(12));
+    assert_eq!(fikra.request_max_retries, Some(10));
+    let env = fikra.env_http_headers.as_ref().expect("ZDR env header");
+    assert_eq!(env.get("X-Fikra-ZDR").map(String::as_str), Some("FIKRA_ZDR"));
+}
