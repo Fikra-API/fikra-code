@@ -37,7 +37,7 @@ async fn offline_model_info_with_tool_output_override() {
         TestModelsEndpoint::new(Vec::new()),
     );
 
-    let model_info = manager.get_model_info("deepseek-v4-1-flash-economy-free", &config).await;
+    let model_info = manager.get_model_info("qwen3.8-27b", &config).await;
 
     assert_eq!(
         model_info.truncation_policy,

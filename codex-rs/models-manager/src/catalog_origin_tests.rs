@@ -7,7 +7,7 @@ use pretty_assertions::assert_eq;
 #[tokio::test]
 async fn catalog_origins_survive_reload_and_auth_change() {
     for (slug, reviewer_origin) in [
-        ("deepseek-v4-1-flash-economy-free", ModelOrigin::Provider),
+        ("qwen3.8-27b", ModelOrigin::Provider),
         ("gateway-model", ModelOrigin::Bundled),
     ] {
         let home = tempdir().unwrap();
@@ -41,7 +41,7 @@ async fn catalog_origins_survive_reload_and_auth_change() {
         assert_eq!(
             catalog
                 .iter()
-                .find(|entry| entry.model.slug == "deepseek-v4-1-flash-economy-free")
+                .find(|entry| entry.model.slug == "qwen3.8-27b")
                 .map(|entry| entry.origin),
             Some(reviewer_origin)
         );
@@ -94,7 +94,7 @@ async fn catalog_origins_survive_reload_and_auth_change() {
         assert_eq!(endpoint.fetch_count(), 2);
         assert_eq!(
             manager
-                .get_model_info("deepseek-v4-1-flash-economy-free", &ModelsManagerConfig::default())
+                .get_model_info("qwen3.8-27b", &ModelsManagerConfig::default())
                 .await
                 .origin,
             ModelOrigin::Bundled
