@@ -3,7 +3,7 @@
     {
       "slug": "deepseek-v4-1-flash-economy-free",
       "display_name": "deepseek-v4-1-flash-economy-free",
-      "description": "Free DeepSeek model for everyday coding. 1M context · free · included in Fikra Code plans.",
+      "description": "The free DeepSeek offer ended on 25 Nov 2026. Plan and balance users asking for it are served by deepseek-v4.1-flash.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
