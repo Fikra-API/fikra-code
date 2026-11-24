@@ -51,6 +51,7 @@ jobs:
           cargo test -p codex-utils-home-dir --lib
           cargo test -p codex-model-provider-info --lib
           cargo test -p codex-async-utils --lib
+          cargo test -p codex-login --lib fikra_usage
           cargo test -p codex-models-manager --lib
 
       - name: Install screen checker

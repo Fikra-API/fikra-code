@@ -606,6 +606,34 @@ pub async fn run_login_with_device_code_fallback_to_browser(
     }
 }
 
+/// `fikra usage`: balance and recent usage for the signed-in key.
+pub async fn run_usage(cli_config_overrides: CliConfigOverrides, days: u32) -> ! {
+    let api_key = match codex_login::read_openai_api_key_from_env() {
+        Some(key) => Some(key),
+        None => {
+            let config = load_config_or_exit(cli_config_overrides).await;
+            match config.auth_config().load_auth(/*enable_codex_api_key_env*/ false).await {
+                Ok(Some(auth)) => auth.get_token().ok(),
+                _ => None,
+            }
+        }
+    };
+    let Some(api_key) = api_key else {
+        eprintln!("Not signed in. Run `fikra login` or set FIKRA_API_KEY.");
+        std::process::exit(1);
+    };
+    match codex_login::fikra_usage_report(&api_key, days).await {
+        Ok(report) => {
+            print!("{report}");
+            std::process::exit(0);
+        }
+        Err(err) => {
+            eprintln!("{err}");
+            std::process::exit(1);
+        }
+    }
+}
+
 pub async fn run_login_status(cli_config_overrides: CliConfigOverrides) -> ! {
     let config = load_config_or_exit(cli_config_overrides).await;
 

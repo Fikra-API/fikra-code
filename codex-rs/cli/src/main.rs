@@ -13,6 +13,7 @@ use codex_cli::cloud_config;
 use codex_cli::read_access_token_from_stdin;
 use codex_cli::read_api_key_from_stdin;
 use codex_cli::run_login_status;
+use codex_cli::run_usage;
 use codex_cli::run_login_with_access_token;
 use codex_cli::run_login_with_api_key;
 use codex_cli::run_login_with_fikra_browser;
@@ -192,6 +193,9 @@ enum Subcommand {
     /// Update Fikra Code to the latest version.
     Update,
 
+    /// Show your Fikra API balance and recent usage.
+    Usage(UsageCommand),
+
     /// Diagnose local Fikra Code installation, config, auth, and runtime health.
     Doctor(DoctorCommand),
 
@@ -246,6 +250,13 @@ enum Subcommand {
 
     /// Inspect feature flags.
     Features(FeaturesCli),
+}
+
+#[derive(Debug, Parser)]
+struct UsageCommand {
+    /// Number of days of usage to show (1-90).
+    #[arg(long, default_value_t = 7)]
+    days: u32,
 }
 
 #[derive(Debug, Parser)]
@@ -1784,6 +1795,14 @@ async fn dispatch_cli(
             )?;
             print_completion(completion_cli);
         }
+        Some(Subcommand::Usage(usage_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "usage",
+            )?;
+            run_usage(root_config_overrides.clone(), usage_cli.days).await;
+        }
         Some(Subcommand::Update) => {
             reject_remote_mode_for_subcommand(
                 root_remote.as_deref(),
@@ -2445,6 +2464,7 @@ fn unsupported_subcommand_name_for_strict_config(
         Some(Subcommand::Logout(_)) => Some("logout"),
         Some(Subcommand::Completion(_)) => Some("completion"),
         Some(Subcommand::Update) => Some("update"),
+        Some(Subcommand::Usage(_)) => Some("usage"),
         Some(Subcommand::Cloud(_)) => Some("cloud"),
         Some(Subcommand::Sandbox(_)) => Some("sandbox"),
         Some(Subcommand::Debug(_)) => Some("debug"),

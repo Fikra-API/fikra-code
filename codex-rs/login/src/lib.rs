@@ -9,10 +9,12 @@ pub use auth::WorkspaceRoutingSession;
 
 mod fikra_browser;
 mod fikra_key;
+mod fikra_usage;
 pub use fikra_browser::FikraBrowserLogin;
 pub use fikra_browser::FikraBrowserPrompt;
 pub use fikra_browser::fikra_browser_login;
 pub use fikra_key::validate_fikra_api_key;
+pub use fikra_usage::fikra_usage_report;
 mod callback_params;
 mod credential_export;
 mod device_code_auth;
