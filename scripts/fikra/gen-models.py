@@ -13,7 +13,7 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[2] / "codex-rs"
 MODELS_URL = "https://fikraapi.co.ke/v1/models"
-DEFAULT_MODEL = "deepseek-v4-1-flash-economy-free"
+DEFAULT_MODEL = "deepseek-v4.1-flash"
 # Shown first in the picker, in this order. Everything else follows by name.
 PREFERRED = [
     DEFAULT_MODEL,
