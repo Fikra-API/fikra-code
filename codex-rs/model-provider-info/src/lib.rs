@@ -760,7 +760,7 @@ pub const FIKRA_PROVIDER_NAME: &str = "Fikra";
 pub const FIKRA_BASE_URL: &str = "https://fikraapi.co.ke/v1";
 pub const FIKRA_API_KEY_ENV_VAR: &str = "FIKRA_API_KEY";
 /// Model used when neither the CLI nor config.toml selects one.
-pub const FIKRA_DEFAULT_MODEL: &str = "deepseek-v4.1-flash";
+pub const FIKRA_DEFAULT_MODEL: &str = "qwen3.8-27b";
 
 impl ModelProviderInfo {
     /// The Fikra API. Authenticates with `FIKRA_API_KEY` when set, otherwise

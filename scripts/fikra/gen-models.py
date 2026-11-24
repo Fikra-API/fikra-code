@@ -13,7 +13,7 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[2] / "codex-rs"
 MODELS_URL = "https://fikraapi.co.ke/v1/models"
-DEFAULT_MODEL = "deepseek-v4.1-flash"
+DEFAULT_MODEL = "qwen3.8-27b"
 # Shown first in the picker, in this order. Everything else follows by name.
 PREFERRED = [
     DEFAULT_MODEL,
@@ -28,7 +28,7 @@ PREFERRED = [
 ]
 EXCLUDE_SUBSTRINGS = ("embedding", "tts", "stt", "seedream", "decision")
 DESCRIPTIONS = {
-    DEFAULT_MODEL: "Free DeepSeek model for everyday coding.",
+    DEFAULT_MODEL: "Free: 200 requests and 2M tokens a day, no card needed.",
     "fikra-auto": "Fikra picks a fast, low-cost model for each request.",
     "fikra-auto-pro": "Fikra picks a frontier model for each request.",
     "fikra-code-35b": "Fikra coding model.",
