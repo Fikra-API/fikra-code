@@ -87,7 +87,7 @@ async fn routes_captured_originals_and_updates_descriptions(
     let small_window = window_pressure || matches!(case, RoutingCase::InstructionsExceedWindow);
     let test = test_codex()
         .with_history_mode(ThreadHistoryMode::Paginated)
-        .with_model_info_override("gpt-5.6-luna", move |model| {
+        .with_model_info_override("fikra-auto", move |model| {
             model.truncation_policy = input_policy;
             if small_window {
                 model.context_window = Some(4096);
@@ -614,7 +614,7 @@ async fn root_shutdown_waits_for_the_accepted_evidence_append() -> anyhow::Resul
         .with_home(Arc::clone(&home))
         .with_auth_manager(auth)
         .with_history_mode(ThreadHistoryMode::Paginated)
-        .with_model_info_override("gpt-5.6-luna", |_| {})
+        .with_model_info_override("fikra-auto", |_| {})
         .with_model_info_override("test-gv3-actor", |model| {
             model.auto_review_model_override = Some("test-gv3-router".to_owned());
         })
@@ -722,7 +722,7 @@ async fn root_shutdown_waits_for_the_accepted_evidence_append() -> anyhow::Resul
         handshakes[2].header("authorization").as_deref(),
         Some("Bearer renewed-token")
     );
-    assert_eq!(request.body_json()["model"], "gpt-5.6-luna");
+    assert_eq!(request.body_json()["model"], "fikra-auto");
     let housekeeper_id: ThreadId =
         serde_json::from_value(request.body_json()["client_metadata"]["thread_id"].take())?;
     assert_ne!(housekeeper_id, root);
@@ -797,7 +797,7 @@ async fn command_token_rotation_between_batches_reauthenticates_the_housekeeper(
     let server = start_websocket_server(vec![vec![route.clone(), route]; 4]).await;
     let test = test_codex()
         .with_history_mode(ThreadHistoryMode::Paginated)
-        .with_model_info_override("gpt-5.6-luna", |_| {})
+        .with_model_info_override("fikra-auto", |_| {})
         .with_config(move |config| {
             config.approvals_reviewer = ApprovalsReviewer::User;
             config.model_provider.requires_openai_auth = false;
@@ -912,7 +912,7 @@ retrieval_instructions = "{RETRIEVAL}"
             .expect("write GV3 configuration");
         })
         .with_history_mode(ThreadHistoryMode::Paginated)
-        .with_model_info_override("gpt-5.6-luna", |_| {})
+        .with_model_info_override("fikra-auto", |_| {})
         .with_config(|config| config.approvals_reviewer = ApprovalsReviewer::User)
         .build_with_auto_env(&server)
         .await?;

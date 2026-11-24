@@ -2482,7 +2482,7 @@ async fn contributor_samples_tool_calls_with_the_existing_luna_pool() -> Result<
     let thread_store = test.codex.thread_extension_data();
     let turn_store = ExtensionData::new("approval-turn");
     turn_store.insert_arc(thread_store.get::<Config>().expect("captured test config"));
-    assert_eq!(request["model"], "gpt-5.6-luna");
+    assert_eq!(request["model"], "fikra-auto");
     let classifier_thread_id = request["client_metadata"]["thread_id"]
         .as_str()
         .expect("classifier thread ID");

@@ -195,7 +195,7 @@ async fn catch_up_waits_for_committed_delivery_and_allows_later_posts(
     let test = test_codex()
         .with_home(home)
         .with_history_mode(ThreadHistoryMode::Paginated)
-        .with_model_info_override("gpt-5.6-luna", |_| {})
+        .with_model_info_override("fikra-auto", |_| {})
         .with_config(|config| {
             config.approvals_reviewer = ApprovalsReviewer::User;
         })

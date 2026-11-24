@@ -1430,7 +1430,11 @@ fn add_core_utility_tools(context: &CoreToolPlanContext<'_>, registry: &mut Tool
         registry.add(TestSyncHandler);
     }
 
-    if features.enabled(Feature::ViewImage) {
+    // Only offer view_image to models that accept images; text-only models
+    // (most of the Fikra catalog) could only get an error from it.
+    if features.enabled(Feature::ViewImage)
+        && context.model_info.input_modalities.contains(&InputModality::Image)
+    {
         let include_environment_id = matches!(environment_mode, ToolEnvironmentMode::Multiple);
         registry.add(ViewImageHandler::new(ViewImageToolOptions {
             can_request_original_image_detail: can_request_original_image_detail(

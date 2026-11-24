@@ -810,7 +810,7 @@ async fn preconnected_sampler_reuses_authenticated_websocket_for_classifications
     for (index, request) in requests.iter().enumerate() {
         let request = request.body_json();
         assert_eq!(request["type"], "response.create");
-        assert_eq!(request["model"], "gpt-5.6-luna");
+        assert_eq!(request["model"], "fikra-auto");
         assert_eq!(request["input"][0]["tools"], json!([]));
         assert_classifier_instructions(&request);
         assert_eq!(request["tool_choice"], "none");

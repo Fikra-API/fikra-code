@@ -71,7 +71,7 @@ impl HousekeeperSampler {
         settings.model_auto_compact_token_limit = None;
         let model = manager
             .models_manager_for_config(&config)
-            .get_model_info("gpt-5.6-luna", &settings)
+            .get_model_info("fikra-auto", &settings)
             .await;
         let input_limit = effective_input_token_limit(&model, /*configured_window*/ None);
         let (routing, description_guidance) = match routing_instructions.map(str::trim) {

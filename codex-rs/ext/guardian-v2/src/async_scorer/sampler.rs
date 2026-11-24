@@ -36,7 +36,8 @@ use tokio::sync::oneshot;
 use uuid::Uuid;
 
 pub(super) const INPUT_TOKEN_MARGIN: usize = 256;
-pub(crate) const MODEL: &str = "gpt-5.6-luna";
+// Fikra: a cheap catalog model; gpt-5.6-luna does not exist on the Fikra API.
+pub(crate) const MODEL: &str = "fikra-auto";
 pub(crate) const CLASSIFICATION_TOKEN_USAGE_METRIC: &str =
     "codex.guardian_v2.classification.token_usage";
 const MAX_OUTPUT_BYTES: usize = 8 * 1024;
