@@ -2,6 +2,26 @@
 
 Downloads and checksums: https://github.com/Fikra-API/fikra-code/releases
 
+## 0.2.0
+
+New
+- GitHub, Kaggle and Colab from the composer:
+  - `/pr [title]` commits, pushes and opens a pull request with a real description.
+  - `/issue <number>` reads a GitHub issue, fixes it on a branch, adds tests and opens a PR that closes it (no number: lists your open issues).
+  - `/kaggle <owner/dataset | competition>` downloads the data with the Kaggle CLI and builds a starter notebook with EDA and a baseline.
+  - `/colab [notebook]` makes a notebook Colab-ready (install cell, relative paths, badge) and gives you the Open in Colab link.
+  - `/connect` shows whether GitHub (gh), Kaggle (API token) and Colab (GitHub remote) are ready, and how to fix what isn't.
+- `/balance` shows your Fikra balance, free allowance and the last 7 days of usage without leaving the session.
+- `/upgrade` opens the Fikra plans (KES 200 a week with M-Pesa, or from $10 a month); `/docs` opens the docs.
+- New tips for all of the above.
+
+Changed
+- Default model is `qwen3.8-27b`, free on the Fikra API (200 requests and 2M tokens a day, no card). Other models are marked Paid in the picker.
+
+Fixed
+- A long run could end on a reply that only announced the next step ("Let me run the whole suite...") with no tool call, so you got no summary. Fikra Code now continues the turn (at most twice) and asks for a final summary.
+- `fikra update` keeps only the newly installed version and removes older versions and downloads.
+
 ## 0.1.8
 
 New

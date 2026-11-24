@@ -568,6 +568,61 @@ impl ChatWidget {
                     /*hint*/ None,
                 );
             }
+            SlashCommand::Pr => {
+                self.submit_user_message(crate::fikra_commands::pr_prompt("").into());
+            }
+            SlashCommand::Issue => {
+                self.submit_user_message(crate::fikra_commands::issue_prompt("").into());
+            }
+            SlashCommand::Kaggle => {
+                self.submit_user_message(crate::fikra_commands::kaggle_prompt("").into());
+            }
+            SlashCommand::Colab => {
+                let cwd = std::path::PathBuf::from(self.session_cwd().inferred_native_path_string());
+                self.submit_user_message(crate::fikra_commands::colab_prompt("", &cwd).into());
+            }
+            SlashCommand::Connect => {
+                let cwd = std::path::PathBuf::from(self.session_cwd().inferred_native_path_string());
+                let report = crate::fikra_commands::connection_report(&cwd);
+                self.add_plain_history_lines(
+                    report.lines().map(|l| ratatui::text::Line::from(l.to_string())).collect(),
+                );
+            }
+            SlashCommand::Balance => {
+                self.add_info_message("Checking your Fikra balance...".to_string(), /*hint*/ None);
+                let tx = self.app_event_tx.clone();
+                tokio::spawn(async move {
+                    let text = match crate::fikra_commands::api_key() {
+                        Some(key) => match codex_login::fikra_usage_report(&key, 7).await {
+                            Ok(report) => report,
+                            Err(err) => format!("Could not load your balance: {err}"),
+                        },
+                        None => "Not signed in. Run `fikra login` or set FIKRA_API_KEY.".to_string(),
+                    };
+                    let lines = text
+                        .lines()
+                        .map(|l| ratatui::text::Line::from(l.to_string()))
+                        .collect();
+                    tx.send(AppEvent::InsertHistoryCell(Box::new(
+                        crate::history_cell::PlainHistoryCell::new(lines),
+                    )));
+                });
+            }
+            SlashCommand::Upgrade => {
+                let opened = webbrowser::open(crate::fikra_commands::PLANS_URL).is_ok();
+                self.add_info_message(
+                    if opened {
+                        format!("Opened Fikra plans: {}", crate::fikra_commands::PLANS_URL)
+                    } else {
+                        format!("Fikra plans: {}", crate::fikra_commands::PLANS_URL)
+                    },
+                    Some("Kenya: KES 200 a week with M-Pesa. International: from $10 a month.".to_string()),
+                );
+            }
+            SlashCommand::Docs => {
+                let _ = webbrowser::open(crate::fikra_commands::DOCS_URL);
+                self.add_info_message(format!("Fikra Code docs: {}", crate::fikra_commands::DOCS_URL), None);
+            }
             SlashCommand::Usage => {
                 if self.ensure_usage_command_available() {
                     self.open_usage_menu();
@@ -841,6 +896,19 @@ impl ChatWidget {
                         PathBuf::from(trimmed),
                     ),
                 });
+            }
+            SlashCommand::Pr => {
+                self.submit_user_message(crate::fikra_commands::pr_prompt(trimmed).into());
+            }
+            SlashCommand::Issue => {
+                self.submit_user_message(crate::fikra_commands::issue_prompt(trimmed).into());
+            }
+            SlashCommand::Kaggle => {
+                self.submit_user_message(crate::fikra_commands::kaggle_prompt(trimmed).into());
+            }
+            SlashCommand::Colab => {
+                let cwd = std::path::PathBuf::from(self.session_cwd().inferred_native_path_string());
+                self.submit_user_message(crate::fikra_commands::colab_prompt(trimmed, &cwd).into());
             }
             SlashCommand::Cd => self.request_working_directory_change(trimmed),
             SlashCommand::Pwd => {

@@ -222,6 +222,7 @@ mod sidebar_chooser;
 mod sidebar_image;
 mod sidebar_tab_strip;
 mod skills_helpers;
+mod fikra_commands;
 mod slash_command;
 mod startup_draft;
 mod startup_error;

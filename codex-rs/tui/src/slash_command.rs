@@ -29,6 +29,14 @@ pub enum SlashCommand {
     Import,
     Hooks,
     Review,
+    Pr,
+    Issue,
+    Kaggle,
+    Colab,
+    Connect,
+    Balance,
+    Upgrade,
+    Docs,
     Rename,
     New,
     Archive,
@@ -101,6 +109,14 @@ impl SlashCommand {
             SlashCommand::Compact => "summarize conversation to prevent hitting the context limit",
             SlashCommand::Recap => "summarize the current conversation now",
             SlashCommand::Review => "review my current changes and find issues",
+            SlashCommand::Pr => "commit, push and open a GitHub pull request for my changes",
+            SlashCommand::Issue => "work on a GitHub issue and open a PR that fixes it",
+            SlashCommand::Kaggle => "download a Kaggle dataset or competition and start a notebook",
+            SlashCommand::Colab => "make a notebook Colab-ready and give me the Open in Colab link",
+            SlashCommand::Connect => "show GitHub, Kaggle and Colab connection status",
+            SlashCommand::Balance => "show my Fikra balance, free allowance and recent usage",
+            SlashCommand::Upgrade => "open Fikra plans in the browser (KES 200/week, $10/month)",
+            SlashCommand::Docs => "open the Fikra Code docs",
             SlashCommand::Rename => "rename the current thread",
             SlashCommand::Resume => "resume a saved chat",
             SlashCommand::Archive => "archive this session",
@@ -176,6 +192,10 @@ impl SlashCommand {
         matches!(
             self,
             SlashCommand::Review
+                | SlashCommand::Pr
+                | SlashCommand::Issue
+                | SlashCommand::Kaggle
+                | SlashCommand::Colab
                 | SlashCommand::Model
                 | SlashCommand::Permissions
                 | SlashCommand::Title
@@ -271,6 +291,10 @@ impl SlashCommand {
             | SlashCommand::Memories
             | SlashCommand::Import
             | SlashCommand::Review
+            | SlashCommand::Pr
+            | SlashCommand::Issue
+            | SlashCommand::Kaggle
+            | SlashCommand::Colab
             | SlashCommand::Plan
             | SlashCommand::Cd
             | SlashCommand::Clear
@@ -296,6 +320,10 @@ impl SlashCommand {
             | SlashCommand::Warnings
             | SlashCommand::Pwd
             | SlashCommand::Usage
+            | SlashCommand::Connect
+            | SlashCommand::Balance
+            | SlashCommand::Upgrade
+            | SlashCommand::Docs
             | SlashCommand::DebugConfig
             | SlashCommand::Ps
             | SlashCommand::Stop

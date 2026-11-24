@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://fikraapi.co.ke/code">Website</a> &middot;
+  <a href="https://fikraapi.co.ke/fikra-code">Website</a> &middot;
   <a href="https://fikraapi.co.ke/code/docs">Docs</a> &middot;
   <a href="https://fikraapi.co.ke/code/pricing">Pricing</a> &middot;
   <a href="https://fikraapi.co.ke/code/models">Models</a> &middot;
@@ -93,7 +93,20 @@ Pick a model with `-m` or `/model` inside a session:
 fikra -m fikra-auto "refactor this module"
 ```
 
-Update with `fikra update`.
+Update with `fikra update` (it removes older versions so updates never pile up).
+
+### Built-in commands
+
+| Command | What it does |
+| --- | --- |
+| `/pr [title]` | Commit, push and open a GitHub pull request |
+| `/issue <number>` | Fix a GitHub issue on a branch and open the PR |
+| `/kaggle <owner/dataset>` | Download Kaggle data and build a starter notebook |
+| `/colab [notebook]` | Make a notebook Colab-ready and get the Open in Colab link |
+| `/connect` | Check GitHub, Kaggle and Colab are set up |
+| `/balance` | Balance, free allowance and recent usage |
+| `/upgrade` | Open the plans (KES 200/week or from $10/month) |
+| `/review`, `/diff`, `/model`, `/status` | Review changes, show the diff, switch model, session info |
 
 ## Models
 
@@ -121,7 +134,7 @@ Every paid plan includes every model in the catalog. Prices are USD per 1M input
 ## Links
 
 - Website: [fikraapi.co.ke](https://fikraapi.co.ke)
-- Fikra Code: [fikraapi.co.ke/code](https://fikraapi.co.ke/code)
+- Fikra Code: [fikraapi.co.ke/fikra-code](https://fikraapi.co.ke/fikra-code)
 - Docs: [fikraapi.co.ke/code/docs](https://fikraapi.co.ke/code/docs)
 - Pricing: [fikraapi.co.ke/code/pricing](https://fikraapi.co.ke/code/pricing)
 - Models: [fikraapi.co.ke/code/models](https://fikraapi.co.ke/code/models)
