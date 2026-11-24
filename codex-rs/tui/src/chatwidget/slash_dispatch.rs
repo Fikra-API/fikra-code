@@ -1403,6 +1403,10 @@ impl ChatWidget {
             | SlashCommand::Rc
             | SlashCommand::Pwd
             | SlashCommand::Usage
+            | SlashCommand::Connect
+            | SlashCommand::Balance
+            | SlashCommand::Upgrade
+            | SlashCommand::Docs
             | SlashCommand::DebugConfig
             | SlashCommand::Ps
             | SlashCommand::Stop
@@ -1445,6 +1449,10 @@ impl ChatWidget {
             | SlashCommand::Init
             | SlashCommand::Compact
             | SlashCommand::Review
+            | SlashCommand::Pr
+            | SlashCommand::Issue
+            | SlashCommand::Kaggle
+            | SlashCommand::Colab
             | SlashCommand::Model
             | SlashCommand::Presets
             | SlashCommand::Plan
