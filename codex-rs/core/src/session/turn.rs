@@ -535,6 +535,7 @@ pub(crate) async fn run_turn(
     let mut completion_hooks = TurnCompletionHooks::default();
     let mut stop_hook_active = false;
     let mut auto_continues: u8 = 0;
+    let mut auto_continues_total: u8 = 0;
     let mut worked_this_turn = false;
     // A steer can reopen sampling within the same turn. Keep its aggregate until the turn ends.
     let turn_diff_tracker = turn_context
@@ -705,6 +706,8 @@ pub(crate) async fn run_turn(
                 };
                 if model_needs_follow_up {
                     worked_this_turn = true;
+                    // Progress since the last nudge: the per-stall budget starts over.
+                    auto_continues = 0;
                     sess.input_queue
                         .accept_mailbox_delivery_for_current_turn(
                             &sess.active_turn,
@@ -858,6 +861,7 @@ pub(crate) async fn run_turn(
                     // Fikra: a reply that only announces the next step ends the turn
                     // without a summary. Continue it (bounded) instead.
                     if auto_continues < super::unfinished_reply::MAX_AUTO_CONTINUES
+                        && auto_continues_total < super::unfinished_reply::MAX_AUTO_CONTINUES_PER_TURN
                         && !cancellation_token.is_cancelled()
                         && super::unfinished_reply::looks_unfinished_after_work(
                             completion_hooks.last_assistant_message.as_deref(),
@@ -872,7 +876,8 @@ pub(crate) async fn run_turn(
                         )
                     {
                         auto_continues += 1;
-                        warn!(auto_continues, "final reply looked unfinished; continuing the turn");
+                        auto_continues_total = auto_continues_total.saturating_add(1);
+                        warn!(auto_continues, auto_continues_total, "final reply looked unfinished; continuing the turn");
                         sess.record_response_item_and_emit_turn_item(
                             &turn_context,
                             &step_context.settings.model_info,

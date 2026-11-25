@@ -7,7 +7,10 @@
 //! last sentence announces more work, the turn is continued with a short
 //! prompt, at most [`MAX_AUTO_CONTINUES`] times per turn (long runs can stall several times).
 
+/// Nudges in a row without any tool work in between.
 pub(crate) const MAX_AUTO_CONTINUES: u8 = 6;
+/// Absolute ceiling per turn, even when the model keeps making progress.
+pub(crate) const MAX_AUTO_CONTINUES_PER_TURN: u8 = 40;
 
 pub(crate) const CONTINUE_PROMPT: &str = "You stopped before finishing: your last message announced a next step but no tool was called. \
 Continue the work now. When everything is done, end with a short final summary of what changed, what you verified, and anything left for the user.";
@@ -108,11 +111,11 @@ pub(crate) fn looks_unfinished_after_work(reply: Option<&str>, worked_this_turn:
     if text.chars().count() > 300 || text.contains('?') {
         return false;
     }
-    let lower = text.to_lowercase();
-    if DONE_WORDS.iter().any(|w| lower.contains(w)) {
-        return false;
-    }
-    true
+    !reports_result(&text.to_lowercase())
+}
+
+fn reports_result(lower: &str) -> bool {
+    DONE_WORDS.iter().any(|w| lower.contains(w))
 }
 
 /// True when a final reply looks like the model stopped mid-task.
@@ -136,6 +139,11 @@ pub(crate) fn looks_unfinished(reply: Option<&str>) -> bool {
         .split(|c: char| !c.is_alphanumeric() && c != '-')
         .filter(|w| !w.is_empty());
     let mut first_word = words.next().unwrap_or("");
+    // "Now an end-to-end check through the MCP handler." announces the next
+    // step; "Now all tests pass." reports a result.
+    if matches!(first_word, "now" | "next") && !reports_result(&last) {
+        return true;
+    }
     if matches!(first_word, "now" | "next" | "then" | "so" | "also" | "still" | "just") {
         first_word = words.next().unwrap_or("");
     }
@@ -197,6 +205,9 @@ mod tests {
         assert!(looks_unfinished(Some("It responds (405 on GET), it's OpenAI-compatible TTS. Probing the real contract.")));
         assert!(looks_unfinished(Some("Now doing a real synthesis so I can report formats and the exact parameters.")));
         assert!(looks_unfinished(Some("Tests added. Also checking the checkout API on already-active plans.")));
+        assert!(looks_unfinished(Some("All 32 pass. Now an end-to-end check through the actual MCP handler with the in-memory store, so the tool wiring is proven too.")));
+        assert!(looks_unfinished(Some("Schema is in. Next the migration for the nexus tables.")));
+        assert!(!looks_unfinished(Some("Fixed the race. Now all 32 tests pass.")));
     }
 
     #[test]

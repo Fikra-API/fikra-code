@@ -2,6 +2,12 @@
 
 Downloads and checksums: https://github.com/Fikra-API/fikra-code/releases
 
+## 0.3.2
+
+Fixed
+- Still stopped after "All 32 pass. Now an end-to-end check through the MCP handler...": a last sentence starting with "Now" or "Next" now continues unless it reports a result ("Now all tests pass" ends normally).
+- Long tasks ran out of continues. The limit is now 6 in a row without progress (resets whenever the agent runs a tool), with a ceiling of 40 per turn.
+
 ## 0.3.1
 
 Fixed
