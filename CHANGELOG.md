@@ -2,6 +2,12 @@
 
 Downloads and checksums: https://github.com/Fikra-API/fikra-code/releases
 
+## 0.2.1
+
+Fixed
+- Fikra Code stopped mid-task when the model ended a turn on an announcement instead of an action. 0.2.0 caught "Let me...", but not "Fixing my CN row to match.", "Posting the correction.", "Now confirming...", "..., let me check..." or a trailing "...". All of these now continue the turn. Checked against 61 real session endings: the 21 mid-task stops are all caught, and none of the 40 real answers are affected.
+- A long run can now recover from up to 6 such stalls per turn (was 2).
+
 ## 0.2.0
 
 New
