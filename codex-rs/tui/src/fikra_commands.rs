@@ -81,6 +81,15 @@ fn dirs_home() -> Option<std::path::PathBuf> {
         .map(std::path::PathBuf::from)
 }
 
+/// Quick, cached connection flags for the session header: (github, kaggle, colab).
+pub(crate) fn connection_flags(cwd: &Path) -> (bool, bool, bool) {
+    use std::sync::OnceLock;
+    static GH: OnceLock<bool> = OnceLock::new();
+    let github = *GH.get_or_init(|| run_quiet(cwd, "gh", &["auth", "status"]).is_some());
+    let colab = github_remote(cwd).is_some();
+    (github, kaggle_configured(), colab)
+}
+
 /// `/connect`: what Fikra Code can reach from this machine and folder.
 pub(crate) fn connection_report(cwd: &Path) -> String {
     let mut out = String::from("Connections\n");

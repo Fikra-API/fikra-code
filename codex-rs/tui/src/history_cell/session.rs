@@ -215,38 +215,34 @@ pub(crate) fn new_session_info(
 
     if is_first_event && local_settings.tui.show_tooltips {
         // Help lines below the header (new copy and list)
-        let help_lines: Vec<Line<'static>> = vec![
-            "  To get started, describe a task or try one of these commands:"
-                .dim()
-                .into(),
-            Line::from(""),
-            Line::from(vec![
-                "  ".into(),
-                "/init".into(),
-                " - create an AGENTS.md file with instructions for Fikra Code".dim(),
-            ]),
-            Line::from(vec![
-                "  ".into(),
-                "/status".into(),
-                " - show current session configuration".dim(),
-            ]),
-            Line::from(vec![
-                "  ".into(),
-                "/permissions".into(),
-                " - choose what Fikra Code is allowed to do".dim(),
-            ]),
-            Line::from(vec![
-                "  ".into(),
-                "/model".into(),
-                " - choose what model and reasoning effort to use".dim(),
-            ]),
-            Line::from(vec![
-                "  ".into(),
-                "/review".into(),
-                " - review any changes and find issues".dim(),
-            ]),
+        let actions: [(&str, &str); 8] = [
+            ("/pr", "open a pull request"),
+            ("/issue 42", "fix a GitHub issue"),
+            ("/review", "review my changes"),
+            ("/connect", "GitHub, Kaggle, Colab"),
+            ("/kaggle", "data + starter notebook"),
+            ("/colab", "Open in Colab link"),
+            ("/model", "switch model"),
+            ("/balance", "usage and free allowance"),
         ];
-
+        let accent = accent_color();
+        let mut help_lines: Vec<Line<'static>> = vec![
+            Line::from(vec![
+                "  Describe a task, or start with one of these:".dim(),
+            ]),
+            Line::default(),
+        ];
+        for pair in actions.chunks(2) {
+            let mut spans: Vec<Span<'static>> = vec!["  ".into()];
+            for (k, (cmd, what)) in pair.iter().enumerate() {
+                spans.push(format!("{cmd:<10}").fg(accent).bold());
+                spans.push(format!(" {what:<24}").dim());
+                if k == 0 {
+                    spans.push("  ".into());
+                }
+            }
+            help_lines.push(Line::from(spans));
+        }
         parts.push(Box::new(PlainHistoryCell { lines: help_lines }));
     } else if !is_first_event {
         if local_settings.tui.show_tooltips
@@ -321,6 +317,7 @@ pub(crate) struct SessionHeaderHistoryCell {
     reasoning_effort: Option<ReasoningEffortConfig>,
     directory: PathBuf,
     yolo_mode: bool,
+    connections: (bool, bool, bool),
 }
 
 impl SessionHeaderHistoryCell {
@@ -330,12 +327,14 @@ impl SessionHeaderHistoryCell {
         directory: PathBuf,
         version: &'static str,
     ) -> Self {
+        let connections = crate::fikra_commands::connection_flags(&directory);
         Self {
             version,
             model,
             reasoning_effort,
             directory,
             yolo_mode: false,
+            connections,
         }
     }
 
@@ -381,23 +380,78 @@ impl SessionHeaderHistoryCell {
 impl HistoryCell for SessionHeaderHistoryCell {
     fn display_lines(&self, width: u16) -> Vec<Line<'static>> {
         let width = usize::from(width);
-        let mut title = vec!["  ".into()];
-        title.extend(codex_title(self.version));
-        let mut lines = vec![
-            Line::default(),
+        // Narrow terminals: the compact two-line header.
+        if width < 44 {
+            let mut title = vec!["  ".into()];
+            title.extend(codex_title(self.version));
+            return vec![
+                Line::default(),
+                Line::from(title),
+                Line::from(vec!["     ".into(), self.format_directory(Some(width.saturating_sub(5))).dim()]),
+            ]
+            .into_iter()
+            .map(|line| truncate_line_with_ellipsis_if_overflow(line, width))
+            .collect();
+        }
+        let inner = width.saturating_sub(6).min(66);
+        let accent = accent_color();
+        let left: Vec<Span<'static>> = vec![
+            "\u{25B2} ".fg(accent).bold(),
+            "Fikra Code".fg(accent).bold(),
+            format!("  v{}", self.version).dim(),
+        ];
+        let right = "Built in Nairobi";
+        let left_w: usize = left.iter().map(|s| display_width(s.content.as_ref())).sum();
+        let mut title = left;
+        if left_w + display_width(right) + 2 <= inner {
+            title.push(" ".repeat(inner - left_w - display_width(right)).into());
+            title.push(right.dim());
+        }
+        let free = self.model == "qwen3.8-27b";
+        let mut model_line: Vec<Span<'static>> = vec!["model    ".dim(), self.model.clone().bold()];
+        if let Some(effort) = self.reasoning_label() {
+            model_line.push(format!(" {effort}").dim());
+        }
+        model_line.push("  ".into());
+        model_line.push(if free { " free ".black().on_green() } else { " paid ".dim().reversed() });
+        let (gh, kaggle, colab) = self.connections;
+        let mark = |ok: bool, name: &'static str| -> Vec<Span<'static>> {
+            if ok {
+                vec![name.into(), " \u{2713}".green()]
+            } else {
+                vec![name.dim(), " \u{2013}".dim()]
+            }
+        };
+        let mut connect: Vec<Span<'static>> = vec!["connect  ".dim()];
+        connect.extend(mark(gh, "GitHub"));
+        connect.push("  \u{00B7}  ".dim());
+        connect.extend(mark(kaggle, "Kaggle"));
+        connect.push("  \u{00B7}  ".dim());
+        connect.extend(mark(colab, "Colab"));
+        connect.push("   /connect".dim());
+        let mut body = vec![
             Line::from(title),
+            Line::default(),
+            Line::from(model_line),
             Line::from(vec![
-                "     ".into(),
-                self.format_directory(Some(width.saturating_sub(/*rhs*/ 5)))
-                    .dim(),
+                "folder   ".dim(),
+                self.format_directory(Some(inner.saturating_sub(9))).into(),
             ]),
+            Line::from(connect),
         ];
         if self.yolo_mode {
-            lines.push(Line::from(vec![
-                "  permissions: ".dim(),
-                "YOLO mode".magenta().bold(),
-            ]));
+            body.push(Line::from(vec!["access   ".dim(), "YOLO mode".magenta().bold()]));
         }
+        let body = body
+            .into_iter()
+            .map(|line| truncate_line_with_ellipsis_if_overflow(line, inner))
+            .collect();
+        let mut lines = vec![Line::default()];
+        lines.extend(
+            with_border_with_inner_width(body, inner)
+                .into_iter()
+                .map(|l| Line::from([vec![Span::from(" ")], l.spans].concat())),
+        );
         lines
             .into_iter()
             .map(|line| truncate_line_with_ellipsis_if_overflow(line, width))

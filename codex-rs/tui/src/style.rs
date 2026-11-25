@@ -18,16 +18,19 @@ use ratatui::style::Color;
 use ratatui::style::Modifier;
 use ratatui::style::Style;
 
-const LIGHT_BG_ACCENT_RGB: (u8, u8, u8) = (28, 100, 200);
+/// Fikra orange, darkened for light terminal backgrounds.
+const LIGHT_BG_ACCENT_RGB: (u8, u8, u8) = (196, 64, 10);
 
-/// ChatGPT Blue 100 (#A4CDFB), used for selection fills on light backgrounds.
-pub(crate) const CHATGPT_BLUE_100: (u8, u8, u8) = (164, 205, 251);
+/// Light Fikra orange (#FFDBC9), used for selection fills on light backgrounds.
+/// (Name kept from upstream so call sites stay unchanged.)
+pub(crate) const CHATGPT_BLUE_100: (u8, u8, u8) = (255, 219, 201);
 
-/// ChatGPT Blue 200 (#63A8F8).
-pub(crate) const CHATGPT_BLUE_200: (u8, u8, u8) = (99, 168, 248);
+/// Fikra orange (#FF6A2A): the Fikra Code accent on dark backgrounds.
+pub(crate) const CHATGPT_BLUE_200: (u8, u8, u8) = (255, 106, 42);
+pub(crate) const FIKRA_ORANGE: (u8, u8, u8) = CHATGPT_BLUE_200;
 
 /// Shared accent for picker selection backgrounds and transcript foreground emphasis.
-pub(crate) const UI_ACCENT: (u8, u8, u8) = CHATGPT_BLUE_200;
+pub(crate) const UI_ACCENT: (u8, u8, u8) = FIKRA_ORANGE;
 
 /// The result marker inherits the row fill, including the reverse-video selection fallback.
 pub(crate) fn task_marker(unread: bool, row: Style) -> ratatui::text::Span<'static> {
