@@ -211,7 +211,7 @@
     {
       "slug": "deepseek-v4.1-flash",
       "display_name": "deepseek-v4.1-flash",
-      "description": "Paid. Available through the Fikra API. 1M context \u00b7 $0.1875 in / $0.75 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Available through the Fikra API. 1M context \u00b7 $0.075 in / $0.3 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -471,7 +471,7 @@
     {
       "slug": "deepseek-v4-flash-0731",
       "display_name": "deepseek-v4-flash-0731",
-      "description": "Paid. Available through the Fikra API. 1M context \u00b7 $0.55 in / $1.65 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Available through the Fikra API. 1M context \u00b7 $0.05625 in / $0.1125 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -523,7 +523,7 @@
     {
       "slug": "deepseek-v4-flash-pinned",
       "display_name": "deepseek-v4-flash-pinned",
-      "description": "Paid. DeepSeek V4 Flash. 1M context \u00b7 $0.55 in / $1.65 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. DeepSeek V4 Flash. 1M context \u00b7 $0.05625 in / $0.1125 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -575,7 +575,7 @@
     {
       "slug": "deepseek-v4.1-flash-1017",
       "display_name": "deepseek-v4.1-flash-1017",
-      "description": "Paid. The latest DeepSeek V4. 1M context \u00b7 $0.1875 in / $0.75 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. The latest DeepSeek V4. 1M context \u00b7 $0.075 in / $0.3 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -627,7 +627,7 @@
     {
       "slug": "deepseek-v4.1-flash-pinned",
       "display_name": "deepseek-v4.1-flash-pinned",
-      "description": "Paid. DeepSeek V4. 1M context \u00b7 $0.1875 in / $0.75 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. DeepSeek V4. 1M context \u00b7 $0.075 in / $0.3 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -731,7 +731,7 @@
     {
       "slug": "fikra-7b-v1",
       "display_name": "fikra-7b-v1",
-      "description": "Paid. Fikra 7B V1 is a proprietary model, fine-tuned from Qwen 2. 33K context \u00b7 $0.9 in / $2.7 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Fikra 7B V1 is a proprietary model, fine-tuned from Qwen 2. 33K context \u00b7 $0.9375 in / $2.8125 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -939,7 +939,7 @@
     {
       "slug": "gemini-4-argon",
       "display_name": "gemini-4-argon",
-      "description": "Paid. Available through the Fikra API. 1M context \u00b7 $2.5 in / $12 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Available through the Fikra API. 1M context \u00b7 $2.5 in / $12.5 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -1043,7 +1043,7 @@
     {
       "slug": "glm-5.2",
       "display_name": "glm-5.2",
-      "description": "Paid. Z. 262K context \u00b7 $1.75 in / $5.5 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Z. 262K context \u00b7 $0.85 in / $1.875 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -1095,7 +1095,7 @@
     {
       "slug": "glm-5.3-flash",
       "display_name": "glm-5.3-flash",
-      "description": "Paid. Available through the Fikra API. 328K context \u00b7 $0.1875 in / $0.625 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Available through the Fikra API. 328K context \u00b7 $0.175 in / $0.5625 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -1147,7 +1147,7 @@
     {
       "slug": "inkling-2-small",
       "display_name": "inkling-2-small",
-      "description": "Paid. Available through the Fikra API. 1M context \u00b7 $0.38 in / $1.25 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Available through the Fikra API. 1M context \u00b7 $0.375 in / $1.25 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -1199,7 +1199,7 @@
     {
       "slug": "inkling-small",
       "display_name": "inkling-small",
-      "description": "Paid. Available through the Fikra API. 524K context \u00b7 $0.56 in / $1.5 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Available through the Fikra API. 524K context \u00b7 $0.5625 in / $1.5 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -1251,7 +1251,7 @@
     {
       "slug": "mimo-v2.6-pro",
       "display_name": "mimo-v2.6-pro",
-      "description": "Paid. Xiaomi MiMo-V2. 1M context \u00b7 $0.5 in / $1 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Xiaomi MiMo-V2. 1M context \u00b7 $0.5375 in / $1.0875 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -1303,7 +1303,7 @@
     {
       "slug": "nvidia-nemotron-3.5-super-vl",
       "display_name": "nvidia-nemotron-3.5-super-vl",
-      "description": "Paid. Available through the Fikra API. 1M context \u00b7 $0.5 in / $1.25 out per 1M tokens \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Available through the Fikra API. 1M context \u00b7 $0.25 in / $1.25 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
@@ -1459,7 +1459,7 @@
     {
       "slug": "qwen3.8-max",
       "display_name": "qwen3.8-max",
-      "description": "Paid. Qwen 3. 1M context \u00b7 free \u00b7 included in Fikra Code plans.",
+      "description": "Paid. Qwen 3.8 Max: Alibaba's frontier model. 1M context \u00b7 $2.5 in / $7.5 out per 1M tokens \u00b7 included in Fikra Code plans.",
       "default_reasoning_level": null,
       "supported_reasoning_levels": [],
       "shell_type": "unified_exec",
