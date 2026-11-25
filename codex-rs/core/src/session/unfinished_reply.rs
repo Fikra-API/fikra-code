@@ -76,6 +76,45 @@ fn last_sentence(text: &str) -> String {
     last.trim().to_lowercase()
 }
 
+/// Words ending in "-ing" that are not progressive verbs.
+const NOT_GERUNDS: &[&str] = &[
+    "nothing", "something", "anything", "everything", "thing", "things", "string", "strings",
+    "during", "morning", "evening", "king", "ring", "sing", "spring", "bring", "wing", "ceiling",
+    "building", "meaning", "setting", "settings", "warning", "warnings", "pending", "missing",
+    "remaining", "existing", "following", "interesting", "outstanding", "according", "padding",
+];
+
+fn is_gerund(word: &str) -> bool {
+    word.len() >= 5 && word.ends_with("ing") && !NOT_GERUNDS.contains(&word)
+}
+
+const DONE_WORDS: &[&str] = &[
+    "done", "fixed", "complete", "completed", "finished", "passes", "passed", "pass", "sent",
+    "delivered", "ready", "merged", "pushed", "deployed", "works", "working now", "all set",
+    "summary", "nothing changed", "no changes", "resolved", "saved", "created", "updated",
+];
+
+/// Stronger check once the turn has already run tools: a short final reply
+/// that is not a question and does not report a result means the model
+/// narrated its next step and stopped ("Probing the real contract.").
+pub(crate) fn looks_unfinished_after_work(reply: Option<&str>, worked_this_turn: bool) -> bool {
+    if looks_unfinished(reply) {
+        return true;
+    }
+    if !worked_this_turn {
+        return false;
+    }
+    let text = reply.unwrap_or("").trim();
+    if text.chars().count() > 300 || text.contains('?') {
+        return false;
+    }
+    let lower = text.to_lowercase();
+    if DONE_WORDS.iter().any(|w| lower.contains(w)) {
+        return false;
+    }
+    true
+}
+
 /// True when a final reply looks like the model stopped mid-task.
 pub(crate) fn looks_unfinished(reply: Option<&str>) -> bool {
     let text = reply.unwrap_or("").trim();
@@ -97,10 +136,10 @@ pub(crate) fn looks_unfinished(reply: Option<&str>) -> bool {
         .split(|c: char| !c.is_alphanumeric() && c != '-')
         .filter(|w| !w.is_empty());
     let mut first_word = words.next().unwrap_or("");
-    if matches!(first_word, "now" | "next" | "then" | "so") {
+    if matches!(first_word, "now" | "next" | "then" | "so" | "also" | "still" | "just") {
         first_word = words.next().unwrap_or("");
     }
-    if GERUND_STARTS.contains(&first_word) {
+    if GERUND_STARTS.contains(&first_word) || is_gerund(first_word) {
         return true;
     }
     // "They look suspicious - let me check abuse signals before emailing them."
@@ -153,6 +192,21 @@ mod tests {
         assert!(looks_unfinished(Some("Verified. Now confirming the live key context picks up enterprise.")));
         assert!(looks_unfinished(Some("Found all three. They look suspicious, let me check abuse signals first.")));
         assert!(looks_unfinished(Some("42 GB free, disk problem solved. Resuming the build check.")));
+        assert!(looks_unfinished(Some("Rendering both emails with the existing brand shell and checking the output isn't blank.")));
+        assert!(looks_unfinished(Some("The floor is wrong for a legitimate short reply. Lowering it.")));
+        assert!(looks_unfinished(Some("It responds (405 on GET), it's OpenAI-compatible TTS. Probing the real contract.")));
+        assert!(looks_unfinished(Some("Now doing a real synthesis so I can report formats and the exact parameters.")));
+        assert!(looks_unfinished(Some("Tests added. Also checking the checkout API on already-active plans.")));
+    }
+
+    #[test]
+    fn after_work_short_narration_continues() {
+        use super::looks_unfinished_after_work as f;
+        assert!(f(Some("The schema lives in db.rs. The migration needs a new column."), true));
+        assert!(!f(Some("The schema lives in db.rs. The migration needs a new column."), false));
+        assert!(!f(Some("Fixed: the migration adds the column and all 12 tests pass."), true));
+        assert!(!f(Some("Which database should I use, Postgres or SQLite?"), true));
+        assert!(!f(Some("Hi! What are we working on today?"), false));
     }
 
     #[test]

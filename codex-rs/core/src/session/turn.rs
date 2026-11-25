@@ -535,6 +535,7 @@ pub(crate) async fn run_turn(
     let mut completion_hooks = TurnCompletionHooks::default();
     let mut stop_hook_active = false;
     let mut auto_continues: u8 = 0;
+    let mut worked_this_turn = false;
     // A steer can reopen sampling within the same turn. Keep its aggregate until the turn ends.
     let turn_diff_tracker = turn_context
         .extension_data
@@ -703,6 +704,7 @@ pub(crate) async fn run_turn(
                     stop_ran: false,
                 };
                 if model_needs_follow_up {
+                    worked_this_turn = true;
                     sess.input_queue
                         .accept_mailbox_delivery_for_current_turn(
                             &sess.active_turn,
@@ -857,8 +859,9 @@ pub(crate) async fn run_turn(
                     // without a summary. Continue it (bounded) instead.
                     if auto_continues < super::unfinished_reply::MAX_AUTO_CONTINUES
                         && !cancellation_token.is_cancelled()
-                        && super::unfinished_reply::looks_unfinished(
+                        && super::unfinished_reply::looks_unfinished_after_work(
                             completion_hooks.last_assistant_message.as_deref(),
+                            worked_this_turn,
                         )
                         && let Some(nudge) = build_hook_prompt_message(
                             &[HookPromptFragment::from_single_hook(

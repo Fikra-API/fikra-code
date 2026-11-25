@@ -2,6 +2,11 @@
 
 Downloads and checksums: https://github.com/Fikra-API/fikra-code/releases
 
+## 0.3.1
+
+Fixed
+- Fikra Code still stopped mid-task on narrations the 0.2.1 list did not know ("Rendering both emails...", "Lowering it.", "Probing the real contract.", "Now doing a real synthesis..."). Two general rules replace the word list: any sentence that opens with a verb in -ing (also after now/next/then/also), and, once a turn has run tools, any short final reply that is neither a question nor a reported result. Checked on 83 real turns: all 30 mid-task stops continue, and questions and summaries end normally.
+
 ## 0.3.0
 
 New look
