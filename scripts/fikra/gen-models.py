@@ -13,10 +13,12 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[2] / "codex-rs"
 MODELS_URL = "https://fikraapi.co.ke/v1/models"
-DEFAULT_MODEL = "qwen3.8-27b"
+DEFAULT_MODEL = "qwen3.8-27b-free"
+PAID_QWEN = "qwen3.8-27b"
 # Shown first in the picker, in this order. Everything else follows by name.
 PREFERRED = [
     DEFAULT_MODEL,
+    PAID_QWEN,
     "fikra-auto",
     "fikra-auto-pro",
     "fikra-code-35b",
@@ -29,6 +31,7 @@ PREFERRED = [
 EXCLUDE_SUBSTRINGS = ("embedding", "tts", "stt", "seedream", "decision")
 DESCRIPTIONS = {
     DEFAULT_MODEL: "Free: 200 requests and 2M tokens a day, no card needed.",
+    PAID_QWEN: "Same Qwen 3.8 27B, paid per token with no daily cap.",
     "fikra-auto": "Fikra picks a fast, low-cost model for each request.",
     "fikra-auto-pro": "Fikra picks a frontier model for each request.",
     "fikra-code-35b": "Fikra coding model.",

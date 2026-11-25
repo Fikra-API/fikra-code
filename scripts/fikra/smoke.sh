@@ -93,7 +93,7 @@ if python3 -c "import pyte" 2>/dev/null; then
   echo "$SCREEN" | grep -Eq '\b(Codex|OpenAI)\b' && fail "interactive app mentions Codex/OpenAI"
   echo "$SCREEN" | grep -qP '[\x{2800}-\x{28FF}]' && fail "interactive app draws the upstream logo"
   echo "$SCREEN" | grep -q 'gpt-' && fail "interactive app shows a GPT model"
-  echo "$SCREEN" | grep -q 'qwen3.8-27b' || fail "interactive app is not on the Fikra default model"
+  echo "$SCREEN" | grep -q 'qwen3.8-27b-free' || fail "interactive app is not on the Fikra default model"
 else
   echo "pyte not installed; skipping the interactive screen check"
 fi

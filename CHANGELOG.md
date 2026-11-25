@@ -2,6 +2,11 @@
 
 Downloads and checksums: https://github.com/Fikra-API/fikra-code/releases
 
+## 0.3.3
+
+Changed
+- The free model is now `qwen3.8-27b-free` (200 requests and 2M tokens a day, no card). `qwen3.8-27b` is the same model, paid per token with no daily cap. New sessions start on `qwen3.8-27b-free`; the model list is refreshed from the live catalog.
+
 ## 0.3.2
 
 Fixed

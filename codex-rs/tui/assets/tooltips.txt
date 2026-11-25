@@ -48,6 +48,6 @@ Run **/kaggle owner/dataset** to download a Kaggle dataset and get a starter not
 Run **/colab** to make a notebook Colab-ready and get its Open in Colab link.
 Use **/connect** to check GitHub, Kaggle and Colab are set up.
 Use **/balance** to see your Fikra balance, free allowance and recent usage.
-qwen3.8-27b is free on Fikra: 200 requests and 2M tokens a day. **/upgrade** opens the plans when you need more.
+qwen3.8-27b-free is free on Fikra: 200 requests and 2M tokens a day; paid qwen3.8-27b has no daily cap. **/upgrade** opens the plans when you need more.
 Set `FIKRA_ZDR=true` and paid-model requests are sent with zero data retention.
 Run `fikra update` to install the latest version; old versions are removed to save space.

@@ -411,7 +411,7 @@ impl HistoryCell for SessionHeaderHistoryCell {
             title.push(" ".repeat(inner - left_w - display_width(right)).into());
             title.push(right.dim());
         }
-        let free = self.model == "qwen3.8-27b";
+        let free = self.model == "qwen3.8-27b-free";
         let mut model_line: Vec<Span<'static>> = vec!["model    ".dim(), self.model.clone().bold()];
         if let Some(effort) = self.reasoning_label() {
             model_line.push(format!(" {effort}").dim());
