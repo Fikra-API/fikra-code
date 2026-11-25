@@ -2,6 +2,17 @@
 
 Downloads and checksums: https://github.com/Fikra-API/fikra-code/releases
 
+## 0.3.0
+
+New look
+- Fikra orange is the accent colour across the app (it was the inherited ChatGPT blue): highlights, selections and prompts all change.
+- The session header is a card: the Fikra Code mark and version, the model with a free/paid tag, the folder, and live GitHub, Kaggle and Colab status.
+- Every session starts with a quick-actions grid: /pr, /issue, /review, /connect, /kaggle, /colab, /model, /balance.
+- The footer shows the model, git branch, open PR number, context left and folder.
+
+Changed
+- Model list prices match the live catalogue: DeepSeek V4.1 Flash is $0.075 in / $0.30 out per 1M tokens, and Qwen 3.8 Max is a paid model.
+
 ## 0.2.1
 
 Fixed

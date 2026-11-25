@@ -213,7 +213,9 @@ pub(crate) fn new_session_info(
     ));
     let mut parts: Vec<Box<dyn HistoryCell>> = vec![Box::new(header)];
 
-    if is_first_event && local_settings.tui.show_tooltips {
+    // Fikra: the quick-actions grid shows at the start of every session, not
+    // only the very first run.
+    if local_settings.tui.show_tooltips {
         // Help lines below the header (new copy and list)
         let actions: [(&str, &str); 8] = [
             ("/pr", "open a pull request"),
@@ -244,14 +246,16 @@ pub(crate) fn new_session_info(
             help_lines.push(Line::from(spans));
         }
         parts.push(Box::new(PlainHistoryCell { lines: help_lines }));
-    } else if !is_first_event {
-        if local_settings.tui.show_tooltips
-            && let Some(tooltips) = tooltip_override
-                .or_else(|| tooltips::get_tooltip(auth_plan, &local_settings.tui.keymap))
-                .map(|tip| TooltipHistoryCell::new(tip, &config.cwd))
+    }
+    if !is_first_event {
+        // The quick-actions grid replaces the single rotating tip line; keep
+        // the tip only when someone turned tips off but passed an override.
+        if !local_settings.tui.show_tooltips
+            && let Some(tip) = tooltip_override.map(|tip| TooltipHistoryCell::new(tip, &config.cwd))
         {
-            parts.push(Box::new(tooltips));
+            parts.push(Box::new(tip));
         }
+        let _ = auth_plan;
         if requested_model != session.model.as_str() {
             let lines = vec![
                 "model changed:".magenta().bold().into(),
