@@ -2,6 +2,12 @@
 
 Downloads and checksums: https://github.com/Fikra-API/fikra-code/releases
 
+## 0.3.6
+
+Fixed
+- A new session could start on a paid model. The catalog marks several models as the product default; the client took the first one and recorded `qwen3.8-max`, which bills per token. A default is now accepted only when exactly one model claims it, and a recorded default from an ambiguous catalog is cleared, so the shipped free model stands.
+- Diagnostics and help text still named `CODEX_HOME`, and the queue command's own errors said `codex queue`. Both now say `FIKRA_HOME` and `fikra queue`, matching the environment variable that is actually read.
+
 ## 0.3.5
 
 Changed

@@ -328,7 +328,7 @@ fn prepare_path_entry_for_codex_aliases(
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
                 format!(
-                    "Refusing to create helper binaries under temporary dir {temp_root:?} (codex_home: {codex_home:?})"
+                    "Refusing to create helper binaries under temporary dir {temp_root:?} (home: {codex_home:?})"
                 ),
             ));
         }

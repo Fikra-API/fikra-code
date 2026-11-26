@@ -78,10 +78,18 @@ impl FikraCatalog {
     ///
     /// Best effort: a write failure just means the shipped default is used.
     pub fn persist_main_model(&self, codex_home: &std::path::Path) {
+        let path = codex_home.join(MAIN_MODEL_FILE);
         let Some(slug) = self.main_model.as_deref().filter(|slug| !slug.is_empty()) else {
+            // The catalog named no usable default. Drop any earlier record so a
+            // value written by a previous, wrong choice cannot keep selecting it.
+            if let Err(err) = std::fs::remove_file(&path)
+                && err.kind() != std::io::ErrorKind::NotFound
+            {
+                tracing::warn!("failed to clear the Fikra default model: {err}");
+            }
             return;
         };
-        if let Err(err) = std::fs::write(codex_home.join(MAIN_MODEL_FILE), slug) {
+        if let Err(err) = std::fs::write(&path, slug) {
             tracing::warn!("failed to persist the Fikra default model: {err}");
         }
     }
@@ -409,6 +417,20 @@ mod tests {
         let body = super::read_fresh_cache(home.path()).expect("fresh cache");
         let merged = super::FikraCatalog::from_body(&body).expect("merge cached body");
         assert!(merged.models.iter().any(|m| m.slug == "qwen3.8-27b-free"));
+    }
+
+    #[test]
+    fn a_withheld_default_clears_an_earlier_record() {
+        let home = tempfile::tempdir().expect("temp home");
+        std::fs::write(home.path().join(super::MAIN_MODEL_FILE), "qwen3.8-max").expect("seed");
+        let ambiguous = r#"{"data":[
+            {"id":"qwen3.8-max","is_main":true,"rank":1},
+            {"id":"qwen3.8-27b-free","is_main":true,"rank":2}
+        ]}"#;
+        let overlay = merge(&bundled(), ambiguous).expect("overlay");
+        assert_eq!(overlay.main_model, None);
+        overlay.persist_main_model(home.path());
+        assert_eq!(super::FikraCatalog::cached_main_model(home.path()), None);
     }
 
     #[test]
