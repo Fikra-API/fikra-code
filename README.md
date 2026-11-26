@@ -72,7 +72,7 @@ Your browser opens [fikraapi.co.ke/code/plans](https://fikraapi.co.ke/code/plans
 
 | Plan | Price | Allowance |
 | --- | --- | --- |
-| Free | $0 | qwen3.8-27b: 200 requests and 2M tokens a day, no card needed |
+| Free | $0 | qwen3.8-27b-free: 200 requests and 2M tokens a day, no card needed |
 | Lite | $10 / month | $0.50 every 5 hours, $3 a week, every model |
 | Pro | $25 / month | $1.50 every 5 hours, $8 a week, every model |
 | Max | $60 / month | $5 every 5 hours, $18 a week, every model |
@@ -114,7 +114,8 @@ Every paid plan includes every model in the catalog. Prices are USD per 1M input
 
 | Model | ID | Input / Output |
 | --- | --- | --- |
-| Qwen 3.8 27B (free, default) | `qwen3.8-27b` | free (200 requests and 2M tokens a day) |
+| Qwen 3.8 27B (free, default) | `qwen3.8-27b-free` | free (200 requests and 2M tokens a day) |
+| Qwen 3.8 27B (paid) | `qwen3.8-27b` | same model, paid per token, no daily cap |
 | Fikra Auto | `fikra-auto` | 0.045 / 0.35 |
 | Fikra Code 35B | `fikra-code-35b` | 0.045 / 0.33 |
 | DeepSeek V4.1 Flash | `deepseek-v4.1-flash` | 0.1875 / 0.75 |
