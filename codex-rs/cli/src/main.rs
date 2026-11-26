@@ -2289,12 +2289,20 @@ async fn run_debug_models_command(
             None
         };
         let models_manager = build_models_manager(&config, auth_manager, runtime_auth);
-        models_manager
+        let catalog = models_manager
             .raw_model_catalog(
                 RefreshStrategy::OnlineIfUncached,
                 config.http_client_factory(),
             )
-            .await
+            .await;
+        // Fikra: prefer the live product catalog so new models appear without a
+        // release. Presentation only; anything missing keeps the bundled entry.
+        match codex_models_manager::FikraCatalog::load(config.http_client_factory()).await {
+            Some(live) => codex_protocol::openai_models::ModelsResponse {
+                models: live.models,
+            },
+            None => catalog,
+        }
     };
 
     serde_json::to_writer(std::io::stdout(), &catalog)?;

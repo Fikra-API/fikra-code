@@ -53,6 +53,7 @@ jobs:
           cargo test -p codex-async-utils --lib
           cargo test -p codex-login --lib fikra_usage
           cargo test -p codex-models-manager --lib
+          cargo test -p codex-models-manager --lib fikra_catalog
           cargo test -p codex-core --lib unfinished_reply
           cargo test -p codex-core --lib turn_completion
           cargo test -p codex-tui --lib fikra_commands
