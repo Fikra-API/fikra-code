@@ -154,7 +154,13 @@ pub fn merge(bundled: &[ModelInfo], live_json: &str) -> Option<FikraCatalog> {
     let models = ranked
         .into_iter()
         .filter_map(|(_, row)| {
-            let mut model = (*by_slug.get(row.id.as_str())?).clone();
+            // A model the server added since this build shipped has no bundled
+            // entry. Fall back to the generic descriptor so it stays selectable
+            // instead of silently disappearing from the picker.
+            let mut model = match by_slug.get(row.id.as_str()) {
+                Some(bundled) => (*bundled).clone(),
+                None => crate::model_info::model_info_from_slug(&row.id),
+            };
             if let Some(name) = row.display_name.as_deref().filter(|name| !name.is_empty()) {
                 model.display_name = name.to_string();
             }
@@ -198,10 +204,35 @@ mod tests {
     }"#;
 
     #[test]
-    fn orders_by_rank_and_skips_unknown_and_unavailable_models() {
+    fn orders_by_rank_and_skips_unavailable_models() {
         let overlay = merge(&bundled(), LIVE).expect("overlay");
         let slugs: Vec<&str> = overlay.models.iter().map(|m| m.slug.as_str()).collect();
-        assert_eq!(slugs, vec!["qwen3.8-max", "qwen3.8-27b-free"]);
+        assert_eq!(
+            slugs,
+            vec!["qwen3.8-max", "qwen3.8-27b-free", "brand-new-model"]
+        );
+    }
+
+    #[test]
+    fn a_model_the_server_added_is_still_selectable() {
+        let overlay = merge(&bundled(), LIVE).expect("overlay");
+        let added = overlay
+            .models
+            .iter()
+            .find(|m| m.slug == "brand-new-model")
+            .expect("model added by the server");
+        assert_eq!(added.display_name, "Brand New");
+        assert_eq!(added.context_window, Some(65536));
+        assert_eq!(
+            added.visibility,
+            codex_protocol::openai_models::ModelVisibility::List
+        );
+    }
+
+    #[test]
+    fn bundled_models_dropped_by_the_server_disappear() {
+        let overlay = merge(&bundled(), LIVE).expect("overlay");
+        assert!(!overlay.models.iter().any(|m| m.slug == "kimi-k3"));
     }
 
     #[test]
