@@ -128,7 +128,7 @@ pub fn merge(bundled: &[ModelInfo], live_json: &str) -> Option<FikraCatalog> {
     let models = ranked
         .into_iter()
         .filter_map(|(_, row)| {
-            let mut model = by_slug.get(row.id.as_str())?.clone();
+            let mut model = (*by_slug.get(row.id.as_str())?).clone();
             if let Some(name) = row.display_name.as_deref().filter(|name| !name.is_empty()) {
                 model.display_name = name.to_string();
             }
@@ -137,8 +137,8 @@ pub fn merge(bundled: &[ModelInfo], live_json: &str) -> Option<FikraCatalog> {
             }
             if let Some(window) = row.context_window.filter(|window| *window > 0) {
                 let window = window.min(MAX_CONTEXT_WINDOW);
-                model.context_window = window;
-                model.max_context_window = window;
+                model.context_window = Some(window);
+                model.max_context_window = Some(window);
             }
             Some(model)
         })
@@ -212,7 +212,7 @@ mod tests {
             .iter()
             .find(|m| m.slug == "qwen3.8-max")
             .expect("max model");
-        assert_eq!(max.context_window, 1_000_000);
+        assert_eq!(max.context_window, Some(1_000_000));
     }
 
     #[test]
