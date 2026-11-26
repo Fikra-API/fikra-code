@@ -693,6 +693,17 @@ impl ChatWidget {
                     );
                 }
             }
+            // /compare needs its arguments, so it is handled in the
+            // args-aware path; reaching here means no arguments were given.
+            SlashCommand::Compare => {
+                self.add_info_message(
+                    "Usage: /compare <model-a> <model-b> <prompt>".to_string(),
+                    Some(
+                        "For example: /compare qwen3.8-max kimi-k3 explain this stack trace"
+                            .to_string(),
+                    ),
+                );
+            }
             SlashCommand::TestApproval => {
                 use std::collections::HashMap;
 
