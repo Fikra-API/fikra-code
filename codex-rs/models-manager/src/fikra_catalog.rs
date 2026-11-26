@@ -223,7 +223,13 @@ pub fn merge(bundled: &[ModelInfo], live_json: &str) -> Option<FikraCatalog> {
             // instead of silently disappearing from the picker.
             let mut model = match by_slug.get(row.id.as_str()) {
                 Some(bundled) => (*bundled).clone(),
-                None => crate::model_info::model_info_from_slug(&row.id),
+                None => {
+                    // The generic descriptor is hidden by default; a model the
+                    // server lists should be selectable, so make it visible.
+                    let mut fallback = crate::model_info::model_info_from_slug(&row.id);
+                    fallback.visibility = codex_protocol::openai_models::ModelVisibility::List;
+                    fallback
+                }
             };
             if let Some(name) = row.display_name.as_deref().filter(|name| !name.is_empty()) {
                 model.display_name = name.to_string();
@@ -287,10 +293,12 @@ mod tests {
             .expect("model added by the server");
         assert_eq!(added.display_name, "Brand New");
         assert_eq!(added.context_window, Some(65536));
-        assert_eq!(
+        // A model the server lists must be selectable, so the fallback is
+        // promoted from the generic hidden descriptor to a listed one.
+        assert!(matches!(
             added.visibility,
             codex_protocol::openai_models::ModelVisibility::List
-        );
+        ));
     }
 
     #[test]
@@ -382,12 +390,13 @@ mod tests {
     fn unusable_payloads_return_none() {
         assert!(merge(&bundled(), "not json").is_none());
         assert!(merge(&bundled(), r#"{"data": []}"#).is_none());
-        assert!(
-            merge(
-                &bundled(),
-                r#"{"data":[{"id":"unknown-a"},{"id":"unknown-b"}]}"#
-            )
-            .is_none()
-        );
+        // Unknown ids are no longer dropped: the fallback keeps them
+        // selectable, so this merges instead of returning None.
+        let overlay = merge(
+            &bundled(),
+            r#"{"data":[{"id":"unknown-a"},{"id":"unknown-b"}]}"#,
+        )
+        .expect("unknown ids still produce a catalog");
+        assert_eq!(overlay.models.len(), 2);
     }
 }
