@@ -61,7 +61,11 @@ for _ in $(seq 50); do grep -q . "$HOSTS.ready" 2>/dev/null && break; sleep 0.1;
 export HTTPS_PROXY="http://127.0.0.1:$PORT" HTTP_PROXY="http://127.0.0.1:$PORT"
 export https_proxy="$HTTPS_PROXY" http_proxy="$HTTP_PROXY"
 
-(cd "$TASK" && timeout 600 "$BIN" exec -C "$TASK" \
+# The free model has a daily token cap, so a shared CI key runs out and fails
+# this step for reasons unrelated to the build. Use a paid model with no cap.
+# The interactive check below still proves the free model is the app default.
+SMOKE_MODEL="${FIKRA_SMOKE_MODEL:-qwen3.8-27b}"
+(cd "$TASK" && timeout 600 "$BIN" exec -C "$TASK" --model "$SMOKE_MODEL" \
   --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check \
   "Run the tests, find the bug, fix it, and run the tests again." 2>&1) | tee "$WORK/exec.log"
 unset HTTPS_PROXY HTTP_PROXY https_proxy http_proxy
