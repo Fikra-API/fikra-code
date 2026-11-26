@@ -120,6 +120,112 @@ pub(crate) fn connection_report(cwd: &Path) -> String {
     out
 }
 
+/// `model-a model-b rest of prompt`, the shape `/compare` accepts.
+///
+/// Returns `None` when the arguments cannot name two models and a prompt.
+pub(crate) fn parse_compare_args(args: &str) -> Option<(String, String, String)> {
+    let mut parts = args.split_whitespace();
+    let left = parts.next()?.to_string();
+    let right = parts.next()?.to_string();
+    let prompt = parts.collect::<Vec<_>>().join(" ");
+    if left == right || prompt.is_empty() {
+        return None;
+    }
+    Some((left, right, prompt))
+}
+
+const FIKRA_CHAT_URL: &str = "https://fikraapi.co.ke/v1/chat/completions";
+
+/// `/compare`: run one prompt on two models and lay the answers side by side.
+///
+/// A single non-streaming request per model, joined into one report. Token and
+/// cost totals come back in the response body when the API reports them.
+pub(crate) async fn compare_models(
+    api_key: &str,
+    prompt: &str,
+    left: &str,
+    right: &str,
+) -> Result<String, String> {
+    let prompt = prompt.trim();
+    if prompt.is_empty() {
+        return Err(
+            "Give me a prompt to compare, for example: /compare qwen3.8-max kimi-k3 <prompt>"
+                .to_string(),
+        );
+    }
+    let (left_answer, right_answer) = tokio::join!(
+        ask_one_model(api_key, prompt, left),
+        ask_one_model(api_key, prompt, right)
+    );
+    let left_answer = left_answer?;
+    let right_answer = right_answer?;
+    Ok(format!(
+        "{left}\n{}\n\n{right}\n{}",
+        indent(&left_answer),
+        indent(&right_answer)
+    ))
+}
+
+async fn ask_one_model(api_key: &str, prompt: &str, model: &str) -> Result<String, String> {
+    let factory = codex_http_client::HttpClientFactory::new(
+        codex_http_client::OutboundProxyPolicy::ReqwestDefault,
+    );
+    let client = factory
+        .build_client(FIKRA_CHAT_URL, codex_http_client::ClientRouteClass::Other)
+        .map_err(|err| format!("could not build HTTP client: {err}"))?;
+    let body = serde_json::json!({
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+    });
+    let response = client
+        .post(FIKRA_CHAT_URL)
+        .bearer_auth(api_key.trim())
+        .json(&body)
+        .send()
+        .await
+        .map_err(|err| format!("{model}: could not reach the Fikra API: {err}"))?;
+    let status = response.status().as_u16();
+    let value: serde_json::Value = response
+        .json()
+        .await
+        .map_err(|err| format!("{model}: unexpected response: {err}"))?;
+    if status == 401 || status == 403 {
+        return Err("the Fikra API rejected this key. Run `fikra login` again.".to_string());
+    }
+    if status >= 400 {
+        let message = value
+            .get("error")
+            .and_then(|error| error.get("message"))
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("request failed");
+        return Err(format!("{model}: {message}"));
+    }
+    let answer = value
+        .get("choices")
+        .and_then(|choices| choices.get(0))
+        .and_then(|choice| choice.get("message"))
+        .and_then(|message| message.get("content"))
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let usage = value.get("usage");
+    let tokens = usage
+        .and_then(|usage| usage.get("total_tokens"))
+        .and_then(serde_json::Value::as_u64);
+    Ok(match tokens {
+        Some(tokens) => format!("{answer}\n  ({tokens} tokens)"),
+        None => answer,
+    })
+}
+
+fn indent(text: &str) -> String {
+    text.lines()
+        .map(|line| format!("  {line}"))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 /// Slugs from the last catalog this client cached, if one is present.
 ///
 /// Reads the cache the model listing writes, so `/catalog` answers from what
@@ -265,6 +371,23 @@ pub(crate) fn colab_prompt(args: &str, cwd: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::parse_github_remote;
+
+    #[test]
+    fn compare_args_need_two_models_and_a_prompt() {
+        use super::parse_compare_args;
+        assert_eq!(
+            parse_compare_args("qwen3.8-max kimi-k3 explain this"),
+            Some((
+                "qwen3.8-max".to_string(),
+                "kimi-k3".to_string(),
+                "explain this".to_string()
+            ))
+        );
+        assert_eq!(parse_compare_args("a b"), None);
+        assert_eq!(parse_compare_args("a a prompt"), None);
+        assert_eq!(parse_compare_args(""), None);
+        assert_eq!(parse_compare_args("only-one"), None);
+    }
 
     #[test]
     fn catalog_report_lists_what_changed() {

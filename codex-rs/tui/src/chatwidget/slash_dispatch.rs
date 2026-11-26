@@ -623,6 +623,45 @@ impl ChatWidget {
                 let _ = webbrowser::open(crate::fikra_commands::DOCS_URL);
                 self.add_info_message(format!("Fikra Code docs: {}", crate::fikra_commands::DOCS_URL), None);
             }
+            SlashCommand::Compare => {
+                let args = rest.trim().to_string();
+                let Some(api_key) = crate::fikra_commands::api_key() else {
+                    self.add_error_message(
+                        "Not signed in. Run `fikra login` or set FIKRA_API_KEY.".to_string(),
+                    );
+                    return;
+                };
+                let Some((left, right, prompt)) = crate::fikra_commands::parse_compare_args(&args)
+                else {
+                    self.add_info_message(
+                        "Usage: /compare <model-a> <model-b> <prompt>".to_string(),
+                        Some("For example: /compare qwen3.8-max kimi-k3 explain this stack trace".to_string()),
+                    );
+                    return;
+                };
+                self.add_info_message(
+                    format!("Comparing {left} and {right}..."),
+                    /*hint*/ None,
+                );
+                let tx = self.app_event_tx.clone();
+                tokio::spawn(async move {
+                    let text = match crate::fikra_commands::compare_models(
+                        &api_key, &prompt, &left, &right,
+                    )
+                    .await
+                    {
+                        Ok(report) => report,
+                        Err(err) => format!("Could not compare: {err}"),
+                    };
+                    let lines = text
+                        .lines()
+                        .map(|line| ratatui::text::Line::from(line.to_string()))
+                        .collect();
+                    tx.send(AppEvent::InsertHistoryCell(Box::new(
+                        crate::history_cell::PlainHistoryCell::new(lines),
+                    )));
+                });
+            }
             SlashCommand::Catalog => {
                 let bundled: Vec<String> = codex_models_manager::bundled_models_response()
                     .map(|response| response.models.into_iter().map(|m| m.slug).collect())
