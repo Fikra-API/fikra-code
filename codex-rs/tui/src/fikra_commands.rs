@@ -6,7 +6,7 @@ use std::path::Path;
 use std::process::Command;
 use std::process::Stdio;
 
-pub(crate) const PLANS_URL: &str = "https://fikraapi.co.ke/plans?ref=fikra-code";
+pub(crate) const PLANS_URL: &str = "https://fikraapi.co.ke/code/plans?ref=fikra-code";
 pub(crate) const DOCS_URL: &str = "https://fikraapi.co.ke/code/docs?ref=fikra-code";
 
 /// The signed-in Fikra API key: `FIKRA_API_KEY` / `OPENAI_API_KEY`, else auth.json.
@@ -202,6 +202,14 @@ pub(crate) fn colab_prompt(args: &str, cwd: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::parse_github_remote;
+
+    #[test]
+    fn plans_link_points_at_the_fikra_code_plans_page() {
+        // The generic /plans page is for API customers; /code/plans is the
+        // page a Fikra Code user needs when they hit a limit.
+        assert!(super::PLANS_URL.starts_with("https://fikraapi.co.ke/code/plans?"));
+        assert!(super::DOCS_URL.starts_with("https://fikraapi.co.ke/code/docs?"));
+    }
 
     #[test]
     fn parses_github_remotes() {
