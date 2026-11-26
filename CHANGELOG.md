@@ -82,6 +82,8 @@ Fixed
 
 Fikra Code is a fork of the OpenAI Codex CLI (Apache 2.0). Upstream history: https://github.com/openai/codex/releases
 
-## Unreleased
+## Upstream Codex notes (not part of the Fikra Code release line)
+
+Not shipped as Fikra Code changes; kept for attribution of the inherited base.
 
 - Fix missing command lifecycle events when unified exec cannot create a process, preserving approval rejection and sandbox retry behavior. Thanks @Marvinthebored ([#44557](https://github.com/openai/codex/issues/44557)).

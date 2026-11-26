@@ -6,3 +6,8 @@ Copyright (c) 2016-2022 Florian Dehau
 Copyright (c) 2023-2025 The Ratatui Developers
 
 This product includes modifications by Lacesse Ventures (Fikra Code).
+
+Fikra Code is an independent product built on the OpenAI Codex CLI codebase
+(licensed under the Apache License 2.0, see LICENSE) as its foundation. It is
+not affiliated with or endorsed by OpenAI, and does not track the upstream
+repository; it follows its own release line and roadmap.
