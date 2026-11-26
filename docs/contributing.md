@@ -22,6 +22,13 @@ Open a feature request in the issue tracker, or upvote an existing request that 
 
 Fikra Code is open source under the Apache License 2.0. Pull requests are welcome against the `main` branch. Keep the change focused, include tests where practical, and update the docs when behavior changes.
 
+Build fully in GitHub Actions. A push to `main` or a pull request that touches `codex-rs/**` or
+`scripts/fikra/**` runs `.github/workflows/fikra-ci.yml`, and tagged releases run
+`.github/workflows/fikra-release.yml`. Do not run full `cargo build`/`cargo check` on the shared
+development machine: a single build of this workspace can consume 17 GB and fill the disk.
+Local `cargo` use should stay limited to cheap, single-crate checks, and created `target/`
+directories should be removed afterwards.
+
 ### Community values
 
 - **Be kind and inclusive.** Treat others with respect; we follow the [Contributor Covenant](https://www.contributor-covenant.org/).
