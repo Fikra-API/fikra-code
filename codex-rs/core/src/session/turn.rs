@@ -696,11 +696,13 @@ pub(crate) async fn run_turn(
                 let AssistantMessages {
                     final_answer,
                     trailing_commentary,
+                    last_phase: sampling_request_last_phase,
                 } = sampling_request_last_agent_message;
                 let sampling_request_last_agent_message =
                     work.assistant_message(final_answer, trailing_commentary);
                 completion_hooks = TurnCompletionHooks {
                     last_assistant_message: sampling_request_last_agent_message,
+                    last_assistant_phase: sampling_request_last_phase,
                     notify_messages: Some(notify_messages),
                     stop_ran: false,
                 };
@@ -859,14 +861,21 @@ pub(crate) async fn run_turn(
                 if !needs_follow_up {
                     last_agent_message.clone_from(&completion_hooks.last_assistant_message);
                     // Fikra: a reply that only announces the next step ends the turn
-                    // without a summary. Continue it (bounded) instead.
+                    // without a summary. Continue it (bounded) instead. The provider's
+                    // declared phase decides when present; the wording heuristic in
+                    // `unfinished_reply` is the fallback when it declares nothing.
+                    let turn_decision = super::turn_completion::decide(
+                        completion_hooks.last_assistant_phase.as_ref(),
+                        completion_hooks.last_assistant_message.as_deref(),
+                        worked_this_turn,
+                    );
+                    let continues = turn_decision.continues();
+                    let continued_by_heuristic = turn_decision.is_heuristic_continue();
                     if auto_continues < super::unfinished_reply::MAX_AUTO_CONTINUES
-                        && auto_continues_total < super::unfinished_reply::MAX_AUTO_CONTINUES_PER_TURN
+                        && auto_continues_total
+                            < super::unfinished_reply::MAX_AUTO_CONTINUES_PER_TURN
                         && !cancellation_token.is_cancelled()
-                        && super::unfinished_reply::looks_unfinished_after_work(
-                            completion_hooks.last_assistant_message.as_deref(),
-                            worked_this_turn,
-                        )
+                        && continues
                         && let Some(nudge) = build_hook_prompt_message(
                             &[HookPromptFragment::from_single_hook(
                                 super::unfinished_reply::CONTINUE_PROMPT,
@@ -877,7 +886,12 @@ pub(crate) async fn run_turn(
                     {
                         auto_continues += 1;
                         auto_continues_total = auto_continues_total.saturating_add(1);
-                        warn!(auto_continues, auto_continues_total, "final reply looked unfinished; continuing the turn");
+                        warn!(
+                            auto_continues,
+                            auto_continues_total,
+                            heuristic = continued_by_heuristic,
+                            "final reply looked unfinished; continuing the turn"
+                        );
                         sess.record_response_item_and_emit_turn_item(
                             &turn_context,
                             &step_context.settings.model_info,
@@ -1114,6 +1128,8 @@ pub(crate) async fn run_turn(
 #[derive(Default)]
 struct TurnCompletionHooks {
     last_assistant_message: Option<String>,
+    /// Phase the provider declared for `last_assistant_message`, if any.
+    last_assistant_phase: Option<MessagePhase>,
     notify_messages: Option<Vec<String>>,
     stop_ran: bool,
 }
@@ -2371,10 +2387,13 @@ pub(super) async fn built_tools(
 struct AssistantMessages {
     final_answer: Option<String>,
     trailing_commentary: Option<String>,
+    /// Provider-declared phase of the message that ended the response.
+    last_phase: Option<MessagePhase>,
 }
 
 impl AssistantMessages {
     fn record(&mut self, message: AssistantText) {
+        self.last_phase.clone_from(&message.phase);
         if message.is_final_answer {
             self.final_answer = Some(message.text);
             self.trailing_commentary = None;

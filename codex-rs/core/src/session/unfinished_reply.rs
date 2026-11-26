@@ -6,6 +6,10 @@
 //! and the user never gets a summary. When the final reply is empty or its
 //! last sentence announces more work, the turn is continued with a short
 //! prompt, at most [`MAX_AUTO_CONTINUES`] times per turn (long runs can stall several times).
+//!
+//! This module is the wording fallback. When a provider declares a message
+//! phase, [`super::turn_completion`] decides from that instead and this
+//! heuristic is not consulted. Keep it for providers that send no phase.
 
 /// Nudges in a row without any tool work in between.
 pub(crate) const MAX_AUTO_CONTINUES: u8 = 6;

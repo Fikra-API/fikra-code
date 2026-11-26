@@ -229,6 +229,8 @@ pub(crate) type InFlightFuture<'f> =
 pub(crate) struct AssistantText {
     pub(crate) text: String,
     pub(crate) is_final_answer: bool,
+    /// What the provider declared about this message, when it declared anything.
+    pub(crate) phase: Option<MessagePhase>,
 }
 
 #[derive(Default)]
@@ -306,6 +308,7 @@ pub(crate) async fn finalize_non_tool_response_item(
                     has_text.then_some(AssistantText {
                         text: combined,
                         is_final_answer,
+                        phase: agent_message.phase.clone(),
                     }),
                     is_final_answer,
                 )
