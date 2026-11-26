@@ -200,6 +200,15 @@ pub(crate) use guardian_policy::resolve_guardian_reviewer;
 mod runtime_refresh;
 pub(crate) use runtime_refresh::RuntimeConfigRefresh;
 
+/// The model the Fikra catalog marks as the product default, from the last
+/// fetched catalog. Falls back to the shipped default when no catalog has been
+/// fetched or the recorded model is not in the catalog.
+fn fikra_default_model(codex_home: &std::path::Path) -> String {
+    codex_models_manager::FikraCatalog::cached_main_model(codex_home)
+        .filter(|slug| fikra_catalog_has_model(slug))
+        .unwrap_or_else(|| FIKRA_DEFAULT_MODEL.to_string())
+}
+
 /// Whether `slug` is a model in the bundled Fikra catalog.
 fn fikra_catalog_has_model(slug: &str) -> bool {
     static SLUGS: std::sync::OnceLock<std::collections::HashSet<String>> = std::sync::OnceLock::new();
@@ -4400,7 +4409,8 @@ impl Config {
         let forced_login_method = cfg.forced_login_method;
 
         let model = model.or(cfg.model).or_else(|| {
-            (model_provider_id == FIKRA_PROVIDER_ID).then(|| FIKRA_DEFAULT_MODEL.to_string())
+            (model_provider_id == FIKRA_PROVIDER_ID)
+                .then(|| fikra_default_model(codex_home.as_path()))
         });
         // On the Fikra provider only Fikra catalog models exist. Upstream code
         // paths can still request OpenAI model names (gpt-5.6-terra, ...);
@@ -4409,10 +4419,11 @@ impl Config {
             Some(requested) if model_provider_id == FIKRA_PROVIDER_ID
                 && !fikra_catalog_has_model(&requested) =>
             {
+                let fallback = fikra_default_model(codex_home.as_path());
                 tracing::warn!(
-                    "model `{requested}` is not in the Fikra catalog; using {FIKRA_DEFAULT_MODEL}"
+                    "model `{requested}` is not in the Fikra catalog; using {fallback}"
                 );
-                Some(FIKRA_DEFAULT_MODEL.to_string())
+                Some(fallback)
             }
             other => other,
         };

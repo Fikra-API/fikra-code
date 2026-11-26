@@ -2298,9 +2298,13 @@ async fn run_debug_models_command(
         // Fikra: prefer the live product catalog so new models appear without a
         // release. Presentation only; anything missing keeps the bundled entry.
         match codex_models_manager::FikraCatalog::load(config.http_client_factory()).await {
-            Some(live) => codex_protocol::openai_models::ModelsResponse {
-                models: live.models,
-            },
+            Some(live) => {
+                // The listed catalog is also where a new session's default comes from.
+                live.persist_main_model(config.codex_home.as_path());
+                codex_protocol::openai_models::ModelsResponse {
+                    models: live.models,
+                }
+            }
             None => catalog,
         }
     };

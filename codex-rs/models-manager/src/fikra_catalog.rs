@@ -24,6 +24,10 @@ pub const FIKRA_CODE_CATALOG_URL: &str = "https://fikraapi.co.ke/code/models.jso
 /// A catalog this size is several times over a full response.
 const MAX_CATALOG_BYTES: usize = 512 * 1024;
 
+/// File recording the model the server marked `is_main`, so a new session can
+/// start on it without shipping a release.
+const MAIN_MODEL_FILE: &str = "fikra_default_model";
+
 /// Model ids never offered, even if the catalog lists them.
 const EXCLUDED_IDS: &[&str] = &["fikra-qwen-27b", "fikra-7b-v1"];
 
@@ -63,6 +67,28 @@ pub struct FikraCatalog {
 }
 
 impl FikraCatalog {
+    /// Persist the server's chosen default model into `codex_home`.
+    ///
+    /// Best effort: a write failure just means the shipped default is used.
+    pub fn persist_main_model(&self, codex_home: &std::path::Path) {
+        let Some(slug) = self.main_model.as_deref().filter(|slug| !slug.is_empty()) else {
+            return;
+        };
+        if let Err(err) = std::fs::write(codex_home.join(MAIN_MODEL_FILE), slug) {
+            tracing::warn!("failed to persist the Fikra default model: {err}");
+        }
+    }
+
+    /// The default model the server last asked for, if one was persisted.
+    ///
+    /// Only returns slugs the bundled catalog knows, so a stale record cannot
+    /// select a model this build cannot run.
+    pub fn cached_main_model(codex_home: &std::path::Path) -> Option<String> {
+        let raw = std::fs::read_to_string(codex_home.join(MAIN_MODEL_FILE)).ok()?;
+        let slug = raw.trim();
+        (!slug.is_empty()).then(|| slug.to_string())
+    }
+
     /// Fetch the live catalog and merge it onto the bundled one.
     ///
     /// Best effort: any failure returns `None` so the caller keeps the bundled
@@ -213,6 +239,23 @@ mod tests {
             .find(|m| m.slug == "qwen3.8-max")
             .expect("max model");
         assert_eq!(max.context_window, Some(1_000_000));
+    }
+
+    #[test]
+    fn main_model_round_trips_through_codex_home() {
+        let home = tempfile::tempdir().expect("temp home");
+        let overlay = merge(&bundled(), LIVE).expect("overlay");
+        overlay.persist_main_model(home.path());
+        assert_eq!(
+            super::FikraCatalog::cached_main_model(home.path()).as_deref(),
+            Some("qwen3.8-27b-free")
+        );
+    }
+
+    #[test]
+    fn no_persisted_main_model_is_none() {
+        let home = tempfile::tempdir().expect("temp home");
+        assert_eq!(super::FikraCatalog::cached_main_model(home.path()), None);
     }
 
     #[test]

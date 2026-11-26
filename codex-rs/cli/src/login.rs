@@ -301,7 +301,7 @@ fn print_fikra_login_success(plan: Option<&str>) {
     match plan {
         Some(plan) => eprintln!("{LOGIN_SUCCESS_MESSAGE} to Fikra Code ({plan} plan)."),
         None => eprintln!(
-            "{LOGIN_SUCCESS_MESSAGE} to Fikra Code (free: DeepSeek V4.1 Flash). Plans: https://fikraapi.co.ke/code/plans"
+            "{LOGIN_SUCCESS_MESSAGE} to Fikra Code (free: qwen3.8-27b-free). Plans: https://fikraapi.co.ke/code/plans"
         ),
     }
 }
