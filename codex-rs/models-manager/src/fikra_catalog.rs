@@ -28,6 +28,13 @@ const MAX_CATALOG_BYTES: usize = 512 * 1024;
 /// start on it without shipping a release.
 const MAIN_MODEL_FILE: &str = "fikra_default_model";
 
+/// Last good catalog body, so a launch does not depend on a fresh fetch.
+const CACHE_FILE: &str = "fikra_catalog_cache.json";
+
+/// How long a cached catalog is reused before another fetch is attempted.
+/// Model catalogs change on the order of days, not minutes.
+const CACHE_TTL_SECS: u64 = 6 * 60 * 60;
+
 /// Model ids never offered, even if the catalog lists them.
 const EXCLUDED_IDS: &[&str] = &["fikra-qwen-27b", "fikra-7b-v1"];
 
@@ -91,31 +98,88 @@ impl FikraCatalog {
 
     /// Fetch the live catalog and merge it onto the bundled one.
     ///
+    /// Uses the cached catalog while it is fresh, and falls back to it when a
+    /// fetch fails, so a launch neither re-fetches every time nor loses the
+    /// server's view because the network blinked.
+    ///
     /// Best effort: any failure returns `None` so the caller keeps the bundled
     /// catalog. This runs on the model-picker path, so it never blocks for long.
-    pub async fn load(factory: HttpClientFactory) -> Option<Self> {
-        let client = factory
-            .build_client_without_request_logging(FIKRA_CODE_CATALOG_URL, ClientRouteClass::Other)
+    pub async fn load(factory: HttpClientFactory, codex_home: &std::path::Path) -> Option<Self> {
+        if let Some(fresh) = read_fresh_cache(codex_home) {
+            return Self::from_body(&fresh);
+        }
+        let fetched = fetch(factory).await;
+        if let Some(body) = fetched.as_deref() {
+            write_cache(codex_home, body);
+        }
+        let body = fetched.or_else(|| read_any_cache(codex_home))?;
+        Self::from_body(&body)
+    }
+
+    /// Merge a catalog response body onto the bundled catalog.
+    fn from_body(body: &str) -> Option<Self> {
+        merge(&super::bundled_models_response().ok()?.models, body)
+    }
+}
+
+/// Fetch the catalog body over HTTP. `None` on any failure.
+async fn fetch(factory: HttpClientFactory) -> Option<String> {
+    let client = factory
+        .build_client_without_request_logging(FIKRA_CODE_CATALOG_URL, ClientRouteClass::Other)
+        .ok()?;
+    tokio::time::timeout(Duration::from_secs(/*secs*/ 5), async {
+        let response = client
+            .get(FIKRA_CODE_CATALOG_URL)
+            .header(
+                USER_AGENT,
+                concat!("fikra-code/", env!("CARGO_PKG_VERSION")),
+            )
+            .timeout(Duration::from_secs(/*secs*/ 5))
+            .send()
+            .await
+            .ok()?
+            .error_for_status()
             .ok()?;
-        let body = tokio::time::timeout(Duration::from_secs(/*secs*/ 5), async {
-            let response = client
-                .get(FIKRA_CODE_CATALOG_URL)
-                .header(
-                    USER_AGENT,
-                    concat!("fikra-code/", env!("CARGO_PKG_VERSION")),
-                )
-                .timeout(Duration::from_secs(/*secs*/ 5))
-                .send()
-                .await
-                .ok()?
-                .error_for_status()
-                .ok()?;
-            let text = response.text().await.ok()?;
-            (text.len() <= MAX_CATALOG_BYTES).then_some(text)
-        })
-        .await
-        .ok()??;
-        merge(&super::bundled_models_response().ok()?.models, &body)
+        let text = response.text().await.ok()?;
+        (text.len() <= MAX_CATALOG_BYTES).then_some(text)
+    })
+    .await
+    .ok()?
+}
+
+/// Cached body with the time it was written, as `{written_unix, body}`.
+fn read_cache(codex_home: &std::path::Path) -> Option<(u64, String)> {
+    let raw = std::fs::read_to_string(codex_home.join(CACHE_FILE)).ok()?;
+    let value: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    let written = value.get("written_unix")?.as_u64()?;
+    let body = value.get("body")?.as_str()?.to_string();
+    Some((written, body))
+}
+
+fn now_unix() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|elapsed| elapsed.as_secs())
+        .unwrap_or(0)
+}
+
+/// The cached body while it is still inside the TTL.
+fn read_fresh_cache(codex_home: &std::path::Path) -> Option<String> {
+    let (written, body) = read_cache(codex_home)?;
+    let age = now_unix().saturating_sub(written);
+    (age < CACHE_TTL_SECS).then_some(body)
+}
+
+/// The cached body regardless of age, for when a fetch fails.
+fn read_any_cache(codex_home: &std::path::Path) -> Option<String> {
+    read_cache(codex_home).map(|(_, body)| body)
+}
+
+/// Persist the catalog body. Best effort: a write failure only costs a fetch.
+fn write_cache(codex_home: &std::path::Path, body: &str) {
+    let payload = serde_json::json!({ "written_unix": now_unix(), "body": body });
+    if let Err(err) = std::fs::write(codex_home.join(CACHE_FILE), payload.to_string()) {
+        tracing::warn!("failed to cache the Fikra catalog: {err}");
     }
 }
 
@@ -281,6 +345,31 @@ mod tests {
             super::FikraCatalog::cached_main_model(home.path()).as_deref(),
             Some("qwen3.8-27b-free")
         );
+    }
+
+    #[test]
+    fn a_fresh_cache_is_reused_and_an_expired_one_is_not() {
+        let home = tempfile::tempdir().expect("temp home");
+        assert!(super::read_fresh_cache(home.path()).is_none());
+        super::write_cache(home.path(), LIVE);
+        assert_eq!(super::read_fresh_cache(home.path()).as_deref(), Some(LIVE));
+        // An expired entry is still usable as a fallback.
+        let stale = serde_json::json!({
+            "written_unix": super::now_unix() - super::CACHE_TTL_SECS - 1,
+            "body": LIVE
+        });
+        std::fs::write(home.path().join(super::CACHE_FILE), stale.to_string()).expect("write");
+        assert!(super::read_fresh_cache(home.path()).is_none());
+        assert_eq!(super::read_any_cache(home.path()).as_deref(), Some(LIVE));
+    }
+
+    #[test]
+    fn a_cached_body_still_merges() {
+        let home = tempfile::tempdir().expect("temp home");
+        super::write_cache(home.path(), LIVE);
+        let body = super::read_fresh_cache(home.path()).expect("fresh cache");
+        let merged = super::FikraCatalog::from_body(&body).expect("merge cached body");
+        assert!(merged.models.iter().any(|m| m.slug == "qwen3.8-27b-free"));
     }
 
     #[test]
