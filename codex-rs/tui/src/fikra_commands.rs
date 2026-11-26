@@ -120,6 +120,69 @@ pub(crate) fn connection_report(cwd: &Path) -> String {
     out
 }
 
+/// Slugs from the last catalog this client cached, if one is present.
+///
+/// Reads the cache the model listing writes, so `/catalog` answers from what
+/// the server last said without waiting on a request.
+pub(crate) fn live_catalog_slugs(codex_home: &std::path::Path) -> Option<Vec<String>> {
+    let raw = std::fs::read_to_string(codex_home.join("fikra_catalog_cache.json")).ok()?;
+    let value: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    let body = value.get("body")?.as_str()?;
+    let parsed: serde_json::Value = serde_json::from_str(body).ok()?;
+    let rows = parsed.get("data")?.as_array()?;
+    Some(
+        rows.iter()
+            .filter(|row| {
+                row.get("available_in_api")
+                    .and_then(serde_json::Value::as_bool)
+                    != Some(false)
+            })
+            .filter_map(|row| row.get("id").and_then(serde_json::Value::as_str))
+            .map(str::to_string)
+            .collect(),
+    )
+}
+
+/// `/catalog`: what the server offers now against what this build knows.
+///
+/// Pure comparison of two lists, so it answers "why can't I see the model
+/// that is on the site" without calling a model.
+pub(crate) fn catalog_report(bundled: &[String], live: Option<&[String]>) -> String {
+    let mut out = String::from("Model catalog\n");
+    out.push_str(&format!(
+        "  built into this binary   {} models\n",
+        bundled.len()
+    ));
+    match live {
+        Some(live) => {
+            out.push_str(&format!(
+                "  served today             {} models\n",
+                live.len()
+            ));
+            let added: Vec<&String> = live.iter().filter(|slug| !bundled.contains(slug)).collect();
+            let dropped: Vec<&String> =
+                bundled.iter().filter(|slug| !live.contains(slug)).collect();
+            if added.is_empty() && dropped.is_empty() {
+                out.push_str("\n  In sync.\n");
+            }
+            if !added.is_empty() {
+                out.push_str("\n  Added since this build (selectable now):\n");
+                for slug in added {
+                    out.push_str(&format!("    + {slug}\n"));
+                }
+            }
+            if !dropped.is_empty() {
+                out.push_str("\n  No longer offered (removed from the picker):\n");
+                for slug in dropped {
+                    out.push_str(&format!("    - {slug}\n"));
+                }
+            }
+        }
+        None => out.push_str("  served today             unreachable, showing this build only\n"),
+    }
+    out
+}
+
 pub(crate) fn pr_prompt(args: &str) -> String {
     let title = args.trim();
     let title_line = if title.is_empty() {
@@ -202,6 +265,49 @@ pub(crate) fn colab_prompt(args: &str, cwd: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::parse_github_remote;
+
+    #[test]
+    fn catalog_report_lists_what_changed() {
+        let bundled = vec!["a".to_string(), "b".to_string(), "gone".to_string()];
+        let live = vec!["a".to_string(), "b".to_string(), "brand-new".to_string()];
+        let report = super::catalog_report(&bundled, Some(&live));
+        assert!(report.contains("built into this binary   3 models"));
+        assert!(report.contains("served today             3 models"));
+        assert!(report.contains("+ brand-new"));
+        assert!(report.contains("- gone"));
+        assert!(!report.contains("In sync"));
+    }
+
+    #[test]
+    fn catalog_report_says_when_lists_agree() {
+        let same = vec!["a".to_string()];
+        let report = super::catalog_report(&same, Some(&same));
+        assert!(report.contains("In sync"));
+    }
+
+    #[test]
+    fn catalog_report_survives_an_unreachable_server() {
+        let report = super::catalog_report(&["a".to_string()], None);
+        assert!(report.contains("unreachable"));
+        assert!(report.contains("1 models"));
+    }
+
+    #[test]
+    fn live_catalog_slugs_reads_the_cache() {
+        let home = tempfile::tempdir().expect("temp home");
+        assert!(super::live_catalog_slugs(home.path()).is_none());
+        let body = r#"{"data":[{"id":"one"},{"id":"two"},{"id":"off","available_in_api":false}]}"#;
+        let payload = serde_json::json!({"written_unix": 1, "body": body});
+        std::fs::write(
+            home.path().join("fikra_catalog_cache.json"),
+            payload.to_string(),
+        )
+        .expect("write cache");
+        assert_eq!(
+            super::live_catalog_slugs(home.path()),
+            Some(vec!["one".to_string(), "two".to_string()])
+        );
+    }
 
     #[test]
     fn plans_link_points_at_the_fikra_code_plans_page() {

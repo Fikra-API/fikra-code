@@ -37,6 +37,8 @@ pub enum SlashCommand {
     Balance,
     Upgrade,
     Docs,
+    /// Compare the model catalog served today with the one built into this binary.
+    Catalog,
     Rename,
     New,
     Archive,
@@ -117,6 +119,7 @@ impl SlashCommand {
             SlashCommand::Balance => "show my Fikra balance, free allowance and recent usage",
             SlashCommand::Upgrade => "open Fikra plans in the browser (KES 200/week, $10/month)",
             SlashCommand::Docs => "open the Fikra Code docs",
+            SlashCommand::Catalog => "compare the live model catalog with this build",
             SlashCommand::Rename => "rename the current thread",
             SlashCommand::Resume => "resume a saved chat",
             SlashCommand::Archive => "archive this session",
@@ -324,6 +327,7 @@ impl SlashCommand {
             | SlashCommand::Balance
             | SlashCommand::Upgrade
             | SlashCommand::Docs
+            | SlashCommand::Catalog
             | SlashCommand::DebugConfig
             | SlashCommand::Ps
             | SlashCommand::Stop

@@ -623,6 +623,16 @@ impl ChatWidget {
                 let _ = webbrowser::open(crate::fikra_commands::DOCS_URL);
                 self.add_info_message(format!("Fikra Code docs: {}", crate::fikra_commands::DOCS_URL), None);
             }
+            SlashCommand::Catalog => {
+                let bundled: Vec<String> = codex_models_manager::bundled_models_response()
+                    .map(|response| response.models.into_iter().map(|m| m.slug).collect())
+                    .unwrap_or_default();
+                let live = crate::fikra_commands::live_catalog_slugs(&self.config.codex_home);
+                self.add_info_message(
+                    crate::fikra_commands::catalog_report(&bundled, live.as_deref()),
+                    None,
+                );
+            }
             SlashCommand::Usage => {
                 if self.ensure_usage_command_available() {
                     self.open_usage_menu();
