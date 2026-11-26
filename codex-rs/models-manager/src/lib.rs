@@ -1,5 +1,6 @@
 pub mod cache;
 mod catalog;
+mod fikra_catalog;
 pub mod collaboration_mode_presets;
 pub(crate) mod config;
 pub mod manager;
@@ -9,6 +10,7 @@ mod originator;
 pub mod test_support;
 
 pub use catalog::CatalogModel;
+pub use fikra_catalog::FikraCatalog;
 pub use catalog::ModelOrigin;
 pub use codex_protocol::auth::AuthMode;
 pub use config::ModelsManagerConfig;

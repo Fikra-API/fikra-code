@@ -4384,6 +4384,7 @@ dependencies = [
  "codex-prompts",
  "codex-protocol",
  "codex-utils-output-truncation",
+ "http",
  "pretty_assertions",
  "serde",
  "serde_json",

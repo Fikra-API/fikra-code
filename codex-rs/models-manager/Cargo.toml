@@ -20,6 +20,7 @@ codex-otel = { workspace = true }
 codex-protocol = { workspace = true }
 codex-prompts = { workspace = true }
 codex-utils-output-truncation = { workspace = true }
+http = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["fs", "sync", "time"] }
