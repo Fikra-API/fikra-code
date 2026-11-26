@@ -2,6 +2,16 @@
 
 Downloads and checksums: https://github.com/Fikra-API/fikra-code/releases
 
+## 0.3.4
+
+Changed
+- The model list is merged with the live catalog at `fikraapi.co.ke/code/models.json`, so names, descriptions, context windows and ordering follow the server instead of only the copy built into the binary. A model the catalog does not list, or marks unavailable, is dropped. Tool and prompt settings always stay in the binary, and if the catalog cannot be fetched the built-in list is used exactly as before.
+- Long tasks finish instead of stopping mid-thought. When a model ends a turn on a sentence that only announces the next step, Fikra Code continues the turn. It now takes that decision from the message phase the model reports (commentary vs final answer) and only falls back to reading the wording when the model reports nothing.
+
+Fixed
+- `/upgrade` opened the API plans page instead of the Fikra Code plans page, so anyone who hit a limit was sent somewhere that does not sell Fikra Code.
+- The README listed `qwen3.8-27b` as the free default. The free default is `qwen3.8-27b-free`; `qwen3.8-27b` is the same model on pay-per-token with no daily cap.
+
 ## 0.3.3
 
 Changed
