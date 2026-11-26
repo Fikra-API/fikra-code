@@ -76,16 +76,11 @@ pub fn assess_patch_safety(
         });
     }
 
-    match policy {
-        AskForApproval::Never | AskForApproval::OnRequest | AskForApproval::Granular(_) => {
-            // Continue to see if this can be auto-approved.
-        }
-        // TODO(ragona): I'm not sure this is actually correct? I believe in this case
-        // we want to continue to the writable paths check before asking the user.
-        AskForApproval::UnlessTrusted => {
-            return Ok(SafetyCheck::AskUser);
-        }
-    }
+    // Every policy continues to the writable-path check below. A patch whose
+    // targets are all inside the writable roots is auto-approved even under
+    // `UnlessTrusted`: prompting for a write the sandbox already permits is
+    // noise, and a needless prompt is a chance to click the wrong answer.
+    // `Never` still rejects below via `rejects_sandbox_approval`.
 
     let rejects_sandbox_approval = matches!(policy, AskForApproval::Never)
         || matches!(

@@ -521,3 +521,57 @@ fn missing_project_dot_codex_config_requires_approval() {
         SafetyCheck::AskUser,
     );
 }
+
+#[test]
+fn unless_trusted_does_not_prompt_for_a_patch_inside_the_writable_root() {
+    let tmp = TempDir::new().unwrap();
+    let cwd = tmp.path().abs();
+    let cwd_uri = PathUri::from_abs_path(&cwd);
+    let inside = ApplyPatchAction::new_add_for_test(
+        &PathUri::from_host_native_path(cwd.join("inside.txt")).expect("inside path"),
+        String::new(),
+    );
+    let permission_profile = PermissionProfile::workspace_write();
+    let policy = permission_profile.file_system_sandbox_policy();
+
+    // The write is already permitted by the sandbox, so asking is noise.
+    assert_eq!(
+        assess_patch_safety(
+            &inside,
+            AskForApproval::UnlessTrusted,
+            &permission_profile,
+            &PatchSandboxRoute::ExecutorManaged
+                .prepare_matching(&policy, &local_context(&cwd_uri))
+                .expect("prepare patch matching"),
+        )
+        .expect("assess patch safety"),
+        SafetyCheck::AutoApprove,
+    );
+}
+
+#[test]
+fn never_still_rejects_a_patch_outside_the_writable_root() {
+    let tmp = TempDir::new().unwrap();
+    let cwd = tmp.path().abs();
+    let cwd_uri = PathUri::from_abs_path(&cwd);
+    let outside_path = cwd.parent().unwrap().join("outside-never.txt");
+    let outside = ApplyPatchAction::new_add_for_test(
+        &PathUri::from_host_native_path(outside_path).expect("outside path"),
+        String::new(),
+    );
+    let permission_profile = PermissionProfile::workspace_write();
+    let policy = permission_profile.file_system_sandbox_policy();
+
+    assert!(matches!(
+        assess_patch_safety(
+            &outside,
+            AskForApproval::Never,
+            &permission_profile,
+            &PatchSandboxRoute::ExecutorManaged
+                .prepare_matching(&policy, &local_context(&cwd_uri))
+                .expect("prepare patch matching"),
+        )
+        .expect("assess patch safety"),
+        SafetyCheck::Reject { .. }
+    ));
+}
