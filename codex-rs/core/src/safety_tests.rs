@@ -554,9 +554,10 @@ fn never_still_rejects_a_patch_outside_the_writable_root() {
     let tmp = TempDir::new().unwrap();
     let cwd = tmp.path().abs();
     let cwd_uri = PathUri::from_abs_path(&cwd);
-    let outside_path = cwd.parent().unwrap().join("outside-never.txt");
+    // workspace_write() makes the workspace and /tmp writable, so an outside
+    // path has to be outside both to prove the rejection.
     let outside = ApplyPatchAction::new_add_for_test(
-        &PathUri::from_host_native_path(outside_path).expect("outside path"),
+        &PathUri::parse("file:///etc/fikra-never-outside.txt").expect("outside path"),
         String::new(),
     );
     let permission_profile = PermissionProfile::workspace_write();

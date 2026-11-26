@@ -57,7 +57,7 @@ jobs:
           cargo test -p codex-core --lib unfinished_reply
           cargo test -p codex-core --lib turn_completion
           cargo test -p codex-tui --lib fikra_commands
-          cargo test -p codex-core --lib safety
+          cargo test -p codex-core --lib safety::tests
 
       - name: Install screen checker
         run: pip install --quiet pyte
