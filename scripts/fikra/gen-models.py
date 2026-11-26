@@ -29,6 +29,9 @@ PREFERRED = [
     "qwen4-max",
 ]
 EXCLUDE_SUBSTRINGS = ("embedding", "tts", "stt", "seedream", "decision")
+# Delisted on the API but still answering for old clients. The picker shows what
+# the catalog advertises, so these must not appear even though they respond.
+EXCLUDE_IDS = {"fikra-qwen-27b", "fikra-7b-v1"}
 DESCRIPTIONS = {
     DEFAULT_MODEL: "Free: 200 requests and 2M tokens a day, no card needed.",
     PAID_QWEN: "Same Qwen 3.8 27B, paid per token with no daily cap.",
@@ -51,7 +54,7 @@ def main() -> None:
         ctx = m.get("context_window") or 0
         if pricing.get("unit") != "USD_PER_1M_TOKENS" or ctx <= 0:
             continue
-        if any(s in mid for s in EXCLUDE_SUBSTRINGS):
+        if mid in EXCLUDE_IDS or any(s in mid for s in EXCLUDE_SUBSTRINGS):
             continue
         chat.append(m)
 
