@@ -2,6 +2,20 @@
 
 Downloads and checksums: https://github.com/Fikra-API/fikra-code/releases
 
+## 0.3.5
+
+Changed
+- Models now come from the server. The catalog served at `fikraapi.co.ke/code/models.json` decides which models are offered, their names, descriptions, context windows and order. A model added on the server can be selected in a build that predates it, and one removed from the catalog leaves the picker. Tool and prompt settings still come from the binary. The catalog is cached for six hours, so a launch does not re-fetch, and an unreachable server falls back to the last good copy and then to the built-in list.
+- The default model is now whatever the catalog marks as the product default, not a constant compiled into the release, so changing it does not need a new version. A recorded default the build cannot run is ignored.
+
+Fixed
+- Far fewer approval prompts. A write inside a path the sandbox already allows is approved without asking; previously an untrusted project prompted for such writes before checking whether the write was permitted at all. `never` policy still rejects writes outside the allowed paths.
+- The login message still offered "free: DeepSeek V4.1 Flash". The free model is `qwen3.8-27b-free`.
+
+New
+- `/compare <model-a> <model-b> <prompt>` runs one prompt on two models at once and prints both answers with token counts, so picking a model is an experiment rather than a guess.
+- `/catalog` compares the catalog the server serves today with the one built into this binary: models added, models no longer offered, and whether the two agree. It never calls a model, so it works offline and costs nothing.
+
 ## 0.3.4
 
 Changed
