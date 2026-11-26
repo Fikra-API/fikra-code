@@ -197,13 +197,13 @@ pub fn merge(bundled: &[ModelInfo], live_json: &str) -> Option<FikraCatalog> {
         .collect();
 
     let mut ranked: Vec<(i32, &LiveModel)> = Vec::new();
-    let mut main_model = None;
+    let mut main_candidates: Vec<&str> = Vec::new();
     for (index, row) in live.data.iter().enumerate() {
         if EXCLUDED_IDS.contains(&row.id.as_str()) || row.available_in_api == Some(false) {
             continue;
         }
-        if row.is_main == Some(true) && main_model.is_none() {
-            main_model = Some(row.id.clone());
+        if row.is_main == Some(true) {
+            main_candidates.push(row.id.as_str());
         }
         let rank = row
             .rank
@@ -214,6 +214,23 @@ pub fn merge(bundled: &[ModelInfo], live_json: &str) -> Option<FikraCatalog> {
     if ranked.is_empty() {
         return None;
     }
+
+    // Exactly one model may be the default. Several marked `is_main` means the
+    // catalog is ambiguous, and guessing would silently move new users onto a
+    // model they did not choose (and may be billed for), so record none and let
+    // the shipped default stand.
+    let main_model = match main_candidates.as_slice() {
+        [only] => Some((*only).to_string()),
+        _ => {
+            if main_candidates.len() > 1 {
+                tracing::warn!(
+                    count = main_candidates.len(),
+                    "model catalog marks more than one model as the default; keeping the shipped default"
+                );
+            }
+            None
+        }
+    };
 
     let models = ranked
         .into_iter()
@@ -305,6 +322,20 @@ mod tests {
     fn bundled_models_dropped_by_the_server_disappear() {
         let overlay = merge(&bundled(), LIVE).expect("overlay");
         assert!(!overlay.models.iter().any(|m| m.slug == "kimi-k3"));
+    }
+
+    #[test]
+    fn an_ambiguous_default_is_not_trusted() {
+        // The live catalog currently marks several models `is_main`. Picking one
+        // would silently move new users onto a model they did not choose.
+        let ambiguous = r#"{"data":[
+            {"id":"qwen3.8-max","is_main":true,"rank":1},
+            {"id":"qwen3.8-27b-free","is_main":true,"rank":2}
+        ]}"#;
+        let overlay = merge(&bundled(), ambiguous).expect("overlay");
+        assert_eq!(overlay.main_model, None);
+        // Both models are still offered; only the default is withheld.
+        assert_eq!(overlay.models.len(), 2);
     }
 
     #[test]
