@@ -2212,6 +2212,33 @@ impl Session {
         }
     }
 
+    /// Records one applied patch for `/undo`: durable journal plus the in-memory stack.
+    ///
+    /// Lives here because `Session::state` is private to this module tree; tool
+    /// handlers call this instead of touching state directly.
+    pub(crate) async fn record_edit_for_undo(&self, snapshot: edit_snapshots::EditSnapshot) {
+        let journal = undo_journal::JournalEntry {
+            cwd: snapshot.cwd.clone(),
+            files: snapshot
+                .files
+                .iter()
+                .map(|file| {
+                    undo_journal::JournalFile::from_bytes(
+                        file.path.clone(),
+                        file.previous_content.as_deref(),
+                    )
+                })
+                .collect(),
+        };
+        // Durable first: `/undo` runs in the TUI, which cannot see session memory.
+        // A write failure only costs undoability, so it must not fail the patch.
+        if let Err(err) = undo_journal::append(self.codex_home().as_path(), &journal) {
+            tracing::warn!("could not record edit for /undo: {err}");
+        }
+        let mut state = self.state.lock().await;
+        state.edit_snapshots.push(snapshot);
+    }
+
     pub(crate) async fn update_settings(
         &self,
         updates: SessionSettingsUpdate,

@@ -23,6 +23,8 @@ pub(crate) struct FileSnapshot {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct EditSnapshot {
     pub files: Vec<FileSnapshot>,
+    /// Directory the patch was applied in, shown when undoing from elsewhere.
+    pub cwd: std::path::PathBuf,
     /// Human label for the message shown after an undo, e.g. the patch header.
     pub call_id: String,
 }

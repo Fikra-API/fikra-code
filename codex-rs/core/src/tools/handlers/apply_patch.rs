@@ -310,8 +310,15 @@ async fn capture_edit_snapshot(
     if files.is_empty() {
         return None;
     }
+    let cwd = request
+        .turn_environment
+        .cwd()
+        .to_abs_path()
+        .map(|path| path.into_path_buf())
+        .unwrap_or_default();
     Some(crate::session::edit_snapshots::EditSnapshot {
         files,
+        cwd,
         call_id: call_id.to_string(),
     })
 }
@@ -360,26 +367,6 @@ impl ApplyPatchHandler {
         // Capture the exact bytes about to be replaced so `/undo` can restore them.
         // Best effort: a read failure only means this patch is not undoable.
         let snapshot = capture_edit_snapshot(&session, &request, &call_id).await;
-        let request_cwd = request
-            .turn_environment
-            .cwd()
-            .to_abs_path()
-            .map(|path| path.into_path_buf())
-            .unwrap_or_default();
-        let journal_files = match &snapshot {
-            Some(snapshot) => snapshot
-                .files
-                .iter()
-                .map(|file| {
-                    crate::session::undo_journal::JournalFile::from_bytes(
-                        file.path.clone(),
-                        file.previous_content.as_deref(),
-                    )
-                })
-                .collect::<Vec<_>>(),
-            None => Vec::new(),
-        };
-        let codex_home = session.codex_home().await.into_path_buf();
         // `session` moves into the tool context below; keep a handle for the undo record.
         let session_for_undo = std::sync::Arc::clone(&session);
         let tool_ctx = ToolCtx {
@@ -392,19 +379,8 @@ impl ApplyPatchHandler {
         let content = execute_prepared_patch(request, Some(&tracker), tool_ctx).await?;
         // Only record it once the patch actually applied.
         if let Some(snapshot) = snapshot {
-            // Durable journal first: `/undo` runs in the TUI, which cannot see
-            // this session's memory. A write failure only costs undoability.
-            let journal = crate::session::undo_journal::JournalEntry {
-                cwd: request_cwd.clone(),
-                files: journal_files.clone(),
-            };
-            if let Err(err) =
-                crate::session::undo_journal::append(&codex_home, &journal)
-            {
-                tracing::warn!("could not record edit for /undo: {err}");
-            }
-            let mut state = session_for_undo.state.lock().await;
-            state.edit_snapshots.push(snapshot);
+            // Only record it once the patch actually applied.
+            session_for_undo.record_edit_for_undo(snapshot).await;
         }
         Ok(boxed_tool_output(ApplyPatchToolOutput::from_text(content)))
     }
