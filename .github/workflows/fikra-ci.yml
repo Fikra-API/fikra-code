@@ -150,8 +150,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate release workflow YAML
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 - <<'PY'
+          import os
           import sys, yaml
           path = ".github/workflows/fikra-release.yml"
           with open(path) as handle:
@@ -163,5 +166,37 @@ jobs:
           perms = doc.get("permissions") or {}
           if perms.get("id-token") != "write":
               sys.exit("release workflow must grant id-token: write for keyless signing")
-          print("release workflow OK:", ", ".join(jobs))
+
+          with open(path) as handle:
+              text = handle.read()
+
+          # A release that is published as a draft is invisible to users.
+          if "--draft=false" not in text:
+              sys.exit("release must be created with --draft=false")
+
+          # Every `uses:` must exist. A fabricated action SHA only fails on a tag.
+          import json, re, urllib.request
+          token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+          uses = sorted(set(re.findall(r"uses:\s*([^\s#]+)", text)))
+          for ref in uses:
+              if "@" not in ref or ref.startswith("./"):
+                  continue
+              # `owner/repo/sub/dir@sha` — the API wants only owner/repo.
+              repo, sha = ref.rsplit("@", 1)
+              repo = "/".join(repo.split("/")[:2])
+              if not re.fullmatch(r"[0-9a-f]{40}", sha):
+                  sys.exit(f"{ref} is not pinned to a full commit SHA")
+              req = urllib.request.Request(
+                  f"https://api.github.com/repos/{repo}/git/commits/{sha}",
+                  headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+              )
+              try:
+                  urllib.request.urlopen(req, timeout=20)
+              except Exception as error:
+                  sys.exit(f"action {ref} does not resolve: {error}")
+
+          # syft must scan extracted contents; given a tarball it records one file.
+          if 'syft "dir:' not in text:
+              sys.exit("SBOM generation must scan extracted contents (syft \"dir:...\")")
+          print("release workflow OK:", ", ".join(jobs), "| actions:", len(uses))
           PY
