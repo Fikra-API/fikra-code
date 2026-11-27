@@ -23,6 +23,9 @@ on:
 
 permissions:
   contents: write
+  # Keyless cosign signing uses the workflow's OIDC identity, so no key is stored.
+  id-token: write
+  attestations: write
 
 jobs:
   create-release:
@@ -174,6 +177,43 @@ jobs:
           fi
           printf '%s  %s\n' "$sum" "$new" > "dist/${{ matrix.target }}/${new}.sha256"
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+        with:
+          cosign-release: v2.4.1
+
+      - name: Sign archive (keyless)
+        shell: bash
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          set -euo pipefail
+          cd codex-rs/dist/${{ matrix.target }}
+          for archive in fikra-package-*.tar.gz fikra-package-*.zip; do
+            [[ -e "$archive" ]] || continue
+            # Keyless: the signature is bound to this workflow run's OIDC identity,
+            # so verification needs no published public key to be trusted blindly.
+            cosign sign-blob --yes \
+              --bundle "${archive}.sigstore.json" \
+              "$archive"
+          done
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@0f7c1e2e2c4b4a5f8b7a5a2a4c8c6e3f1d2b3a4c # v0.17.11
+        with:
+          syft-version: v1.14.0
+
+      - name: Generate SBOM
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd codex-rs/dist/${{ matrix.target }}
+          for archive in fikra-package-*.tar.gz fikra-package-*.zip; do
+            [[ -e "$archive" ]] || continue
+            # CycloneDX, the format most consumers (Dependency-Track, GitHub, Grype) read.
+            syft "$archive" -o cyclonedx-json > "${archive}.sbom.cdx.json"
+          done
+
       - name: Upload release assets
         shell: bash
         env:
@@ -181,4 +221,45 @@ jobs:
         run: |
           set -euo pipefail
           cd codex-rs/dist/${{ matrix.target }}
-          gh release upload "${{ inputs.tag || github.ref_name }}" fikra-package-* --clobber --repo "${GITHUB_REPOSITORY}"
+          gh release upload "${{ inputs.tag || github.ref_name }}" \
+            fikra-package-* \
+            --clobber --repo "${GITHUB_REPOSITORY}"
+
+  verify-signatures:
+    # Proves the published signatures verify against this repository's workflow
+    # identity, so a user can check a download without trusting a bundled key.
+    needs: [create-release, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+        with:
+          cosign-release: v2.4.1
+
+      - name: Verify every signed archive
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p verify && cd verify
+          gh release download "$TAG" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --pattern 'fikra-package-*' \
+            --clobber
+          checked=0
+          for bundle in *.sigstore.json; do
+            [[ -e "$bundle" ]] || continue
+            archive="${bundle%.sigstore.json}"
+            cosign verify-blob "$archive" \
+              --bundle "$bundle" \
+              --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/fikra-release.yml@refs/tags/" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+            checked=$((checked + 1))
+          done
+          if [[ "$checked" -eq 0 ]]; then
+            echo "No signature bundles were published" >&2
+            exit 1
+          fi
+          echo "verified $checked signed archives"
