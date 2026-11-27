@@ -127,9 +127,15 @@ jobs:
         working-directory: codex-rs
         run: cargo build --target ${{ matrix.target }} -p codex-cli --bin fikra
 
+      # Compile the test binaries only. `cargo test -p codex-tui --no-run` also
+      # builds the codex-tui binary target, whose external `codex_tui` import
+      # resolves differently under the Windows dev profile; the library tests are
+      # what exercise the platform code, so build those with --lib.
       - name: Compile tests (no run)
         working-directory: codex-rs
-        run: cargo test --target ${{ matrix.target }} -p codex-core -p codex-tui --no-run
+        run: |
+          cargo test --target ${{ matrix.target }} -p codex-core --lib --no-run
+          cargo test --target ${{ matrix.target }} -p codex-tui --lib --no-run
 
   release-workflow-lint:
     # A release workflow only runs on a tag, so a mistake there is found at the
