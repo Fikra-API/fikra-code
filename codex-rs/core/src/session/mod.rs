@@ -2232,7 +2232,11 @@ impl Session {
         };
         // Durable first: `/undo` runs in the TUI, which cannot see session memory.
         // A write failure only costs undoability, so it must not fail the patch.
-        if let Err(err) = undo_journal::append(self.codex_home().as_path(), &journal) {
+        let codex_home = {
+            let state = self.state.lock().await;
+            state.session_configuration.codex_home().to_path_buf()
+        };
+        if let Err(err) = undo_journal::append(&codex_home, &journal) {
             tracing::warn!("could not record edit for /undo: {err}");
         }
         let mut state = self.state.lock().await;
