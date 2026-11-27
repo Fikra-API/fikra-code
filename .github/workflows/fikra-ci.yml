@@ -57,6 +57,8 @@ jobs:
           cargo test -p codex-core --lib unfinished_reply
           cargo test -p codex-core --lib turn_completion
           cargo test -p codex-tui --lib fikra_commands
+          cargo test -p codex-tui --lib undo::
+          cargo test -p codex-core --lib undo_journal
           cargo test -p codex-core --lib safety::tests
           cargo test -p codex-core --lib resume_restores
 

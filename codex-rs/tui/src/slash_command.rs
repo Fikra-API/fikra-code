@@ -45,6 +45,7 @@ pub enum SlashCommand {
     New,
     Archive,
     Delete,
+    Undo,
     Resume,
     Fork,
     Worktree,
@@ -123,6 +124,7 @@ impl SlashCommand {
             SlashCommand::Docs => "open the Fikra Code docs",
             SlashCommand::Catalog => "compare the live model catalog with this build",
             SlashCommand::Compare => "run one prompt on two models and compare the answers",
+            SlashCommand::Undo => "revert the files changed by the most recent edit",
             SlashCommand::Rename => "rename the current thread",
             SlashCommand::Resume => "resume a saved chat",
             SlashCommand::Archive => "archive this session",
@@ -328,6 +330,7 @@ impl SlashCommand {
             | SlashCommand::Usage
             | SlashCommand::Connect
             | SlashCommand::Balance
+            | SlashCommand::Undo
             | SlashCommand::Upgrade
             | SlashCommand::Docs
             | SlashCommand::Catalog

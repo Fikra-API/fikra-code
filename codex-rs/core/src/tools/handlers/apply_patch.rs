@@ -284,6 +284,43 @@ fn apply_patch_payload_command(payload: &ToolPayload) -> Option<String> {
     }
 }
 
+/// Reads the pre-patch contents of every path this patch touches.
+async fn capture_edit_snapshot(
+    request: &ApplyPatchRequest,
+    call_id: &str,
+) -> Option<crate::session::edit_snapshots::EditSnapshot> {
+    let filesystem = request.turn_environment.environment().get_filesystem();
+    let mut files = Vec::with_capacity(request.file_paths.len());
+    for path in &request.file_paths {
+        let native = match path.to_abs_path() {
+            Ok(path) => path.into_path_buf(),
+            Err(_) => continue,
+        };
+        let previous_content = filesystem
+            .read_file(path, codex_file_system::ReadFileOptions::default(), None)
+            .await
+            .ok();
+        files.push(crate::session::edit_snapshots::FileSnapshot {
+            path: native,
+            previous_content,
+        });
+    }
+    if files.is_empty() {
+        return None;
+    }
+    let cwd = request
+        .turn_environment
+        .cwd()
+        .to_abs_path()
+        .map(|path| path.into_path_buf())
+        .unwrap_or_default();
+    Some(crate::session::edit_snapshots::EditSnapshot {
+        files,
+        cwd,
+        call_id: call_id.to_string(),
+    })
+}
+
 impl ToolExecutor<ToolInvocation> for ApplyPatchHandler {
     fn tool_name(&self) -> ToolName {
         ToolName::plain("apply_patch")
@@ -325,6 +362,11 @@ impl ApplyPatchHandler {
         };
         let turn_environment = selected_executor(&environments, &step_context.environments)?;
         let request = prepare_patch_request(&patch_input, turn_environment, &step_context).await?;
+        // Capture the exact bytes about to be replaced so `/undo` can restore them.
+        // Best effort: a read failure only means this patch is not undoable.
+        let snapshot = capture_edit_snapshot(&request, &call_id).await;
+        // `session` moves into the tool context below; keep a handle for the undo record.
+        let session_for_undo = std::sync::Arc::clone(&session);
         let tool_ctx = ToolCtx {
             session,
             step_context,
@@ -333,6 +375,11 @@ impl ApplyPatchHandler {
             tool_name,
         };
         let content = execute_prepared_patch(request, Some(&tracker), tool_ctx).await?;
+        // Only record it once the patch actually applied.
+        if let Some(snapshot) = snapshot {
+            // Only record it once the patch actually applied.
+            session_for_undo.record_edit_for_undo(snapshot).await;
+        }
         Ok(boxed_tool_output(ApplyPatchToolOutput::from_text(content)))
     }
 }

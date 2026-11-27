@@ -498,6 +498,20 @@ impl ChatWidget {
                 self.emit_raw_output_mode_changed(enabled);
             }
             SlashCommand::Tui => self.show_tui_mode_picker(),
+            SlashCommand::Undo => {
+                // `/undo` reads the snapshots the last patch recorded in FIKRA_HOME.
+                match codex_utils_home_dir::find_codex_home() {
+                    Ok(home) => {
+                        let cwd = self.session_cwd().clone();
+                        match crate::undo::undo_last_edit(home.as_path(), &cwd.to_path_buf()) {
+                            Ok(message) => self.add_info_message(message, /*hint*/ None),
+                            Err(err) => self.add_error_message(format!("Could not undo: {err}")),
+                        }
+                    }
+                    Err(err) => self
+                        .add_error_message(format!("Could not locate FIKRA_HOME to undo: {err}")),
+                }
+            }
             SlashCommand::Diff => {
                 self.add_diff_in_progress();
                 let tx = self.app_event_tx.clone();
@@ -1470,6 +1484,7 @@ impl ChatWidget {
             | SlashCommand::Usage
             | SlashCommand::Connect
             | SlashCommand::Balance
+            | SlashCommand::Undo
             | SlashCommand::Upgrade
             | SlashCommand::Docs
             | SlashCommand::Catalog

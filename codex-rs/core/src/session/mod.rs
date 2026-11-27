@@ -259,6 +259,7 @@ mod compaction_replacement;
 mod config_refresh;
 pub(crate) mod context_window;
 mod daemon_recovery;
+pub(crate) mod edit_snapshots;
 mod environment;
 mod extension_interruption;
 pub(crate) mod extension_metrics;
@@ -297,6 +298,7 @@ pub(crate) mod step_settings;
 mod thread_settings;
 mod turn_completion;
 mod unfinished_reply;
+pub(crate) mod undo_journal;
 pub(crate) mod time_reminder;
 mod token_budget;
 pub(crate) mod turn;
@@ -2208,6 +2210,37 @@ impl Session {
                 warn!("could not restore persisted permissions on resume: {err}");
             }
         }
+    }
+
+    /// Records one applied patch for `/undo`: durable journal plus the in-memory stack.
+    ///
+    /// Lives here because `Session::state` is private to this module tree; tool
+    /// handlers call this instead of touching state directly.
+    pub(crate) async fn record_edit_for_undo(&self, snapshot: edit_snapshots::EditSnapshot) {
+        let journal = undo_journal::JournalEntry {
+            cwd: snapshot.cwd.clone(),
+            files: snapshot
+                .files
+                .iter()
+                .map(|file| {
+                    undo_journal::JournalFile::from_bytes(
+                        file.path.clone(),
+                        file.previous_content.as_deref(),
+                    )
+                })
+                .collect(),
+        };
+        // Durable first: `/undo` runs in the TUI, which cannot see session memory.
+        // A write failure only costs undoability, so it must not fail the patch.
+        let codex_home = {
+            let state = self.state.lock().await;
+            state.session_configuration.codex_home().to_path_buf()
+        };
+        if let Err(err) = undo_journal::append(&codex_home, &journal) {
+            tracing::warn!("could not record edit for /undo: {err}");
+        }
+        let mut state = self.state.lock().await;
+        state.edit_snapshots.push(snapshot);
     }
 
     pub(crate) async fn update_settings(
