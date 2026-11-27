@@ -334,6 +334,7 @@ impl SlashCommand {
             | SlashCommand::Connect
             | SlashCommand::Balance
             | SlashCommand::Undo
+            | SlashCommand::Budget
             | SlashCommand::Upgrade
             | SlashCommand::Docs
             | SlashCommand::Catalog
