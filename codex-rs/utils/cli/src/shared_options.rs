@@ -104,6 +104,7 @@ impl SharedCliOptions {
         let Self {
             images,
             model,
+            zdr,
             oss,
             oss_provider,
             config_profile_v2,
@@ -118,6 +119,7 @@ impl SharedCliOptions {
         let Self {
             images: root_images,
             model: root_model,
+            zdr: root_zdr,
             oss: root_oss,
             oss_provider: root_oss_provider,
             config_profile_v2: root_config_profile_v2,
@@ -129,6 +131,8 @@ impl SharedCliOptions {
             worktree: root_worktree,
             add_dir: root_add_dir,
         } = root;
+        // ZDR is opt-in: a parent launch that asked for it applies to children.
+        *zdr |= *root_zdr;
 
         if model.is_none() {
             model.clone_from(root_model);
@@ -174,6 +178,7 @@ impl SharedCliOptions {
         let Self {
             images,
             model,
+            zdr,
             oss,
             oss_provider,
             config_profile_v2,
@@ -185,6 +190,9 @@ impl SharedCliOptions {
             worktree,
             add_dir,
         } = subcommand;
+        if zdr {
+            self.zdr = true;
+        }
 
         if let Some(model) = model {
             self.model = Some(model);
