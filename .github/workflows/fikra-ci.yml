@@ -1,7 +1,10 @@
 name: Fikra Code CI
 
-# One Linux job: build once, run focused tests, run the end-to-end smoke test.
-# Windows and optimized builds only run in the release workflow (on tags).
+# Three jobs. `linux` builds, runs the focused tests and the end-to-end smoke
+# test. `cross-platform-build` compiles the CLI and test binaries on macOS and
+# Windows so those targets are verified before a tag, not on it.
+# `release-workflow-lint` parses the release workflow, which otherwise only runs
+# on a tag.
 on:
   push:
     branches: [main]
@@ -12,7 +15,9 @@ on:
 
 concurrency:
   group: fikra-ci-${{ github.ref }}
-  cancel-in-progress: true
+  # A pull request may supersede its own older run, but main must finish every
+  # commit: a cancelled main run means that commit was never verified.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   linux:
@@ -77,6 +82,60 @@ jobs:
           name: fikra-linux-x86_64-debug
           path: codex-rs/target/debug/fikra
           retention-days: 7
+
+  cross-platform-build:
+    # Compile-only on the two platforms the Linux job cannot cover. A PR that
+    # breaks macOS or Windows currently surfaces at tag time, on the release.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            runner: macos-15
+          - target: x86_64-pc-windows-msvc
+            runner: windows-latest
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      CARGO_INCREMENTAL: "0"
+      CARGO_PROFILE_DEV_DEBUG: "0"
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable git long paths
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          git config --global core.longpaths true
+          exit 0
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@d124f86f28ff42855784ff3319f48ac182c248f8 # 1.99.1
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: codex-rs
+          shared-key: cross-${{ matrix.target }}
+
+      # Compile the CLI and the tests that touch platform code, without running
+      # them, so a broken Windows/macOS build fails here instead of at a tag.
+      - name: Build fikra
+        working-directory: codex-rs
+        run: cargo build --target ${{ matrix.target }} -p codex-cli --bin fikra
+
+      # Compile the test binaries only. `cargo test -p codex-tui --no-run` also
+      # builds the codex-tui binary target, whose external `codex_tui` import
+      # resolves differently under the Windows dev profile; the library tests are
+      # what exercise the platform code, so build those with --lib.
+      - name: Compile tests (no run)
+        working-directory: codex-rs
+        run: |
+          cargo test --target ${{ matrix.target }} -p codex-core --lib --no-run
+          cargo test --target ${{ matrix.target }} -p codex-tui --lib --no-run
 
   release-workflow-lint:
     # A release workflow only runs on a tag, so a mistake there is found at the
