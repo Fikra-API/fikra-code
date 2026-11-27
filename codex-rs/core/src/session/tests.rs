@@ -2381,6 +2381,37 @@ async fn record_initial_history_reconstructs_resumed_transcript() {
 }
 
 #[tokio::test]
+async fn resume_restores_persisted_approval_mode() {
+    let (session, _turn_context) = make_session_and_context().await;
+
+    // A thread saved with full access must come back with full access, not the config default.
+    let full_access = ThreadSettingsSnapshot {
+        approval_policy: AskForApproval::Never,
+        permission_profile: PermissionProfile::Disabled,
+        ..session.thread_settings_snapshot().await
+    };
+    let rollout_items = vec![RolloutItem::EventMsg(EventMsg::ThreadSettingsApplied(
+        ThreadSettingsAppliedEvent {
+            thread_id: Some(session.thread_id()),
+            thread_settings: full_access,
+        },
+    ))];
+
+    session
+        .record_initial_history(InitialHistory::Resumed(ResumedHistory {
+            history_revision: None,
+            conversation_id: session.thread_id(),
+            history: Arc::new(rollout_items),
+            rollout_path: Some(PathBuf::from("/tmp/resume-approval.jsonl")),
+        }))
+        .await;
+
+    let restored = session.thread_settings_snapshot().await;
+    assert_eq!(restored.approval_policy, AskForApproval::Never);
+    assert_eq!(restored.permission_profile, PermissionProfile::Disabled);
+}
+
+#[tokio::test]
 async fn record_conversation_items_stamps_missing_turn_id_and_preserves_existing_turn_id() {
     let (session, turn_context) = make_session_and_context().await;
     let mut fresh_item = user_message("fresh");
