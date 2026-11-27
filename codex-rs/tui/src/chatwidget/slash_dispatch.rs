@@ -622,6 +622,10 @@ impl ChatWidget {
                     )));
                 });
             }
+            SlashCommand::Budget => {
+                // Bare `/budget` shows the current status.
+                self.handle_budget_command_args("");
+            }
             SlashCommand::Upgrade => {
                 let opened = webbrowser::open(crate::fikra_commands::PLANS_URL).is_ok();
                 self.add_info_message(
@@ -875,6 +879,41 @@ impl ChatWidget {
         }
     }
 
+    /// `/budget` with optional inline args: no args shows status, a number sets
+    /// the session cap, `off` clears it.
+    fn handle_budget_command_args(&mut self, args: &str) {
+        let Some(codex_home) = codex_utils_home_dir::find_codex_home()
+            .ok()
+            .map(|home| home.as_path().to_path_buf())
+        else {
+            self.add_error_message("Could not locate FIKRA_HOME to read the budget.".to_string());
+            return;
+        };
+        let mut budget = crate::budget::load(&codex_home);
+        match crate::budget::parse_setting(args) {
+            None => {
+                let spent = self.session_spend_usd().unwrap_or(0.0);
+                self.add_info_message(budget.status_line(spent), /*hint*/ None);
+            }
+            Some(Err(message)) => self.add_error_message(message),
+            Some(Ok(amount)) => {
+                budget.session_usd = amount;
+                match crate::budget::save(&codex_home, &budget) {
+                    Ok(()) => {
+                        let spent = self.session_spend_usd().unwrap_or(0.0);
+                        self.add_info_message(
+                            format!("Saved. {}", budget.status_line(spent)),
+                            /*hint*/ None,
+                        );
+                    }
+                    Err(err) => {
+                        self.add_error_message(format!("Could not save the budget: {err}"))
+                    }
+                }
+            }
+        }
+    }
+
     fn dispatch_prepared_command_with_args(
         &mut self,
         cmd: SlashCommand,
@@ -942,6 +981,7 @@ impl ChatWidget {
             return;
         }
         match cmd {
+            SlashCommand::Budget => self.handle_budget_command_args(trimmed),
             SlashCommand::Rc => self.add_error_message(
                 "Open /rc and choose Disable to turn off remote control.".into(),
             ),
@@ -1485,6 +1525,7 @@ impl ChatWidget {
             | SlashCommand::Connect
             | SlashCommand::Balance
             | SlashCommand::Undo
+            | SlashCommand::Budget
             | SlashCommand::Upgrade
             | SlashCommand::Docs
             | SlashCommand::Catalog
