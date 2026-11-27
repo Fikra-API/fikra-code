@@ -402,6 +402,11 @@ pub struct ConfigToml {
     /// Collection of settings that are specific to the TUI.
     pub tui: Option<Tui>,
 
+    /// Reduce retained history, transcript buffers and diff output for machines
+    /// with little RAM. The UI stays usable; older context is dropped sooner and
+    /// compaction runs earlier.
+    pub low_memory: Option<bool>,
+
     /// When set to `true`, `AgentReasoning` events will be hidden from the
     /// UI/output. Defaults to `false`.
     #[serde(default = "default_hide_agent_reasoning")]
