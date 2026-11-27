@@ -299,6 +299,7 @@ pub fn merge(bundled: &[ModelInfo], live_json: &str) -> Option<FikraCatalog> {
 mod tests {
     use super::merge;
     use crate::bundled_models_response;
+    use codex_protocol::openai_models::InputModality;
 
     fn bundled() -> Vec<codex_protocol::openai_models::ModelInfo> {
         bundled_models_response().expect("bundled catalog").models
