@@ -74,3 +74,32 @@ jobs:
           name: fikra-linux-x86_64-debug
           path: codex-rs/target/debug/fikra
           retention-days: 7
+
+  release-workflow-lint:
+    # A release workflow only runs on a tag, so a mistake there is found at the
+    # worst moment. Parse it on every change and fail on syntax errors.
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate release workflow YAML
+        run: |
+          python3 - <<'PY'
+          import sys, yaml
+          path = ".github/workflows/fikra-release.yml"
+          with open(path) as handle:
+              doc = yaml.safe_load(handle)
+          jobs = doc.get("jobs") or {}
+          for required in ("create-release", "prepare", "build", "verify-signatures"):
+              if required not in jobs:
+                  sys.exit(f"release workflow is missing job {required!r}")
+          perms = doc.get("permissions") or {}
+          if perms.get("id-token") != "write":
+              sys.exit("release workflow must grant id-token: write for keyless signing")
+          print("release workflow OK:", ", ".join(jobs))
+          PY
