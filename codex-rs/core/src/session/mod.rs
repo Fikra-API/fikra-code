@@ -1862,6 +1862,9 @@ impl Session {
                     Self::last_token_usage_record_from_rollout(&rollout_items);
 
                 let thread_id = self.thread_id();
+                // Keep the permissions the user granted in an earlier run; otherwise resume
+                // rebuilds the first turn from config and falls back to `on-request`.
+                self.restore_persisted_permissions(&rollout_items).await;
                 let current_settings = self.thread_settings_snapshot().await;
                 let persisted_settings = rollout_items.iter().rev().find_map(|item| match item {
                     RolloutItem::EventMsg(EventMsg::ThreadSettingsApplied(event))
@@ -2165,6 +2168,46 @@ impl Session {
     ) {
         let mut state = self.state.lock().await;
         state.set_previous_turn_settings(previous_turn_settings);
+    }
+
+    /// Re-applies the approval policy and sandbox policy a resumed thread was last saved with.
+    ///
+    /// Resume builds the first turn from current config, which drops a permission grant the
+    /// user made in an earlier run. Restoring the persisted values keeps "full access" sticky
+    /// across restarts. Sessions that never recorded a policy keep the config default.
+    async fn restore_persisted_permissions(&self, rollout_items: &[RolloutItem]) {
+        let thread_id = self.thread_id();
+        let Some(settings) = rollout_items.iter().rev().find_map(|item| match item {
+            RolloutItem::EventMsg(EventMsg::ThreadSettingsApplied(event))
+                if event.thread_id == Some(thread_id) =>
+            {
+                Some(&event.thread_settings)
+            }
+            _ => None,
+        }) else {
+            return;
+        };
+
+        let overrides = codex_protocol::protocol::ThreadSettingsOverrides {
+            approval_policy: Some(settings.approval_policy),
+            approvals_reviewer: Some(settings.approvals_reviewer),
+            permission_profile: Some(settings.permission_profile.clone()),
+            active_permission_profile: settings.active_permission_profile.clone(),
+            ..Default::default()
+        };
+
+        match self
+            .update_settings(thread_settings::prepare_update(
+                overrides,
+                &self.services.selected_capability_roots,
+            ))
+            .await
+        {
+            Ok(_) => {}
+            Err(err) => {
+                warn!("could not restore persisted permissions on resume: {err}");
+            }
+        }
     }
 
     pub(crate) async fn update_settings(
