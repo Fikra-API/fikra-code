@@ -43,7 +43,7 @@ never be silently stuck on a paid model, and be able to take back a bad edit.
    Done when: a text-only model lists no `view_image` tool and a vision model
    does; unit test over two catalog entries.
 
-3. **Release signing and SBOM.**
+3. **Release signing and SBOM.** _Done: PR #12._
    `.github/workflows/fikra-release.yml` publishes `.sha256` only.
    Do: sign every asset (minisign or cosign), publish `*.sig`, and emit a
    CycloneDX SBOM per release.
