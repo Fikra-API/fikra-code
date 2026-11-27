@@ -1484,6 +1484,7 @@ impl ChatWidget {
             | SlashCommand::Usage
             | SlashCommand::Connect
             | SlashCommand::Balance
+            | SlashCommand::Undo
             | SlashCommand::Upgrade
             | SlashCommand::Docs
             | SlashCommand::Catalog
