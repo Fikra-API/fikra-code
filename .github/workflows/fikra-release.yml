@@ -40,7 +40,8 @@ jobs:
           gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" \
               --title "Fikra Code $tag" \
-              --notes "Fikra Code $tag"
+              --notes "Fikra Code $tag" \
+              --draft=false
 
   prepare:
     runs-on: ubuntu-latest
@@ -77,7 +78,7 @@ jobs:
       CARGO_PROFILE_RELEASE_DEBUG: "0"
       CARGO_PROFILE_RELEASE_STRIP: "symbols"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Enable git long paths
         if: runner.os == 'Windows'
@@ -93,7 +94,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Cache Rust
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
         with:
           workspaces: codex-rs
           cache-on-failure: true
@@ -210,8 +211,27 @@ jobs:
           cd codex-rs/dist/${{ matrix.target }}
           for archive in fikra-package-*.tar.gz fikra-package-*.zip; do
             [[ -e "$archive" ]] || continue
+            # Scan the extracted tree. Pointing syft at the archive itself records
+            # one opaque `file` component and no dependencies.
+            work="$(mktemp -d)"
+            if [[ "$archive" == *.zip ]]; then
+              unzip -q "$archive" -d "$work"
+            else
+              tar -xzf "$archive" -C "$work"
+            fi
             # CycloneDX, the format most consumers (Dependency-Track, GitHub, Grype) read.
-            syft "$archive" -o cyclonedx-json > "${archive}.sbom.cdx.json"
+            syft "dir:$work" -o cyclonedx-json > "${archive}.sbom.cdx.json"
+            rm -rf "$work"
+            # Fail loudly rather than publish a header-only SBOM.
+            components="$(
+              python3 -c "import json,sys; print(len(json.load(open(sys.argv[1])).get('components',[])))" \
+                "${archive}.sbom.cdx.json"
+            )"
+            if [[ "$components" -eq 0 ]]; then
+              echo "SBOM for $archive has no components" >&2
+              exit 1
+            fi
+            echo "$archive: $components components"
           done
 
       - name: Upload release assets
