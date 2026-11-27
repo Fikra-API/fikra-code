@@ -14,6 +14,7 @@ use std::time::Duration;
 
 use codex_http_client::ClientRouteClass;
 use codex_http_client::HttpClientFactory;
+use codex_protocol::openai_models::InputModality;
 use codex_protocol::openai_models::ModelInfo;
 use http::header::USER_AGENT;
 use serde::Deserialize;
@@ -57,6 +58,9 @@ struct LiveModel {
     is_main: Option<bool>,
     #[serde(default)]
     rank: Option<i32>,
+    /// Capability tags the server publishes, e.g. `tools`, `vision`, `tts`.
+    #[serde(default)]
+    capabilities: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -262,6 +266,23 @@ pub fn merge(bundled: &[ModelInfo], live_json: &str) -> Option<FikraCatalog> {
             if let Some(description) = row.description.as_deref().filter(|text| !text.is_empty()) {
                 model.description = Some(description.to_string());
             }
+            // Capabilities decide which input modalities the model accepts. Without them a
+            // server-added model inherits "text + image", which offers `view_image` to a
+            // text-only model and only produces an error. Only narrow a bundled model when
+            // the server actually publishes a capability list, so a sparse catalog row
+            // cannot silently strip vision from a model that has it.
+            if !row.capabilities.is_empty() {
+                let vision = row
+                    .capabilities
+                    .iter()
+                    .any(|capability| capability.eq_ignore_ascii_case("vision"));
+                model.input_modalities = if vision {
+                    vec![InputModality::Text, InputModality::Image]
+                } else {
+                    vec![InputModality::Text]
+                };
+                model.supports_image_detail_original = vision;
+            }
             if let Some(window) = row.context_window.filter(|window| *window > 0) {
                 let window = window.min(MAX_CONTEXT_WINDOW);
                 model.context_window = Some(window);
@@ -324,6 +345,31 @@ mod tests {
             added.visibility,
             codex_protocol::openai_models::ModelVisibility::List
         ));
+    }
+
+    #[test]
+    fn capabilities_decide_whether_a_model_accepts_images() {
+        let live = r#"{"data":[
+            {"id":"brand-new-text","display_name":"Text","rank":1,"capabilities":["tools"]},
+            {"id":"brand-new-vision","display_name":"Vision","rank":2,"capabilities":["tools","vision"]}
+        ]}"#;
+        let overlay = merge(&bundled(), live).expect("overlay");
+
+        let text = overlay
+            .models
+            .iter()
+            .find(|m| m.slug == "brand-new-text")
+            .expect("text model");
+        assert_eq!(text.input_modalities, vec![InputModality::Text]);
+        assert!(!text.supports_image_detail_original);
+
+        let vision = overlay
+            .models
+            .iter()
+            .find(|m| m.slug == "brand-new-vision")
+            .expect("vision model");
+        assert!(vision.input_modalities.contains(&InputModality::Image));
+        assert!(vision.supports_image_detail_original);
     }
 
     #[test]
