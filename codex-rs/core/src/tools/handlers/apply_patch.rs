@@ -286,7 +286,6 @@ fn apply_patch_payload_command(payload: &ToolPayload) -> Option<String> {
 
 /// Reads the pre-patch contents of every path this patch touches.
 async fn capture_edit_snapshot(
-    session: &std::sync::Arc<crate::session::Session>,
     request: &ApplyPatchRequest,
     call_id: &str,
 ) -> Option<crate::session::edit_snapshots::EditSnapshot> {
@@ -306,7 +305,6 @@ async fn capture_edit_snapshot(
             previous_content,
         });
     }
-    let _ = session;
     if files.is_empty() {
         return None;
     }
@@ -366,7 +364,7 @@ impl ApplyPatchHandler {
         let request = prepare_patch_request(&patch_input, turn_environment, &step_context).await?;
         // Capture the exact bytes about to be replaced so `/undo` can restore them.
         // Best effort: a read failure only means this patch is not undoable.
-        let snapshot = capture_edit_snapshot(&session, &request, &call_id).await;
+        let snapshot = capture_edit_snapshot(&request, &call_id).await;
         // `session` moves into the tool context below; keep a handle for the undo record.
         let session_for_undo = std::sync::Arc::clone(&session);
         let tool_ctx = ToolCtx {
