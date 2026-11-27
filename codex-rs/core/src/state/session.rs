@@ -125,6 +125,9 @@ pub(crate) struct SessionState {
     pub(crate) pending_session_start_sources: VecDeque<codex_hooks::SessionStartSource>,
     next_turn_is_first: bool,
     initial_settings_pending: bool,
+    /// Bounded history of file contents captured before each patch, so `/undo`
+    /// can restore the exact previous bytes.
+    pub(crate) edit_snapshots: crate::session::edit_snapshots::EditSnapshots,
 }
 
 impl SessionState {
@@ -178,6 +181,7 @@ impl SessionState {
             pending_session_start_sources: VecDeque::new(),
             next_turn_is_first: true,
             initial_settings_pending: true,
+            edit_snapshots: crate::session::edit_snapshots::EditSnapshots::default(),
         }
     }
 
