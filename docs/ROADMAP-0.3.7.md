@@ -21,7 +21,7 @@ never be silently stuck on a paid model, and be able to take back a bad edit.
 
 ## Fixes (do these first)
 
-1. **Resume restores the thread's approval mode.**
+1. **Resume restores the thread's approval mode.** _Done: PR #10._
    `threads.approval_mode` and `threads.sandbox_policy` are written by
    `codex-rs/thread-store/src/thread_metadata_sync.rs:299`, but the resume path
    (`codex-rs/core/src/session/mod.rs:1866`, `InitialHistory::Resumed`) only
@@ -34,7 +34,7 @@ never be silently stuck on a paid model, and be able to take back a bad edit.
    (`resume_restores_persisted_approval_mode`) asserts it, and a thread saved
    with `on-request` still resumes as `on-request`.
 
-2. **Gate tools on catalog capabilities.**
+2. **Gate tools on catalog capabilities.** _Done: PR #11._
    `models.json` carries `capabilities` (for example `["tools","vision"]`), but
    the client ignores it, so `view_image` is offered on text-only models and
    errors ("not allowed because you do not support image inputs").
