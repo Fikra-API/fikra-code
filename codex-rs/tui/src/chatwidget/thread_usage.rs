@@ -356,6 +356,18 @@ impl ChatWidget {
         self.thread_usage.estimate.as_ref()
     }
 
+    /// Dollars spent on this thread so far, for `/budget`.
+    ///
+    /// Unlike the status-line item this is not gated on plan: a user who set a
+    /// spend cap needs the number regardless of how they are billed.
+    pub(crate) fn session_spend_usd(&self) -> Option<f64> {
+        let usage = self.estimated_thread_usage()?;
+        let micros = usage
+            .native_usage_usd_micros
+            .or(usage.estimated_usage_usd_micros)?;
+        Some(micros as f64 / 1_000_000.0)
+    }
+
     fn request_thread_usage(&mut self) {
         let Some(thread_id) = self.thread_id else {
             return;

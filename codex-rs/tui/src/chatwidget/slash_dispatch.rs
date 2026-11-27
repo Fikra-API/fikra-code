@@ -622,6 +622,40 @@ impl ChatWidget {
                     )));
                 });
             }
+            SlashCommand::Budget => {
+                let codex_home = codex_utils_home_dir::find_codex_home()
+                    .map(|home| home.as_path().to_path_buf())
+                    .ok();
+                let Some(codex_home) = codex_home else {
+                    self.add_error_message(
+                        "Could not locate FIKRA_HOME to read the budget.".to_string(),
+                    );
+                    return;
+                };
+                let mut budget = crate::budget::load(&codex_home);
+                match crate::budget::parse_setting(trimmed) {
+                    // No argument: show the current status.
+                    None => {
+                        let spent = self.session_spend_usd().unwrap_or(0.0);
+                        self.add_info_message(budget.status_line(spent), /*hint*/ None);
+                    }
+                    Some(Err(message)) => self.add_error_message(message),
+                    Some(Ok(amount)) => {
+                        budget.session_usd = amount;
+                        match crate::budget::save(&codex_home, &budget) {
+                            Ok(()) => {
+                                let spent = self.session_spend_usd().unwrap_or(0.0);
+                                self.add_info_message(
+                                    format!("Saved. {}", budget.status_line(spent)),
+                                    /*hint*/ None,
+                                );
+                            }
+                            Err(err) => self
+                                .add_error_message(format!("Could not save the budget: {err}")),
+                        }
+                    }
+                }
+            }
             SlashCommand::Upgrade => {
                 let opened = webbrowser::open(crate::fikra_commands::PLANS_URL).is_ok();
                 self.add_info_message(

@@ -223,6 +223,7 @@ impl SlashCommand {
                 | SlashCommand::Cd
                 | SlashCommand::Pwd
                 | SlashCommand::Usage
+                | SlashCommand::Budget
                 | SlashCommand::Pets
                 | SlashCommand::Side
                 | SlashCommand::Btw
