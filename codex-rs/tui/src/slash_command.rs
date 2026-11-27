@@ -35,6 +35,7 @@ pub enum SlashCommand {
     Colab,
     Connect,
     Balance,
+    Budget,
     Upgrade,
     Docs,
     /// Compare the model catalog served today with the one built into this binary.
@@ -120,6 +121,7 @@ impl SlashCommand {
             SlashCommand::Colab => "make a notebook Colab-ready and give me the Open in Colab link",
             SlashCommand::Connect => "show GitHub, Kaggle and Colab connection status",
             SlashCommand::Balance => "show my Fikra balance, free allowance and recent usage",
+            SlashCommand::Budget => "set or show a spend cap for this session",
             SlashCommand::Upgrade => "open Fikra plans in the browser (KES 200/week, $10/month)",
             SlashCommand::Docs => "open the Fikra Code docs",
             SlashCommand::Catalog => "compare the live model catalog with this build",
