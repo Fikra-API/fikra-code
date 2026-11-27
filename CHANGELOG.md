@@ -2,6 +2,26 @@
 
 Downloads and checksums: https://github.com/Fikra-API/fikra-code/releases
 
+## 0.3.7
+
+Fixed
+- A reopened thread came back with the config default approval policy, so the first "continue" prompted even after full access had been granted. Resume now re-applies the thread's saved approval policy, reviewer and permission profile. (PR #10)
+- Models the server added inherited text-plus-image modalities, so `view_image` was offered to text-only models and could only return an error. The catalog's `capabilities` now decide input modalities and original-detail support. (PR #11)
+
+New
+- `/undo` reverts the files changed by the most recent edit. Every patch records the previous bytes of the paths it touches in a bounded journal under `FIKRA_HOME`, and `/undo` restores them, removing files the patch created. (PR #13)
+- `/budget` sets a session spend cap in `FIKRA_HOME/budget.toml`. `/budget 0.50` warns at 80% and reports the cap state and fallback model; `/budget off` clears it. Enforcement inside the turn loop lands next. (PR #14)
+- `/balance` leads with the KES amount for KES accounts, with the USD total in brackets.
+- The first turn on a free model shows a one-time notice that free-model prompts are stored and used for training, with the paid-model-plus-ZDR path.
+- `fikra --zdr` sends `X-Fikra-ZDR: true` on the built-in Fikra provider, so zero data retention no longer needs an exported variable.
+- Releases are signed with keyless cosign and ship a CycloneDX SBOM per archive. A `verify-signatures` job checks the published bundles against this repository's workflow identity. (PR #12)
+
+Build
+- CI now compiles the CLI and library test binaries on macOS (`aarch64-apple-darwin`) and Windows (`x86_64-pc-windows-msvc`), so a cross-platform break fails on the pull request instead of on the tag. (PR #17)
+- CI no longer cancels an in-progress run on `main`; a cancelled run meant that commit was never verified. Pull requests still supersede their own older runs.
+- `model_fallback` chooses the next model after a rate or quota limit, preferring a free model and never the one that just failed.
+- `low_memory = true` in `config.toml` trims retained history and buffers for low-RAM machines.
+
 ## 0.3.6
 
 Fixed
