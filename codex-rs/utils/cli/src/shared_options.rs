@@ -22,6 +22,11 @@ pub struct SharedCliOptions {
     #[arg(long, short = 'm')]
     pub model: Option<String>,
 
+    /// Ask Fikra to keep zero data retention for every request.
+    /// Equivalent to `FIKRA_ZDR=true`; applies to the built-in Fikra provider only.
+    #[arg(long = "zdr", default_value_t = false)]
+    pub zdr: bool,
+
     /// Use open-source provider.
     #[arg(long = "oss", default_value_t = false)]
     pub oss: bool,

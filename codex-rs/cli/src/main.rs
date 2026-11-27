@@ -1095,6 +1095,12 @@ async fn dispatch_cli(
     } = config_override_args::try_parse_from(std::env::args_os())
         .unwrap_or_else(|error| error.exit());
     ensure_fikra_default_config();
+    // `--zdr` is the flag form of FIKRA_ZDR. The Fikra provider reads the header
+    // value from this variable, so set it once before anything builds a request.
+    if interactive.zdr {
+        // SAFETY: single-threaded initialization, before any worker starts.
+        unsafe { std::env::set_var("FIKRA_ZDR", "true") };
+    }
     // Retain the launch target through TUI exit, even if a launcher changes selection.
     let daemon_cli_executable = arg0_paths
         .codex_self_exe

@@ -60,7 +60,23 @@ pub async fn fikra_usage_report(api_key: &str, days: u32) -> Result<String, Stri
 
     let mut out = String::new();
     let total = balance.get("total").and_then(Value::as_f64).unwrap_or(0.0);
-    out.push_str(&format!("Balance       ${total:.2}\n"));
+    let currency = balance
+        .get("currency")
+        .and_then(Value::as_str)
+        .unwrap_or("USD")
+        .to_ascii_uppercase();
+    // Fikra Code is priced in KES for Kenyan accounts, so lead with that balance
+    // instead of always reporting dollars.
+    if currency == "KES" {
+        let kes = balance
+            .get("total_local")
+            .or_else(|| balance.get("total_kes"))
+            .and_then(Value::as_f64)
+            .unwrap_or(0.0);
+        out.push_str(&format!("Balance       KES {kes:.2} (${total:.2})\n"));
+    } else {
+        out.push_str(&format!("Balance       ${total:.2}\n"));
+    }
     if let Some(tier) = balance.get("tier").and_then(Value::as_str) {
         out.push_str(&format!("Account tier  {tier}\n"));
     }
