@@ -52,7 +52,7 @@ never be silently stuck on a paid model, and be able to take back a bad edit.
 
 ## Features
 
-4. **`/budget`: a spend cap the user sets.**
+4. **`/budget`: a spend cap the user sets.** _Done: PR #14._
    Nothing today (`max_cost`, `budget_usd`, `cost_limit` have no hits). Add
    `budget.session_usd` and `budget.daily_usd` to config, track spend from the
    existing `thread_cost_micros` plumbing
@@ -72,7 +72,7 @@ never be silently stuck on a paid model, and be able to take back a bad edit.
    statusline and `/status`, and an unpriced model shows nothing rather than a
    wrong number.
 
-6. **`/undo` for file edits.**
+6. **`/undo` for file edits.** _Done: PR #13._
    No workspace rewind exists (`Undo` only appears in composer text history).
    Snapshot the touched files before each `apply_patch`, keep the last N
    snapshots per thread, and let `/undo` revert the most recent edit.
