@@ -196,7 +196,7 @@ jobs:
                   sys.exit(f"action {ref} does not resolve: {error}")
 
           # syft must scan extracted contents; given a tarball it records one file.
-          if 'syft "dir:' not in text:
-              sys.exit("SBOM generation must scan extracted contents (syft \"dir:...\")")
+          if 'syft "file:' not in text or "Cargo.lock" not in text:
+              sys.exit("SBOM generation must catalog Cargo.lock (statically linked binaries have no package db)")
           print("release workflow OK:", ", ".join(jobs), "| actions:", len(uses))
           PY
