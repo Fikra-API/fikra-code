@@ -745,6 +745,8 @@ pub struct Config {
     /// suppressed from the frontend output. This can reduce visual noise when
     /// users are only interested in the final agent responses.
     pub hide_agent_reasoning: bool,
+    /// Trim retained history and output buffers for low-RAM machines.
+    pub low_memory: bool,
 
     /// When set to `true`, `AgentReasoningRawContentEvent` events will be shown in the UI/output.
     /// Defaults to `false`.
@@ -4921,6 +4923,7 @@ impl Config {
             zsh_path: None,
 
             hide_agent_reasoning: cfg.hide_agent_reasoning.unwrap_or(false),
+            low_memory: cfg.low_memory.unwrap_or(false),
             show_raw_agent_reasoning: cfg
                 .show_raw_agent_reasoning
                 .or(show_raw_agent_reasoning)

@@ -65,6 +65,7 @@ jobs:
           cargo test -p codex-tui --lib undo::
           cargo test -p codex-tui --lib budget::
           cargo test -p codex-core --lib undo_journal
+          cargo test -p codex-core --lib model_fallback
           cargo test -p codex-core --lib safety::tests
           cargo test -p codex-core --lib resume_restores
 

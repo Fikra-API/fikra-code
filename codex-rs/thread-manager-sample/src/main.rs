@@ -268,6 +268,7 @@ async fn new_config(
         requested_approvals_reviewer: None,
         enforce_residency: Constrained::allow_any(/*initial_value*/ None),
         hide_agent_reasoning: false,
+        low_memory: false,
         show_raw_agent_reasoning: false,
         base_instructions: None,
         base_instructions_provenance: None,
