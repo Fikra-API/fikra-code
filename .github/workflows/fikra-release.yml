@@ -211,18 +211,12 @@ jobs:
           cd codex-rs/dist/${{ matrix.target }}
           for archive in fikra-package-*.tar.gz fikra-package-*.zip; do
             [[ -e "$archive" ]] || continue
-            # Scan the extracted tree. Pointing syft at the archive itself records
-            # one opaque `file` component and no dependencies.
-            work="$(mktemp -d)"
-            if [[ "$archive" == *.zip ]]; then
-              unzip -q "$archive" -d "$work"
-            else
-              tar -xzf "$archive" -C "$work"
-            fi
-            # CycloneDX, the format most consumers (Dependency-Track, GitHub, Grype) read.
-            syft "dir:$work" -o cyclonedx-json > "${archive}.sbom.cdx.json"
-            rm -rf "$work"
-            # Fail loudly rather than publish a header-only SBOM.
+            # The archive holds statically linked Rust binaries, which have no OS
+            # package database for syft to read. The dependency list lives in
+            # Cargo.lock, so catalog that and attach the result to the archive.
+            syft "file:${GITHUB_WORKSPACE}/codex-rs/Cargo.lock" \
+              --source-name "$archive" \
+              -o cyclonedx-json > "${archive}.sbom.cdx.json"
             components="$(
               python3 -c "import json,sys; print(len(json.load(open(sys.argv[1])).get('components',[])))" \
                 "${archive}.sbom.cdx.json"
