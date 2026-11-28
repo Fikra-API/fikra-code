@@ -107,6 +107,7 @@ pub(crate) use worktree_startup::ManagedTuiWorktree;
 
 mod activation_key_guard;
 mod budget;
+mod free_tier_notice;
 mod undo;
 mod additional_dirs;
 mod analytics;
